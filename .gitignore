@@ -1,0 +1,9 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+
+# Personal documents not used by the site — excluded from upload by default.
+# Delete these lines if you want them in the repo.
+pdfs/Thomas Julsgaard*.pdf
+pdfs/Tutor certificate*.pdf
