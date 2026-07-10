@@ -359,7 +359,7 @@
         slider = document.getElementById('m-slider');
 
   let player = null, ready = false, apiReady = false;
-  let idx = 0, playing = false, wantPlay = false, muted = false, errStreak = 0, failed = false;
+  let idx = 0, playing = false, wantPlay = false, muted = false, errStreak = 0;
   let vol = 65;
   try { const v = localStorage.getItem('pf_music_vol'); if (v !== null) vol = Math.max(0, Math.min(100, +v)); } catch (e) {}
   slider.value = vol;
@@ -386,7 +386,6 @@
     iMuted.style.display = m ? '' : 'none';
   }
   function setTrack(i, autoplay) {
-    failed = false;
     idx = ((i % TRACKS.length) + TRACKS.length) % TRACKS.length;
     setLabel(TRACKS[idx].label);
     if (player && ready) {
@@ -421,18 +420,9 @@
           else if (e.data === 1) { playing = true; wantPlay = false; errStreak = 0; syncUI(); }
           else if (e.data === 2) { playing = false; syncUI(); }
         },
-        onError: e => {
-          console.warn('[music] YT error ' + e.data + ' on ' + TRACKS[idx].id);
-          if (location.protocol === 'file:') {
-            // YouTube rejects ALL file:// embeds (error 153, empty referer) — verified against
-            // every track. No point cycling; point at the http launcher instead.
-            wantPlay = false; playing = false; failed = true;
-            setLabel('file:// blocks streaming — use “open portfolio.bat”');
-            syncUI(); return;
-          }
-          // embed-blocked or broken video → skip; give up after a full failed cycle
+        onError: () => { // embed-blocked or broken → skip; give up after a full failed cycle
           errStreak++;
-          if (errStreak >= TRACKS.length) { wantPlay = false; playing = false; failed = true; setLabel('stream unavailable — press play to retry'); syncUI(); return; }
+          if (errStreak >= TRACKS.length) { wantPlay = false; playing = false; setLabel('stream unavailable'); syncUI(); return; }
           setTrack(idx + 1, playing || wantPlay);
         },
       },
@@ -440,7 +430,6 @@
   }
 
   playBtn.addEventListener('click', () => {
-    if (failed) { errStreak = 0; setTrack(idx, true); return; } // manual retry from the error state
     if (!player) { wantPlay = true; syncUI(); loadAPI(); createPlayer(); return; }
     if (!ready) { wantPlay = true; syncUI(); return; }
     if (playing) player.pauseVideo();

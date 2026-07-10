@@ -73,7 +73,7 @@
   #departfill { height:100%; width:0%; background:#fff; }
 
   #enter-btn {
-    position:fixed; right:18px; top:53px; z-index:6;
+    position:fixed; right:18px; top:14px; z-index:6;
     background:transparent; border:1px solid rgba(255,255,255,0.4); color:rgba(255,255,255,0.8);
     font-family:inherit; font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
     padding:7px 12px; cursor:pointer;
@@ -81,7 +81,7 @@
   #enter-btn:hover { background:#fff; color:#000; }
 
   #explore-btn {
-    position:fixed; right:18px; top:89px; z-index:6;
+    position:fixed; right:18px; top:50px; z-index:6;
     background:transparent; border:1px solid rgba(255,255,255,0.4); color:rgba(255,255,255,0.8);
     font-family:inherit; font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
     padding:7px 12px; cursor:pointer;
@@ -138,58 +138,6 @@
   #gen-drop { border:1px dashed rgba(255,255,255,0.3); padding:12px 8px; text-align:center; font-size:10px; letter-spacing:0.08em; color:rgba(255,255,255,0.55); cursor:pointer; }
   #gen-drop.over { border-color:#fff; color:#fff; }
 
-  /* music bar — top-right corner, streams the playlist through a hidden YouTube player */
-  #music {
-    position:fixed; right:18px; top:14px; z-index:6;
-    display:flex; align-items:center; height:29px; padding:0 8px 0 11px;
-    background:rgba(0,0,0,0.42); border:1px solid rgba(255,255,255,0.28);
-    backdrop-filter:blur(4px); color:rgba(255,255,255,0.7); user-select:none;
-  }
-  #m-eq { display:flex; align-items:flex-end; gap:2px; height:11px; margin-right:10px; flex:none; }
-  #m-eq i { width:2px; height:100%; background:currentColor; transform:scaleY(0.22); transform-origin:bottom; transition:transform 0.4s ease; }
-  #music.playing #m-eq i { animation:m-eqb 1.05s ease-in-out infinite; }
-  #music.playing #m-eq i:nth-child(2) { animation-duration:0.85s; animation-delay:-0.35s; }
-  #music.playing #m-eq i:nth-child(3) { animation-duration:1.25s; animation-delay:-0.7s; }
-  #music.playing #m-eq i:nth-child(4) { animation-duration:0.95s; animation-delay:-0.15s; }
-  @keyframes m-eqb { 0%,100% { transform:scaleY(0.22); } 50% { transform:scaleY(1); } }
-  #music.wait #m-eq i { animation:m-eqw 0.9s ease-in-out infinite; }
-  #music.wait #m-eq i:nth-child(2) { animation-delay:0.12s; }
-  #music.wait #m-eq i:nth-child(3) { animation-delay:0.24s; }
-  #music.wait #m-eq i:nth-child(4) { animation-delay:0.36s; }
-  @keyframes m-eqw { 0%,100% { opacity:0.35; } 50% { opacity:1; } }
-  #m-title {
-    display:block; max-width:172px; overflow:hidden; white-space:nowrap;
-    font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
-    color:rgba(255,255,255,0.72); text-decoration:none;
-    -webkit-mask-image:linear-gradient(90deg, transparent, #000 7px, #000 calc(100% - 7px), transparent);
-    mask-image:linear-gradient(90deg, transparent, #000 7px, #000 calc(100% - 7px), transparent);
-  }
-  #m-title:hover { color:#fff; }
-  #m-title span { display:inline-block; padding:0 7px; }
-  #music.mq #m-title span { animation:m-scroll var(--mqd, 9s) ease-in-out infinite alternate; }
-  @keyframes m-scroll { 0%, 14% { transform:translateX(0); } 86%, 100% { transform:translateX(var(--mq, 0px)); } }
-  .m-sep { width:1px; height:12px; background:rgba(255,255,255,0.22); margin:0 8px 0 5px; flex:none; }
-  #m-ctl { display:flex; align-items:center; gap:1px; flex:none; }
-  #music button {
-    background:transparent; border:none; padding:0; width:20px; height:20px; flex:none;
-    display:flex; align-items:center; justify-content:center;
-    color:rgba(255,255,255,0.6); cursor:pointer;
-  }
-  #music button:hover { color:#fff; }
-  #music svg { display:block; fill:currentColor; }
-  #m-vol { display:flex; align-items:center; flex:none; }
-  #m-vol input {
-    -webkit-appearance:none; appearance:none; width:0; height:2px; margin:0; opacity:0;
-    background:rgba(255,255,255,0.3); outline:none; cursor:pointer;
-    transition:width 0.25s ease, opacity 0.25s ease, margin 0.25s ease;
-  }
-  #m-vol:hover input, #music.volshow #m-vol input { width:54px; opacity:1; margin-left:5px; }
-  #m-vol input::-webkit-slider-thumb { -webkit-appearance:none; width:8px; height:8px; border-radius:50%; background:#fff; }
-  #m-vol input::-moz-range-thumb { width:8px; height:8px; border:none; border-radius:50%; background:#fff; }
-  #m-vol input::-moz-range-track { height:2px; background:rgba(255,255,255,0.3); }
-  #yt-audio-wrap { position:fixed; right:0; bottom:0; width:2px; height:2px; overflow:hidden; opacity:0; pointer-events:none; }
-  @media (max-width:680px) { #m-title { max-width:96px; } }
-
   #vignette { position:fixed; inset:0; z-index:1; pointer-events:none;
     background:radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%); }
 </style>
@@ -207,28 +155,6 @@
   <button id="enter-btn">Begin journey ▸</button>
   <button id="explore-btn">Free roam ▸</button>
 
-  <div id="music">
-    <div id="m-eq"><i></i><i></i><i></i><i></i></div>
-    <a id="m-title" target="_blank" rel="noopener" title="Open on YouTube"><span>—</span></a>
-    <div class="m-sep"></div>
-    <div id="m-ctl">
-      <button id="m-prev" title="Previous"><svg width="9" height="9" viewBox="0 0 10 10"><path d="M1.2 1h1.5v8H1.2zM9 1v8L3.4 5z"/></svg></button>
-      <button id="m-play" title="Play / pause">
-        <svg id="m-i-play" width="10" height="10" viewBox="0 0 10 10"><path d="M2 .9 9 5 2 9.1z"/></svg>
-        <svg id="m-i-pause" width="10" height="10" viewBox="0 0 10 10" style="display:none"><path d="M1.8 1h2.1v8H1.8zM6.1 1h2.1v8H6.1z"/></svg>
-      </button>
-      <button id="m-next" title="Next"><svg width="9" height="9" viewBox="0 0 10 10"><path d="M7.3 1h1.5v8H7.3zM1 1v8l5.6-4z"/></svg></button>
-    </div>
-    <div id="m-vol">
-      <button id="m-mute" title="Mute">
-        <svg id="m-i-vol" width="11" height="11" viewBox="0 0 11 11"><path d="M1 4v3h2l2.6 2.4V1.6L3 4z"/><path d="M7.4 3.1a2.8 2.8 0 0 1 0 4.8l-.6-.9a1.75 1.75 0 0 0 0-3z"/></svg>
-        <svg id="m-i-muted" width="11" height="11" viewBox="0 0 11 11" style="display:none"><path d="M1 4v3h2l2.6 2.4V1.6L3 4z"/><path d="m7.2 3.8.7-.7 1.2 1.2 1.2-1.2.7.7L9.8 5 11 6.2l-.7.7-1.2-1.2-1.2 1.2-.7-.7L8.4 5z"/></svg>
-      </button>
-      <input type="range" id="m-slider" min="0" max="100" step="1" value="65" aria-label="Volume">
-    </div>
-  </div>
-  <div id="yt-audio-wrap" aria-hidden="true"><div id="yt-audio"></div></div>
-
   <div id="panel">
     <div class="eyebrow">Stop — / —</div>
     <div class="title">—</div>
@@ -240,7 +166,7 @@
   <div id="hint"><span id="hint-text">Scroll to continue</span><div id="departbar"><div id="departfill"></div></div></div>
   <nav id="rail" aria-label="Journey stops"></nav>
 
-  <button id="dev-toggle" title="Dev tools">&#9881;</button>
+  <button id="dev-toggle" title="Dev tools">\u2699</button>
   <div id="dev-panel">
     <h4>Dev Tools</h4>
     <label>Bloom Strength <span id="valBloomStrength">0.70</span>
@@ -333,161 +259,6 @@
     <button id="genHide">Restore portrait</button>
   </div>
 
-<script>
-/* Music bar — streams the playlist through a hidden YouTube IFrame player (audio only).
-   The API script loads up front (tiny); the heavy embed is only created on first play,
-   inside the click gesture, so autoplay-with-sound is permitted via the iframe's
-   allow="autoplay" delegation. Embed-blocked/broken videos are skipped automatically. */
-(() => {
-  const TRACKS = [
-    { id:'BGn2oo-0Dqc', label:'Gorillaz — On Melancholy Hill' },
-    { id:'eBG7P-K-r1Y', label:'Foo Fighters — Everlong' },
-    { id:'Dy4HA3vUv2c', label:'Blue Öyster Cult — (Don’t Fear) The Reaper' },
-    { id:'SesCS4QHOfg', label:'NAPA — Na Lua' },
-    { id:'LbYwT6TULjg', label:'Mac DeMarco — Freaking Out the Neighborhood' },
-    { id:'zWeYcNfYn3U', label:'Prince Of Denmark — GS' },
-  ];
-  const bar = document.getElementById('music'),
-        titleA = document.getElementById('m-title'),
-        titleSpan = titleA.querySelector('span'),
-        playBtn = document.getElementById('m-play'),
-        iPlay = document.getElementById('m-i-play'),
-        iPause = document.getElementById('m-i-pause'),
-        muteBtn = document.getElementById('m-mute'),
-        iVol = document.getElementById('m-i-vol'),
-        iMuted = document.getElementById('m-i-muted'),
-        slider = document.getElementById('m-slider');
-
-  let player = null, ready = false, apiReady = false;
-  let idx = 0, playing = false, wantPlay = false, muted = false, errStreak = 0, failed = false;
-  let vol = 65;
-  try { const v = localStorage.getItem('pf_music_vol'); if (v !== null) vol = Math.max(0, Math.min(100, +v)); } catch (e) {}
-  slider.value = vol;
-
-  function setLabel(txt) {
-    titleSpan.textContent = txt;
-    titleA.href = 'https://www.youtube.com/watch?v=' + TRACKS[idx].id;
-    requestAnimationFrame(() => { // measure after layout; marquee only when the title overflows
-      const over = titleSpan.getBoundingClientRect().width - titleA.clientWidth;
-      if (over > 4) {
-        bar.style.setProperty('--mq', (-over) + 'px');
-        bar.style.setProperty('--mqd', Math.max(6, over / 12) + 's');
-        bar.classList.add('mq');
-      } else bar.classList.remove('mq');
-    });
-  }
-  function syncUI() {
-    bar.classList.toggle('playing', playing);
-    bar.classList.toggle('wait', wantPlay && !playing);
-    iPlay.style.display = playing ? 'none' : '';
-    iPause.style.display = playing ? '' : 'none';
-    const m = muted || vol === 0;
-    iVol.style.display = m ? 'none' : '';
-    iMuted.style.display = m ? '' : 'none';
-  }
-  function setTrack(i, autoplay) {
-    failed = false;
-    idx = ((i % TRACKS.length) + TRACKS.length) % TRACKS.length;
-    setLabel(TRACKS[idx].label);
-    if (player && ready) {
-      if (autoplay) { wantPlay = true; player.loadVideoById(TRACKS[idx].id); }
-      else player.cueVideoById(TRACKS[idx].id);
-    }
-    syncUI();
-  }
-
-  function loadAPI() {
-    if (window.YT && window.YT.Player) { apiReady = true; return; }
-    if (document.getElementById('yt-api')) return;
-    const s = document.createElement('script');
-    s.id = 'yt-api'; s.src = 'https://www.youtube.com/iframe_api'; s.async = true;
-    document.head.appendChild(s);
-  }
-  window.onYouTubeIframeAPIReady = () => { apiReady = true; if (wantPlay) createPlayer(); };
-
-  function createPlayer() {
-    if (player || !apiReady) return;
-    player = new YT.Player('yt-audio', {
-      width:'2', height:'2', videoId: TRACKS[idx].id,
-      playerVars: { playsinline:1, rel:0, controls:0, disablekb:1, iv_load_policy:3 },
-      events: {
-        onReady: e => {
-          ready = true;
-          e.target.setVolume(vol); if (muted) e.target.mute();
-          if (wantPlay) e.target.playVideo();
-        },
-        onStateChange: e => {
-          if (e.data === 0) setTrack(idx + 1, true);            // ended → next
-          else if (e.data === 1) { playing = true; wantPlay = false; errStreak = 0; syncUI(); }
-          else if (e.data === 2) { playing = false; syncUI(); }
-        },
-        onError: e => {
-          console.warn('[music] YT error ' + e.data + ' on ' + TRACKS[idx].id);
-          if (location.protocol === 'file:') {
-            // YouTube rejects ALL file:// embeds (error 153, empty referer) — verified against
-            // every track. No point cycling; point at the http launcher instead.
-            wantPlay = false; playing = false; failed = true;
-            setLabel('file:// blocks streaming — use “open portfolio.bat”');
-            syncUI(); return;
-          }
-          // embed-blocked or broken video → skip; give up after a full failed cycle
-          errStreak++;
-          if (errStreak >= TRACKS.length) { wantPlay = false; playing = false; failed = true; setLabel('stream unavailable — press play to retry'); syncUI(); return; }
-          setTrack(idx + 1, playing || wantPlay);
-        },
-      },
-    });
-  }
-
-  playBtn.addEventListener('click', () => {
-    if (failed) { errStreak = 0; setTrack(idx, true); return; } // manual retry from the error state
-    if (!player) { wantPlay = true; syncUI(); loadAPI(); createPlayer(); return; }
-    if (!ready) { wantPlay = true; syncUI(); return; }
-    if (playing) player.pauseVideo();
-    else { wantPlay = true; player.playVideo(); }
-    syncUI();
-  });
-  document.getElementById('m-next').addEventListener('click', () => { errStreak = 0; setTrack(idx + 1, playing || wantPlay); });
-  document.getElementById('m-prev').addEventListener('click', () => {
-    errStreak = 0;
-    if (player && ready && playing && player.getCurrentTime() > 3) { player.seekTo(0, true); return; } // restart, like every player
-    setTrack(idx - 1, playing || wantPlay);
-  });
-
-  function applyVolume() {
-    try { localStorage.setItem('pf_music_vol', String(vol)); } catch (e) {}
-    if (player && ready) {
-      player.setVolume(vol);
-      muted ? player.mute() : player.unMute();
-    }
-    syncUI();
-  }
-  function userVolume(v) { // slider/wheel: setting an audible volume implies unmute
-    vol = Math.max(0, Math.min(100, v)); slider.value = vol;
-    if (vol > 0) muted = false;
-    applyVolume();
-  }
-  slider.addEventListener('input', () => userVolume(+slider.value));
-  muteBtn.addEventListener('click', () => {
-    muted = !(muted || vol === 0);
-    if (!muted && vol === 0) { vol = 40; slider.value = vol; }
-    applyVolume();
-  });
-
-  /* scroll on the bar = volume (and never leaks to the journey's departure charge) */
-  let volShowT = 0;
-  bar.addEventListener('wheel', e => {
-    e.preventDefault(); e.stopPropagation();
-    userVolume(vol - Math.sign(e.deltaY) * 4);
-    bar.classList.add('volshow');
-    clearTimeout(volShowT); volShowT = setTimeout(() => bar.classList.remove('volshow'), 900);
-  }, { passive:false });
-
-  setLabel(TRACKS[0].label);
-  syncUI();
-  loadAPI(); // pre-warm the tiny API script so first play is snappy
-})();
-</script>
 <script type="module">
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
