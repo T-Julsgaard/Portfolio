@@ -73,9 +73,6 @@
   #more-card.open { opacity:1; transform:translateY(-50%); pointer-events:auto; }
   #more-card .mc-title { font-size:17px; font-weight:600; letter-spacing:0.04em; line-height:1.25; margin-bottom:5px; padding-right:20px; }
   #more-card .mc-sub { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:4px; }
-  #more-card .mc-tags { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px; }
-  #more-card .mc-tags span { font-size:9px; letter-spacing:0.14em; text-transform:uppercase;
-    color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.28); padding:3px 7px; }
   #more-card .mc-h { font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.5); margin:14px 0 4px; }
   #more-card p { font-size:12.5px; line-height:1.65; color:rgba(255,255,255,0.85); margin:0; }
   #more-card .mc-dl { display:inline-block; margin-top:16px; font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
@@ -1079,7 +1076,7 @@ const JOURNEY=[
   {xf: 0.46, yf: 0.36},
   {xf: 0.36, yf: 0.22, stop:{id:'xp2', label:'Startups', title:'Startups & earlier roles', body:'Nordic Mining — Co-founder (2024–2025): modeled how flexible data centers add profitability to green energy grids, with Energistyrelsen. Accepted into the AAU Innovator Hub, later merged with Orange Wheel.\nAlso: Head of Technical Support at Introtech Ventures, UNICEF fundraiser, substitute teacher.', media:[{src:'images/Nordic mining logo.png',caption:'Nordic Mining'}]}},
   {xf: 0.04, yf: 0.20},
-  {xf:-0.34, yf: 0.22, stop:{id:'cases', label:'Case studies', title:'Case studies', body:'Six projects surround this point.\nDrag to look around — each cover assembles out of the terrain as you face it, then develops into its front page. Press DOWNLOAD under a cover to save the full report.', media:[], links:[{href:'pdfs/Hvilken VR-sion af dig.pdf',label:'VRChat'},{href:'pdfs/Den sorte boks i den hvide verden.pdf',label:'Radiology'},{href:'pdfs/Transcending the disciplinary divide.pdf',label:'Networks'},{href:'pdfs/Wegovy a matter of fact.pdf',label:'Wegovy'},{href:'pdfs/Så kører bussen, selv.pdf',label:'Buses'},{href:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',label:'Food'}],
+  {xf:-0.34, yf: 0.22, stop:{id:'cases', label:'Case studies', title:'Case studies', body:'Six projects surround this point.\nDrag to look around — each cover assembles out of the terrain as you face it, then develops into its front page. Press DOWNLOAD REPORT under a cover to save the full report.', media:[], links:[{href:'pdfs/Hvilken VR-sion af dig.pdf',label:'VRChat'},{href:'pdfs/Den sorte boks i den hvide verden.pdf',label:'Radiology'},{href:'pdfs/Transcending the disciplinary divide.pdf',label:'Networks'},{href:'pdfs/Wegovy a matter of fact.pdf',label:'Wegovy'},{href:'pdfs/Så kører bussen, selv.pdf',label:'Buses'},{href:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',label:'Food'}],
     /* the 360° gallery: covers ring the visitor in this order (alternating sides, even 360/7 spacing).
        `img` names the ASCII_COVERS grid AND the COVER_PHOTOS texture it develops into;
        `ascii` optionally assembles a different grid first (the bus's pre-made ascii-art);
@@ -1175,14 +1172,6 @@ function pathPos(s,out){ // arc-length parameterized point on the flight path
 const LOOK_AHEAD_U=16; // the gaze rests this many UNITS down-path (absolute, not a fraction)
 const TAN_MIN=Math.tan(0.19), TAN_MAX=Math.tan(0.52); // down-gaze band: ~11°..30°
 const _pd=new THREE.PerspectiveCamera(), _pv=new THREE.Vector3();
-const _lv=new THREE.Vector3(), _lq=new THREE.Quaternion();
-function levelQuat(q,out){ // same compass heading, pitch leveled to the horizon (journey up = +z)
-  _lv.set(0,0,-1).applyQuaternion(q); _lv.z=0;
-  const l=_lv.length();
-  if(l<1e-4) return out.copy(q);
-  _pd.position.set(0,0,0); _pd.up.set(0,0,1); _pd.lookAt(_lv.divideScalar(l)); _pd.updateMatrixWorld();
-  return out.copy(_pd.quaternion);
-}
 function poseAt(s,outPos,outQuat){ // skimming pose: over the terrain, gazing at the relief ahead
   pathPos(s,outPos);
   pathPos(Math.min(1,s+LOOK_AHEAD_U/pathTotal),_pv);
@@ -1428,27 +1417,13 @@ const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one g
 const F_OUT_MS=900, F_OUT_FLY_MS=620;                // scatter home
 const F_FADE_MS=260;                                 // nominal fade for the cleared background patch (v39: was 420 — read as lingering)
 const F_GAZE_IN=0.40, F_GAZE_OUT=0.62;               // gaze hysteresis (rad): fire under 23°, release past 35°
-const F_EXTRA_MAX=4500;                              // absorbed-flight budget per facet; the rest just fade (v40: raised — the whole corridor flies now)
+const F_EXTRA_MAX=2200;                              // absorbed-flight budget per facet; the rest just fade
 const PHOTO_DELAY=450;                               // pause after assembly before the photo develops
 const PHOTO_STAGGER=550, PHOTO_TILE_MS=260;          // tile reveal: stagger window / one tile's fade
 const COVER_RAMP=' .:-=+*#%@';                       // luminance ramp used by the offline cover generator
-/* v40 buttons: solid ASCII stencil blocks — a rectangle of white '#' glyphs with the
-   label punched out as HOLES, so the black letters are the background showing through.
-   Built from BTN_FONT (4x5 bitmap caps), assembled from terrain glyphs like all text. */
-const BTN_FONT={
-  A:['.##.','#..#','####','#..#','#..#'],
-  D:['###.','#..#','#..#','#..#','###.'],
-  E:['####','#...','###.','#...','####'],
-  L:['#...','#...','#...','#...','####'],
-  M:['#..#','####','#..#','#..#','#..#'],
-  N:['#..#','##.#','#.##','#..#','#..#'],
-  O:['.##.','#..#','#..#','#..#','.##.'],
-  R:['###.','#..#','###.','#.#.','#..#'],
-  W:['#..#','#..#','#..#','####','#..#'],
-  ' ':['..','..','..','..','..'],
-};
-const BTN_CELL=0.26;                                 // stencil cell size (layout units)
-const BTN_DIM=new THREE.Color('#a8a8a8'), BTN_HOT=new THREE.Color('#ffffff'); // idle pulse range; hover pins to HOT
+const BTN_LABEL='[ DOWNLOAD REPORT ]';               // per-cover PDF button (assembled from glyphs like all text)
+const MORE_LABEL='[ READ MORE ]';                    // opens the project's context/methods/outcomes card
+const BTN_DIM=new THREE.Color('#8a7452'), BTN_HOT=new THREE.Color('#ffd9a0'); // idle pulse range; hover pins to HOT
 const BTN_POP_DELAY=1500, BTN_POP_MS=450;            // the download button's attention "pop" after the facet settles
 let stopFacets=null, asmRetired=[];                  // docked stop's facets / facets still flying home after departure
 let freeYaw=0,freeYawT=0,freePitch=0,freePitchT=0;   // 360° docked look (drag), smoothed
@@ -1494,7 +1469,7 @@ function setImgColor(c,L){ // L=null -> text (a notch brighter than the terrain)
   else { const g=inverted?(0.72-0.58*L):(0.30+0.70*L); c.setRGB(g,g,g); }
   return c;
 }
-function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid, blurb, stencil buttons
+function buildCoverLayout(g){ // v39: tags/title/subtitle ON TOP, then the cover grid, then blurb + button row
   const A=ASCII_COVERS[g.ascii||g.img]; // `ascii` shows a variant (the bus's ascii-art) as the assembled form
   const items=[], iw=A.cols*A.cw, ih=A.rows*A.ch;
   let y=0, maxW=iw;
@@ -1502,8 +1477,8 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
     if(lw+1>maxW) maxW=lw+1;
     for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y, s, L:null}); }
     y-=s+gap; };
-  const title=asciiSafe(g.title); // ONE line, always: long titles shrink instead of wrapping
-  addLine(title, Math.min(0.95, 23/Math.max(1,(title.length-1)*ASM_ADV)), 0.35);
+  if(g.tags) addLine(asciiSafe(g.tags.toUpperCase()),0.5,0.55);
+  for(const line of wrapText(asciiSafe(g.title),26)) addLine(line,0.95,0.35);
   if(g.sub) addLine(asciiSafe(g.sub),0.55,0.35);
   y-=0.5; const imgTop=y; // the cover grid hangs below the header block
   for(let r=0;r<A.rows;r++)for(let c=0;c<A.cols;c++){
@@ -1513,30 +1488,22 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
   }
   const imgCY0=imgTop-ih/2; y=imgTop-ih-0.9;
   if(g.blurb) for(const line of wrapText(asciiSafe(g.blurb),48)) addLine(line,0.55,0.30);
-  /* stencil button row: DOWNLOAD / READ MORE as solid '#' blocks with the label as
-     punched-out holes; items carry btn:<kind>, each button records its hit rect */
+  /* button row: [ DOWNLOAD REPORT ] [ READ MORE ] side by side, small; items carry
+     btn:<kind> and each button records its padded hit rect (still in layout units) */
   const btns=[];
-  const bdefs=[]; if(g.pdf) bdefs.push({t:'DOWNLOAD',kind:'pdf'}); if(g.more) bdefs.push({t:'READ MORE',kind:'more'});
-  if(bdefs.length){
-    y-=0.55;
-    const cell=BTN_CELL, H=7, GAPB=1.6; // 5 font rows + 1 row pad top/bottom
-    const wOf=t=>{ let w=0; for(const ch of t) w+=BTN_FONT[ch][0].length+1; return w-1+2; }; // +1 col pad each side
-    const wids=bdefs.map(d=>wOf(d.t)*cell);
-    const tot=wids.reduce((a,b)=>a+b,0)+GAPB*(bdefs.length-1);
+  const defs=[]; if(g.pdf) defs.push({t:BTN_LABEL,kind:'pdf'}); if(g.more) defs.push({t:MORE_LABEL,kind:'more'});
+  if(defs.length){
+    y-=0.5;
+    const bs=0.6, adv=ASM_ADV*bs, GAPB=2.2;
+    const wids=defs.map(d=>(d.t.length-1)*adv);
+    const tot=wids.reduce((a,b)=>a+b,0)+GAPB*(defs.length-1);
     if(tot+2>maxW) maxW=tot+2;
     let x0=-tot/2;
-    bdefs.forEach((d,di)=>{
-      const W=Math.round(wids[di]/cell);
-      const hole=Array.from({length:H},()=>new Array(W).fill(false));
-      let cx=1; // punch the label out of the fill
-      for(const ch of d.t){ const gph=BTN_FONT[ch];
-        for(let r=0;r<5;r++)for(let c=0;c<gph[r].length;c++) if(gph[r][c]==='#') hole[r+1][cx+c]=true;
-        cx+=gph[0].length+1; }
-      for(let r=0;r<H;r++)for(let c=0;c<W;c++) if(!hole[r][c])
-        items.push({ch:'#', x:x0+(c+0.5)*cell, y:y-(r+0.5)*cell, s:cell*1.5, L:null, btn:d.kind});
-      btns.push({kind:d.kind, cx:x0+wids[di]/2, cy:y-H*cell/2, hw:wids[di]/2+0.4, hh:H*cell/2+0.35});
-      x0+=wids[di]+GAPB; });
-    y-=H*cell+0.4;
+    defs.forEach((d,di)=>{ const lw=wids[di];
+      for(let i=0;i<d.t.length;i++){ const ch=d.t[i]; if(ch!==' ') items.push({ch, x:x0+i*adv, y, s:bs, L:null, btn:d.kind}); }
+      btns.push({kind:d.kind, cx:x0+lw/2, cy:y, hw:lw/2+1.0, hh:0.95});
+      x0+=lw+GAPB; });
+    y-=bs+0.4;
   }
   const top=0.6, bot=y, cy2=(top+bot)/2;
   for(const it of items) it.y-=cy2;
@@ -1555,7 +1522,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     const SPREAD=[-step,step,-2*step,2*step,-3*step,3*step];
     st.gallery.forEach((g,i)=>{ getPhotoTex(g.img); // warm the texture decode before the first develop
       defs.push({lay:buildCoverLayout(g), dy:SPREAD[i%6]*Math.PI/180,
-        dist:ASM_IMG_DIST, hFit:1.25, photoKey:g.img, pdf:g.pdf||null, g}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40)
+        dist:ASM_IMG_DIST, hFit:0.95, photoKey:g.img, pdf:g.pdf||null, g}); }); // 0.95: the v39 header+blurb made the block taller
   }
   /* every facet hangs at EYE LEVEL (v37): anchor z = the camera's own z, pitch 0, so
      content sits where the scene is and the visitor never cranes up or down. The old
@@ -1624,27 +1591,18 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       _e[fi]=e;
       if(e<bestE){ bestE=e; best=fi; }
     }
-    /* v40: EVERYTHING inside the ellipse flies into the text (absorbed), staggered over the
-       same window as the letter flights — owned glyphs included (guards in the anim code
-       cede them to their owner the moment it fires). Only budget overflow just fades. */
+    const exF=(own<0&&best>=0&&bestE<0.85&&facets[best].extras.length<F_EXTRA_MAX)?best:-1;
+    if(exF>=0) facets[exF].extras.push({m:textMeshes[i], home:textMeshes[i].position.clone(),
+      to:null, from:null, ctrl:null, d:0, s0:1, done:false});
     const ownF=own>=0?facets[own]:null;
-    const exF=(best>=0&&bestE<rim&&facets[best].extras.length<F_EXTRA_MAX)?best:-1;
-    if(exF>=0){
-      const exRec={m:textMeshes[i], home:textMeshes[i].position.clone(),
-        own:ownF, to:null, from:null, ctrl:null, d:0, s0:1, done:false};
-      facets[exF].extras.push(exRec);
-      // an owned glyph can be handed back mid-hold (owner fires, then releases it home):
-      // keep a fade entry on the absorber so the returned glyph melts out of the patch
-      if(ownF) facets[exF].fades.push({m:textMeshes[i], k:0.9+Math.random()*1.6, own:ownF, ex:exRec});
-    }
     for(let fi=0;fi<nf;fi++)
-      if(fi!==exF&&_e[fi]<rim) facets[fi].fades.push({m:textMeshes[i], k:0.9+Math.random()*1.6, own:ownF});
+      if(fi!==exF&&_e[fi]<rim) facets[fi].fades.push({m:textMeshes[i], k:0.9+Math.random()*1.6, own:ownF}); // v39: floor raised 0.5→0.9 — the slowest glyphs lingered
   }
   stopFacets={k, facets, yaw0, pitch0};
-  // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
-  // frame()), so set BOTH current and target to level: docking involves zero re-aim
+  // arrival gaze: facets hang at the horizon, so ease the pitch up from the flight's
+  // down-gaze to level (target only — the smoothing in frame() turns it into a gesture)
   freeYaw=freeYawT=0;
-  freePitch=freePitchT=-pitch0;
+  freePitch=0; freePitchT=-pitch0;
 }
 function facetIn(F,now){
   if(F.state==='in'||F.state==='hold') return;
@@ -1657,9 +1615,7 @@ function facetIn(F,now){
     it.d=(it.ri/n)*stag+Math.random()*40; it.swapped=false; it.done=false;
   }
   const en=F.extras.length;
-  for(let i=0;i<en;i++){ const ex=F.extras[i], m=ex.m;
-    if(ex.own&&ex.own.state!=='home'){ ex.done=true; continue; } // its owner is using it — cede
-    m.visible=true;
+  for(let i=0;i<en;i++){ const ex=F.extras[i], m=ex.m; m.visible=true;
     ex.to=F.items[(Math.random()*n)|0].to; // absorbed into a random letter
     ex.from=m.position.clone(); ex.s0=m.scale.x||1;
     ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.to,0.5).addScaledVector(F.up,1.5+Math.random()*2);
@@ -1677,9 +1633,7 @@ function facetOut(F,now){
     it.d=((n-1-it.ri)/n)*stag+Math.random()*40; it.swapped=false; it.done=false;
   }
   const en=F.extras.length;
-  for(let i=0;i<en;i++){ const ex=F.extras[i], m=ex.m;
-    if(ex.own&&ex.own.state!=='home'){ ex.done=true; continue; } // its owner is using it — cede
-    m.visible=true;
+  for(let i=0;i<en;i++){ const ex=F.extras[i], m=ex.m; m.visible=true;
     ex.from=m.position.clone(); ex.s0=m.scale.x||0.05;
     ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.home,0.5).addScaledVector(F.up,1+Math.random()*1.5);
     ex.d=(1-i/Math.max(1,en))*stag+Math.random()*60; ex.done=false;
@@ -1693,7 +1647,6 @@ function restoreFacet(F){ // exact snap home: geometry, position, palette, flags
     it.done=false; it.swapped=false;
   }
   for(const ex of F.extras){ const m=ex.m;
-    if(ex.own&&ex.own.state!=='home'){ ex.done=false; continue; } // the owner will bring it home itself
     m.position.copy(ex.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; ex.done=false;
   }
   for(const fd of F.fades){ if(fd.own&&fd.own.state!=='home') continue; fd.m.material.opacity=1; fd.m.visible=true; }
@@ -1767,7 +1720,6 @@ function showMore(g){
   moreCard.querySelector('#more-body').innerHTML=
     '<div class="mc-title">'+esc(g.title)+'</div>'+
     (g.sub?'<div class="mc-sub">'+esc(g.sub)+'</div>':'')+
-    (g.tags?'<div class="mc-tags">'+g.tags.split(' / ').map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
     [['Context',g.more.context],['Methods',g.more.methods],['Outcomes',g.more.outcomes]]
       .map(([h,t])=>t?'<div class="mc-h">'+h+'</div><p>'+esc(t)+'</p>':'').join('')+
     (g.pdf?'<a class="mc-dl" href="'+g.pdf+'" download>Download the full report</a>':'');
@@ -1815,7 +1767,6 @@ function updateFacet(F,now,dt){
       } else m.material.opacity=Math.min(1,Math.max(m.material.opacity,p/0.3));
     }
     for(const ex of F.extras){
-      if(ex.own&&ex.own.state!=='home'){ ex.done=true; continue; } // owner fired mid-flight — hands off
       const tt=t-ex.d;
       if(tt<=0){ busy=true; continue; }
       let p=tt/flyMs;
@@ -1847,7 +1798,7 @@ function updateFacet(F,now,dt){
       let pf=1;
       if(b.kind==='pdf'&&F.state==='hold'){
         const pt=(now-F.holdT0-BTN_POP_DELAY)/BTN_POP_MS;
-        if(pt>0&&pt<1) pf=1+0.3*Math.sin(Math.PI*pt); // solid block: a subtler pop reads as a bold flash
+        if(pt>0&&pt<1) pf=1+0.38*Math.sin(Math.PI*pt);
       }
       for(const it of b.items){
         if(!(it.swapped||it.done)) continue;
@@ -1860,7 +1811,6 @@ function updateFacet(F,now,dt){
   const ft=(F.state==='out')?1:0;
   for(const fd of F.fades){
     if(fd.own&&fd.own.state!=='home') continue; // its owner is flying/holding it — hands off
-    if(fd.ex&&!fd.ex.done) continue;            // our own absorb flight is carrying it right now
     const mat=fd.m.material, nv=mat.opacity+(ft-mat.opacity)*Math.min(1,dt*(1400/F_FADE_MS)*fd.k);
     mat.opacity=nv; fd.m.visible=nv>0.02;
   }
@@ -2055,9 +2005,7 @@ const _bbQ=new THREE.Quaternion(NaN,0,0,0);          // camera rotation at the l
 const _lastCamPos=new THREE.Vector3(NaN,0,0); let _lastFov=0; // camera pose at the last rendered frame
 function frame(){
   requestAnimationFrame(frame);
-  // dt capped: a heavy frame (the gallery dock partitions 13k glyphs) must not make the
-  // smoothed camera consume its whole ease in one step — that read as an arrival snap
-  const dt=Math.min(0.05,clock.getDelta()), now=performance.now();
+  const dt=clock.getDelta(), now=performance.now();
   updateIntroReveal(now);
 
   let fovBoost=0; // journey flight adds a gentle mid-arc speed-stretch; applied with the FOV below
@@ -2081,7 +2029,6 @@ function frame(){
     if(k>=1){ k=1; done=true; }
     const ek=easeInOut(k);
     poseAt(stopS[enterToIdx],_jPos,_jQuat);
-    if(stopInfoMode==='assemble') levelQuat(_jQuat,_jQuat); // arrive gazing at the horizon, where the content hangs
     camera.position.lerpVectors(enterFromPos,_jPos,ek);
     camera.quaternion.slerpQuaternions(enterFromQuat,_jQuat,ek);
     journeyT=journeyFrom+(1-journeyFrom)*ek; // FOV/bloom ride the same dolly curve → seamless
@@ -2101,10 +2048,6 @@ function frame(){
       if(k>=1){ k=1; done=true; }
       const ek=easeInOut(k);
       poseAt(flight.s0+(flight.s1-flight.s0)*ek,_jPos,_jQuat);
-      if(stopInfoMode==='assemble'&&ek>0.7){ // approach pull-up: blend the down-gaze to the horizon
-        levelQuat(_jQuat,_lq);               // over the last stretch, so docking needs no re-aim
-        _jQuat.slerp(_lq,Math.min(1,(ek-0.7)/0.3));
-      }
       camera.position.copy(_jPos);
       if(done) camera.quaternion.copy(_jQuat);
       else camera.quaternion.slerp(_jQuat,Math.min(1,dt*7+0.06)); // damped: soaks up spline wiggle
