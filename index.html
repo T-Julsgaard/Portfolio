@@ -351,6 +351,7 @@
         <option value="swoop">Swoop (over the terrain)</option>
         <option value="swoop2">Swoop V2 (curved arc)</option>
         <option value="swoop3">Swoop V3 (banked approach)</option>
+        <option value="swoop4">Swoop V4 (settles onto the text)</option>
       </select>
     </label>
     <label>Travel — Far stops
@@ -360,6 +361,7 @@
         <option value="swoop">Swoop (over the terrain)</option>
         <option value="swoop2">Swoop V2 (curved arc)</option>
         <option value="swoop3">Swoop V3 (banked approach)</option>
+        <option value="swoop4">Swoop V4 (settles onto the text)</option>
       </select>
     </label>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
@@ -1038,18 +1040,29 @@ function syncPools(){ // rewrite every pool's instance buffers from the proxies 
 }
 
 new FontLoader().load('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts/helvetiker_regular.typeface.json',font=>{
-  FONT=font;
-  asciiData.groups.forEach(group=>group.instances.forEach(inst=>{
-    const m=acquireGlyph(group.char);
-    m.material.color.set(inverted?GLYPH_DARK:(rawMode?GLYPH_RAW:GLYPH_LIGHT));
-    m.material.opacity=0;
-    m.position.set(inst.x,inst.y,inst.z*10);
-    m.userData.z0=inst.z*10; // resting depth in the relief; birth rises up to it
-    m.scale.setScalar(0);
-    textMeshes.push(m);
-  }));
-  glyphsDirty=true;
-  beginIntro(introMode);
+  /* Build the 13,268-glyph pool on the NEXT macrotask instead of synchronously here.
+     The build below freezes the main thread for its whole run, during which no input
+     events (the first-gesture unmute) and no queued YouTube callbacks can fire — that was
+     why music/mouse felt dead "while the scene is loading". Yielding one tick first lets
+     any first gesture already made during the font fetch unmute, and lets the audible
+     autoplay gamble / onYouTubeIframeAPIReady create+start the player; because YouTube
+     streams from its own iframe process, the audio then keeps playing even while this build
+     briefly freezes our thread. The deferral is visually free — the font fetch already
+     dominated the wait, and frame() just renders the empty scene for one extra tick. */
+  setTimeout(()=>{
+    FONT=font;
+    asciiData.groups.forEach(group=>group.instances.forEach(inst=>{
+      const m=acquireGlyph(group.char);
+      m.material.color.set(inverted?GLYPH_DARK:(rawMode?GLYPH_RAW:GLYPH_LIGHT));
+      m.material.opacity=0;
+      m.position.set(inst.x,inst.y,inst.z*10);
+      m.userData.z0=inst.z*10; // resting depth in the relief; birth rises up to it
+      m.scale.setScalar(0);
+      textMeshes.push(m);
+    }));
+    glyphsDirty=true;
+    beginIntro(introMode);
+  },0);
 });
 
 /* intro reveal: several scattered seed cells spawn and spread outward through the
@@ -1537,8 +1550,8 @@ const COVER_PHOTOS={"vrchat": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
    PDF in a new tab (downloadPDF). 'panel' keeps the HTML overlay. */
 let stopInfoMode='assemble'; // 'assemble' | 'panel'
 // stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
-// (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'.
-let travelAdjacent='cruise', travelFar='swoop';
+// (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'.
+let travelAdjacent='cruise', travelFar='swoop4';
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
 const ASM_ADV=0.78;                                  // per-unit-scale character advance
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
@@ -2183,9 +2196,20 @@ function departTo(k){
      means it reaches the horizon by itself — no down-crane); 'swoop3' bows wider, locks
      the gaze onto the destination stop's eye-level anchor once clear of the departure
      (pitch levels itself as the camera descends onto it) and banks gently into the
-     curve, fading out before touchdown. */
+     curve, fading out before touchdown.
+   - 'swoop4' (default for far hops): swoop2's geometry (mild bow, level takeoff/touchdown)
+     with the arrival handled as ONE move — the qEnd blend spans the whole descent
+     (k 0.55→0.95, finished just before touchdown) and the velocity-dive is scaled down by
+     the same blend weight, so the descent itself rotates the camera onto the arriving text.
+     NOTE (the bug that motivated it): every swoop's qEnd used to be STRAIGHT DOWN — buildFlight
+     passed the shared temp _pv as poseAt's outPos, which poseAt also uses internally as its
+     look-ahead scratch, so the look target collapsed onto the camera position; the degenerate
+     lookAt faced -z and levelQuat's l<1e-4 guard passed it through. Every swoop therefore
+     landed staring into the ground (and ~2 units low), and dock()'s 1.6 s blend craned it back
+     up. Fixed at the two poseAt call sites in buildFlight (B has its own vector now); all
+     swoop variants land level and on-height since. */
 const CRUISE_RAMP=1.0; // s of acceleration / deceleration at each end
-function swoopZ(F,u){ // linear-interp the swoop2/3 altitude-bump profile (clamped at the ends)
+function swoopZ(F,u){ // linear-interp the swoop2/3/4 altitude-bump profile (clamped at the ends)
   const n=F.bump.length-1, f=Math.min(n,Math.max(0,u*n)), i=Math.min(n-1,Math.floor(f));
   return F.bump[i]+(F.bump[i+1]-F.bump[i])*(f-i);
 }
@@ -2201,8 +2225,13 @@ function buildFlight(s0,s1,toIdx,mode){
   }
   if(mode==='swoop'){
     const A=camera.position.clone();       // launch from the exact current pose — no snap
-    poseAt(s1,_pv,_lq);
-    const B=_pv.clone(), qEnd=new THREE.Quaternion();
+    // B gets its OWN vector: poseAt uses _pv internally as its look-ahead scratch, so passing
+    // _pv as outPos aliased them — the look target collapsed onto the camera position, the
+    // degenerate lookAt produced a STRAIGHT-DOWN qEnd (levelQuat's l<1e-4 guard passes it
+    // through unchanged) and B.z came out ~2 units low. That downward qEnd was the
+    // "lands staring into the ground, then cranes up" arrival.
+    const B=new THREE.Vector3(); poseAt(s1,B,_lq);
+    const qEnd=new THREE.Quaternion();
     if(stopInfoMode==='assemble') levelQuat(_lq,qEnd); else qEnd.copy(_lq);
     const hd=Math.max(1e-6,Math.hypot(B.x-A.x,B.y-A.y));
     let hump=3+hd*0.09;                    // aesthetic floor: longer hops rise higher
@@ -2216,10 +2245,10 @@ function buildFlight(s0,s1,toIdx,mode){
     return {mode:'swoop',s0,s1,t0:now,toIdx,dur:1500+Math.min(2400,hd*16),A,B,hump,
             q0:camera.quaternion.clone(),qEnd,chx:(B.x-A.x)/hd,chy:(B.y-A.y)/hd};
   }
-  if(mode==='swoop2'||mode==='swoop3'){
+  if(mode==='swoop2'||mode==='swoop3'||mode==='swoop4'){
     const A=camera.position.clone();       // launch from the exact current pose — no snap
-    poseAt(s1,_pv,_lq);
-    const B=_pv.clone(), qEnd=new THREE.Quaternion();
+    const B=new THREE.Vector3(); poseAt(s1,B,_lq); // own vector, NOT _pv — see the aliasing note in the swoop branch
+    const qEnd=new THREE.Quaternion();
     if(stopInfoMode==='assemble') levelQuat(_lq,qEnd); else qEnd.copy(_lq);
     const hd=Math.max(1e-6,Math.hypot(B.x-A.x,B.y-A.y));
     // lateral bow: quadratic-bezier control point pushed perpendicular to the hop, on the
@@ -2438,7 +2467,7 @@ function frame(){
         if(g>0) _lq.slerp(F.qEnd,g);                                          // …and into the arrival gaze
         camera.position.copy(_jPos); camera.quaternion.copy(_lq);
         fovBoost=Math.sin(Math.PI*k)*6;
-      } else if(flight.mode==='swoop2'||flight.mode==='swoop3'){ /* curved hop: bezier bow + raised-cosine climb */
+      } else if(flight.mode==='swoop2'||flight.mode==='swoop3'||flight.mode==='swoop4'){ /* curved hop: bezier bow + raised-cosine climb */
         const F=flight;
         let k=(now-F.t0)/F.dur; if(k>=1){ k=1; done=true; }
         const ek=easeInOut(k), u=ek, w=1-u;
@@ -2450,14 +2479,20 @@ function frame(){
         const dz=(F.B.z-F.A.z)+(swoopZ(F,u+F.geps)-swoopZ(F,u-F.geps))/(2*F.geps);
         const hh=Math.max(1e-6,Math.hypot(dx,dy));
         _lq.copy(F.q0);
-        if(F.mode==='swoop2'){ /* gaze rides the velocity; the level profile means it reaches the horizon by itself */
-          const pitch=Math.max(-0.42,Math.min(0.14,Math.atan2(dz,hh)));
+        if(F.mode==='swoop2'||F.mode==='swoop4'){ /* gaze rides the velocity; the level profile means it reaches the horizon by itself */
+          /* swoop4: the arrival blend spans the whole descent (done just before touchdown) and
+             the velocity-dive fades out in step with it — the descent IS the rotation onto the
+             text, with no phase where the camera stares at the ground and then cranes up */
+          const g=F.mode==='swoop4' ? (k>0.55?easeInOut(Math.min(1,(k-0.55)/0.40)):0)
+                                    : (k>0.62?easeInOut(Math.min(1,(k-0.62)/0.38)):0);
+          let pitch=Math.max(-0.42,Math.min(0.14,Math.atan2(dz,hh)));
+          if(F.mode==='swoop4'&&pitch<0) pitch*=1-g;
           const cp=Math.cos(pitch);
           _fwd.set(cp*dx/hh,cp*dy/hh,Math.sin(pitch));
           _pd.position.copy(_jPos); _pd.up.set(0,0,1);
           _pd.lookAt(_pv.copy(_jPos).add(_fwd)); _pd.updateMatrixWorld();
           _lq.slerp(_pd.quaternion,easeInOut(Math.min(1,k/0.25)));          // settle out of the departure gaze…
-          if(k>0.62) _lq.slerp(F.qEnd,easeInOut(Math.min(1,(k-0.62)/0.38)));// …and into the arrival gaze
+          if(g>0) _lq.slerp(F.qEnd,g);                                      // …and into the arrival gaze
         } else { /* swoop3: gaze locked on the destination — pitch levels itself as the camera descends to it */
           _pd.position.copy(_jPos); _pd.up.set(0,0,1);
           _pd.lookAt(F.P); _pd.updateMatrixWorld();
