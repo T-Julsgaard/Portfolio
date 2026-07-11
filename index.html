@@ -37,7 +37,8 @@
   .rail-stop:hover .lbl { opacity:1; transform:none; color:#fff; }
   .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
   .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
-  .rail-stop.current .lbl { opacity:1; transform:none; color:#fff; }
+  /* the current dot stays lit, but its label only appears on hover like every other —
+     so leaving a stop (e.g. back to free roam) no longer strands its text on screen */
 
   #panel {
     position:fixed; left:26px; top:50%; transform:translateY(calc(-50% + 16px));
@@ -86,7 +87,14 @@
     border:none; color:rgba(255,255,255,0.6); font-family:inherit; font-size:16px; line-height:1; cursor:pointer; }
   #more-close:hover { color:#fff; }
 
-  #meta { position:fixed; left:18px; top:16px; z-index:5; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.45); }
+  /* minimalist ASCII-style fullscreen toggle where the old "ASCII PORTRAIT" label sat:
+     solid black fill, thin sleek white border, a bare white X in the mono font */
+  #fs-btn { position:fixed; left:18px; top:16px; z-index:6;
+    width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    background:#000; border:1px solid rgba(255,255,255,0.6); color:#fff;
+    font-family:inherit; font-size:12px; line-height:1; padding:0; cursor:pointer;
+    transition:background 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+  #fs-btn:hover { background:#fff; color:#000; border-color:#fff; }
   #hint { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); z-index:5;
           font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.6);
           opacity:0; transition:opacity 0.6s ease; pointer-events:none; text-align:center; }
@@ -103,7 +111,7 @@
   #enter-btn:hover { background:#fff; color:#000; }
 
   #explore-btn {
-    position:fixed; right:18px; top:89px; z-index:6;
+    position:fixed; right:18px; top:53px; z-index:6; /* same slot as #enter-btn — only one shows at a time (syncButtons) */
     background:transparent; border:1px solid rgba(255,255,255,0.4); color:rgba(255,255,255,0.8);
     font-family:inherit; font-size:10px; letter-spacing:0.16em; text-transform:uppercase;
     padding:7px 12px; cursor:pointer;
@@ -258,9 +266,9 @@
 <body>
   <div id="app"><canvas id="three"></canvas></div>
   <div id="vignette"></div>
-  <div id="meta">ASCII PORTRAIT · 13,268 NODES</div>
-  <button id="enter-btn">Begin journey ▸</button>
-  <button id="explore-btn">Free roam ▸</button>
+  <button id="fs-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen">X</button>
+  <button id="enter-btn">Enter</button>
+  <button id="explore-btn">Roam</button>
 
   <div id="music">
     <div id="m-eq"><i></i><i></i><i></i><i></i></div>
@@ -333,6 +341,24 @@
       <select id="stopInfoSelect">
         <option value="assemble">Characters assemble</option>
         <option value="panel">Overlay panel</option>
+      </select>
+    </label>
+    <label>Travel — Adjacent stops
+      <select id="travelAdjSelect">
+        <option value="classic">Classic (eased rail)</option>
+        <option value="cruise">Cruise (steady rail)</option>
+        <option value="swoop">Swoop (over the terrain)</option>
+        <option value="swoop2">Swoop V2 (curved arc)</option>
+        <option value="swoop3">Swoop V3 (banked approach)</option>
+      </select>
+    </label>
+    <label>Travel — Far stops
+      <select id="travelFarSelect">
+        <option value="classic">Classic (eased rail)</option>
+        <option value="cruise">Cruise (steady rail)</option>
+        <option value="swoop">Swoop (over the terrain)</option>
+        <option value="swoop2">Swoop V2 (curved arc)</option>
+        <option value="swoop3">Swoop V3 (banked approach)</option>
       </select>
     </label>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
@@ -504,10 +530,13 @@
   let player = null, ready = false, apiReady = false;
   let idx = 0, playing = false, wantPlay = false, muted = false, errStreak = 0, failed = false;
   let engaged = false; // flips true on the visitor's first interaction; until then playback stays muted
+  let audibleTry = false; // v51: true while the load-time audible-autoplay gamble is unresolved
   let vol = 25; // default; a previously-set volume in localStorage overrides below
   try { const v = localStorage.getItem('pf_music_vol'); if (v !== null) vol = Math.max(0, Math.min(100, +v)); } catch (e) {}
   slider.value = vol;
-  const effMute = () => muted || !engaged; // audible only once the user has interacted (browser autoplay policy)
+  // audible once the user has interacted (browser autoplay policy) — or while the load-time
+  // gamble is still in flight (browsers that trust this origin allow audible autoplay outright)
+  const effMute = () => muted || (!engaged && !audibleTry);
 
   function setLabel(txt) {
     titleSpan.textContent = txt;
@@ -550,20 +579,31 @@
   }
   window.onYouTubeIframeAPIReady = () => { apiReady = true; if (wantPlay) createPlayer(); };
 
-  function createPlayer() {
+  function createPlayer(bornMuted) {
     if (player || !apiReady) return;
     player = new YT.Player('yt-audio', {
       width:'2', height:'2', videoId: TRACKS[idx].id,
-      playerVars: { playsinline:1, rel:0, controls:0, disablekb:1, iv_load_policy:3 },
+      /* autoplay+mute must be declared at embed birth (v45): YouTube stopped honouring the
+         onReady mute()+playVideo() combo as a muted autostart — the embed checks the muted
+         flag when it loads, so a player created without mute:1 just sits UNSTARTED until a
+         real gesture. Created from a click (engaged) it starts audible as before.
+         v51: `bornMuted` overrides effMute() for audibleVerdict's rebuild, which must be
+         muted-at-birth regardless of the engaged/gamble flags at that moment. */
+      playerVars: { playsinline:1, rel:0, controls:0, disablekb:1, iv_load_policy:3,
+                    autoplay:1, mute: (bornMuted !== undefined ? bornMuted : effMute()) ? 1 : 0 },
       events: {
         onReady: e => {
           ready = true;
           e.target.setVolume(vol); effMute() ? e.target.mute() : e.target.unMute();
           if (wantPlay) e.target.playVideo();
+          if (audibleTry) setTimeout(audibleVerdict, 1800); // v51: resolve the audible gamble
         },
         onStateChange: e => {
           if (e.data === 0) setTrack(idx + 1, true);            // ended → next
-          else if (e.data === 1) { playing = true; wantPlay = false; errStreak = 0; syncUI(); }
+          else if (e.data === 1) {
+            if (audibleTry) { audibleTry = false; engaged = true; } // v51: gamble won — audible from t=0
+            playing = true; wantPlay = false; errStreak = 0; syncUI();
+          }
           else if (e.data === 2) { playing = false; syncUI(); }
         },
         onError: e => {
@@ -628,11 +668,17 @@
     clearTimeout(volShowT); volShowT = setTimeout(() => bar.classList.remove('volshow'), 900);
   }, { passive:false });
 
-  /* Autostart. Audible autoplay is browser-blocked without a user gesture, but *muted*
-     autoplay is always allowed — so playback begins muted the instant the page loads (the
-     equalizer runs, the track clock ticks), then unmutes on the visitor's first interaction.
-     We listen for `mousemove` too, so on this cursor-driven page the music usually goes
-     audible the moment they move the mouse. The discrete gestures (pointerdown/key/…) are
+  /* Autostart (v51: audible-first gamble). Audible autoplay with zero interaction is only
+     allowed when the browser already trusts this origin (Chrome's Media Engagement Index,
+     a per-site "Sound: Allow" setting, Firefox's autoplay pref) — but *muted* autoplay is
+     always allowed. So on load we now GAMBLE: the embed is created unmuted (autoplay:1,
+     mute:0). If the browser permits it, sound starts the instant the page loads (returning
+     visitors, localhost dev). If not, the embed just sits UNSTARTED — audibleVerdict()
+     (1.8 s after onReady) detects that nothing is playing and rebuilds the embed muted-at-
+     birth (the only reliable muted autostart, v45), landing us exactly in the pre-v51
+     behavior: equalizer runs, track clock ticks, and the first interaction unmutes.
+     engage() listens on `mousemove` too, so on this cursor-driven page the music usually
+     goes audible the moment the mouse moves; the discrete gestures (pointerdown/key/…) are
      the reliable fallback: some browsers pause a clip that's script-unmuted without an
      activating gesture, and the imminent click/scroll then resumes it audibly. engage() is
      idempotent, so a mousemove that got paused is recovered by the next gesture. */
@@ -640,8 +686,23 @@
   function autostart() {
     if (autostarted || failed) return;
     autostarted = true;
+    audibleTry = !engaged; // gamble on audible autoplay unless a gesture already engaged us
     wantPlay = true; syncUI(); loadAPI();
     if (apiReady) createPlayer(); // otherwise onYouTubeIframeAPIReady will create it
+  }
+  function audibleVerdict() { // v51: did the unmuted-at-birth embed actually start?
+    if (!audibleTry) return; // already resolved: PLAYING flipped it (gamble won)
+    audibleTry = false;
+    if (playing || failed || !player) return;
+    // Gamble lost — audible autoplay is blocked here. Rebuild the embed muted-at-birth
+    // (mute must be declared at embed creation, v45); engage() unmutes on the first gesture.
+    try { player.destroy(); } catch (e) {}
+    if (!document.getElementById('yt-audio')) { // destroy() may not restore the host div
+      const d = document.createElement('div'); d.id = 'yt-audio';
+      document.getElementById('yt-audio-wrap').appendChild(d);
+    }
+    player = null; ready = false; wantPlay = true;
+    createPlayer(true);
   }
   function engage() {
     if (failed) return;
@@ -658,7 +719,7 @@
   setLabel(TRACKS[0].label);
   syncUI();
   loadAPI(); // pre-warm the tiny API script so first play is snappy
-  setTimeout(autostart, 0); // begin muted playback immediately; engage() unmutes on first move
+  setTimeout(autostart, 0); // begin (audible if the browser allows, else muted) playback immediately
 
   /* ---- Playlist reorder UI (dev tools ▸ "Playlist order…") ---- */
   function saveOrder() {
@@ -779,6 +840,27 @@ composer.addPass(new RenderPass(scene,camera));
 const BASE_BLOOM=0.7;
 const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),BASE_BLOOM,0.5,0.2);
 composer.addPass(bloom);
+/* v50 perf: docked at a stop or flying between stops, journeyT pins bloom.strength to exactly 0 —
+   the pass's composite shader becomes bloomStrength*(...) = 0 and its final additive blend adds
+   mathematically nothing to the canvas, yet the high-pass, ten separable blurs, composite and
+   blend (≈13 fullscreen GPU passes) still ran every frame. At strength 0 do only what actually
+   reaches the canvas: the pass's own base blit of the scene (the byte-identical code path the
+   full pass runs first). The pass CHAIN is untouched — the scene still renders into the same
+   4× MSAA half-float target and blits through the same material, so blending/tone-mapping
+   spaces are unchanged (simply disabling the pass would have re-routed the scene straight to
+   the canvas: sRGB-space blending, visibly different). Any strength > 0 takes the full path. */
+const _bloomFullRender=bloom.render.bind(bloom);
+bloom.render=function(rnd,writeBuffer,readBuffer,deltaTime,maskActive){
+  if(this.strength>0) return _bloomFullRender(rnd,writeBuffer,readBuffer,deltaTime,maskActive);
+  rnd.getClearColor(this._oldClearColor); this.oldClearAlpha=rnd.getClearAlpha();
+  const oldAutoClear=rnd.autoClear; rnd.autoClear=false;
+  rnd.setClearColor(this.clearColor,0);
+  if(this.renderToScreen){ // the same base blit the full pass performs before adding bloom
+    this.fsQuad.material=this.basic; this.basic.map=readBuffer.texture;
+    rnd.setRenderTarget(null); rnd.clear(); this.fsQuad.render(rnd);
+  }
+  rnd.setClearColor(this._oldClearColor,this.oldClearAlpha); rnd.autoClear=oldAutoClear;
+};
 /* Journey automation: while entering or docked at a stop, bloom fades to 0 and the FOV widens
    to JOURNEY_FOV; free roam / exiting restores both. baseBloom holds the overview target (what
    the dev sliders set); the frame loop scales the live pass by (1-journeyT) so the two systems
@@ -922,18 +1004,35 @@ class Glyph{
 function acquireGlyph(ch){ const g=new Glyph(); _attach(g,poolFor(ch)); return g; }
 function releaseGlyph(g){ _detach(g); }
 function syncPools(){ // rewrite every pool's instance buffers from the proxies (only on dirty frames)
+  /* v50 perf: per-attribute change tracking — a buffer whose bytes didn't change skips its GPU
+     re-upload (needsUpdate re-sends the WHOLE array). updateAssembly marks glyphsDirty on every
+     docked frame (facets exist, settled or not), which used to re-send all ~1MB of instance data
+     every frame; now a settled stop uploads nothing and e.g. the button pulse re-sends only the
+     '#' pool's colors. Values are compared in f32 (Math.fround) because the proxies hold f64 —
+     the arrays store f32, so comparing raw would never match and defeat the skip. Pixel-identical
+     by construction: every value is still computed and compared; only bytes-equal uploads drop. */
+  const fr=Math.fround;
   for(const pool of _pools.values()){
     const gl=pool.glyphs, n=gl.length, mesh=pool.mesh;
     const M=mesh.instanceMatrix.array, C=mesh.instanceColor.array, O=pool.opAttr.array;
+    let dM=false,dC=false,dO=false;
     for(let i=0;i<n;i++){
-      const g=gl[i], o=i*16, s=g.visible?g.scale.x:0; // scale is always uniform; hidden = collapsed to zero
-      M[o]=s; M[o+5]=s; M[o+10]=s;
-      M[o+12]=g.position.x; M[o+13]=g.position.y; M[o+14]=g.position.z; M[o+15]=1;
-      const c=g.material.color, ci=i*3; C[ci]=c.r; C[ci+1]=c.g; C[ci+2]=c.b;
-      O[i]=g.material.opacity;
+      const g=gl[i], o=i*16, s=fr(g.visible?g.scale.x:0); // scale is always uniform; hidden = collapsed to zero
+      const px=fr(g.position.x), py=fr(g.position.y), pz=fr(g.position.z);
+      if(M[o]!==s||M[o+12]!==px||M[o+13]!==py||M[o+14]!==pz||M[o+15]!==1){ // o+5/o+10 always mirror o
+        M[o]=s; M[o+5]=s; M[o+10]=s;
+        M[o+12]=px; M[o+13]=py; M[o+14]=pz; M[o+15]=1;
+        dM=true;
+      }
+      const c=g.material.color, ci=i*3, cr=fr(c.r), cg=fr(c.g), cb=fr(c.b);
+      if(C[ci]!==cr||C[ci+1]!==cg||C[ci+2]!==cb){ C[ci]=cr; C[ci+1]=cg; C[ci+2]=cb; dC=true; }
+      const op=fr(g.material.opacity);
+      if(O[i]!==op){ O[i]=op; dO=true; }
     }
     mesh.count=n;
-    mesh.instanceMatrix.needsUpdate=true; mesh.instanceColor.needsUpdate=true; pool.opAttr.needsUpdate=true;
+    if(dM) mesh.instanceMatrix.needsUpdate=true;
+    if(dC) mesh.instanceColor.needsUpdate=true;
+    if(dO) pool.opAttr.needsUpdate=true;
   }
 }
 
@@ -1183,9 +1282,9 @@ function levelQuat(q,out){ // same compass heading, pitch leveled to the horizon
   _pd.position.set(0,0,0); _pd.up.set(0,0,1); _pd.lookAt(_lv.divideScalar(l)); _pd.updateMatrixWorld();
   return out.copy(_pd.quaternion);
 }
-function poseAt(s,outPos,outQuat){ // skimming pose: over the terrain, gazing at the relief ahead
+function poseAt(s,outPos,outQuat,lookAhead){ // skimming pose: over the terrain, gazing at the relief ahead
   pathPos(s,outPos);
-  pathPos(Math.min(1,s+LOOK_AHEAD_U/pathTotal),_pv);
+  pathPos(Math.min(1,s+(lookAhead||LOOK_AHEAD_U)/pathTotal),_pv);
   const hd=Math.max(4,Math.hypot(_pv.x-outPos.x,_pv.y-outPos.y));
   // aim at the relief ahead, but keep the pitch inside a steady band so every stop
   // frames the landscape the same way (terrain may vanish past the hairline/chin)
@@ -1338,6 +1437,7 @@ function beginIntro(mode){
 const panel=document.getElementById('panel');
 const pKicker=panel.querySelector('.eyebrow'), pTitle=panel.querySelector('.title'), pBody=panel.querySelector('.body'), pMedia=panel.querySelector('.media'), pLinks=panel.querySelector('.links');
 const hint=document.getElementById('hint'), hintText=document.getElementById('hint-text'), departFill=document.getElementById('departfill');
+let _departW=''; // last departure-bar width actually written (v50: skip identical per-frame style writes)
 const enterBtn=document.getElementById('enter-btn'), exploreBtn=document.getElementById('explore-btn');
 const rail=document.getElementById('rail'); const railEls=[];
 STOPS.forEach((st,k)=>{
@@ -1381,8 +1481,11 @@ function showStop(k){
 }
 function hidePanel(){ panel.classList.remove('in'); }
 function syncButtons(){
-  enterBtn.style.display=(uiState==='journey'||uiState==='entering')?'none':'';
-  exploreBtn.style.display=(uiState==='overview')?'none':'';
+  // strictly complementary so the two never share their (now identical) slot:
+  // Enter shows heading to / at the overview; Roam shows heading to / in the journey
+  const atOverview=(uiState==='overview'||uiState==='exiting');
+  enterBtn.style.display=atOverview?'':'none';
+  exploreBtn.style.display=atOverview?'none':'';
 }
 
 /* ASCII-rendered case-study covers (offline-generated from images/ by scratchpad gen_covers.py;
@@ -1400,35 +1503,51 @@ const COVER_PHOTOS={"vrchat": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
    panorama of FACETS — text blocks and ASCII-rendered case-study covers — hung at
    fixed directions around the camera. The visitor looks around freely (drag);
    when a facet enters the gaze it fires: its recruited glyphs arc off the relief
-   and reform into it, and EVERY other character in that line of sight either flies
-   into the letters too (absorbed, fading as it lands) or fades where it stands —
-   so assembled content reads against pure black. Look away and it all scatters
-   home; look back and it rebuilds. All recruiting is partitioned once per dock
-   (items exclusive per facet, corridor glyphs to the angularly nearest facet), so
-   gaze changes replay cached flights — no per-frame searches. Covers come from
+   and reform into it, and EVERY other character in that line of sight flies into
+   the letters too (absorbed, fading only as it lands) — so assembled content
+   reads against pure black and every cleared character is USED, none merely fade
+   in place (v43; budget overflow is the one exception). When two facets trade
+   places — one releasing while its neighbor holds — the released glyphs HAND
+   OFF: they fly straight from the old content into the new instead of returning
+   home to fade. Look away and it all scatters home; look back and it rebuilds.
+   All recruiting is partitioned once per dock (letter items exclusive per facet;
+   absorb records for EVERY facet whose patch contains a glyph, self-clocked so a
+   holding facet can receive handoffs at any time; m.userData.hold names the facet
+   currently animating a glyph and arbitrates every conflict), so gaze changes
+   replay cached flights — no per-frame searches. Covers come from
    ASCII_COVERS, generated offline from the real images (bright paper covers are
    inverted so the ink glows); shortly after a cover finishes assembling it
    DEVELOPS: a tiled plane carrying the real front page (COVER_PHOTOS data-URI
    textures — same-origin, so WebGL-safe under file://) fades in tile by tile
    while the image glyphs dissolve; the title stays as glyphs. Looking away folds
    the photo up and scatters everything home. Each facet clears a rough-edged
-   ELLIPTICAL patch of background (jittered rim, per-glyph fade rates) rather
-   than a hard rectangle. Gallery facets ring the visitor at even 360/7 spacing.
+   ELLIPTICAL patch of background (jittered rim) rather than a hard rectangle,
+   PLUS its sight CONE (v43): anything nearer than the content plane and inside
+   the content block's exact angular footprint — the rectangle's corners, which
+   the inscribed ellipse used to miss, and glyphs right at the POV — always joins
+   the assembly, budget-exempt, so nothing sits still between the visitor and the
+   text/image/buttons. Gallery facets ring the visitor at even 360/7 spacing.
    v37: ALL facets hang at EYE LEVEL (anchor z = camera z, pitch 0 — no more craning
    up at terrain-cleared heights) and fire on YAW ALONE — each facet owns a
    horizontal slice of the compass, pitch never gates activation. Covers with a
    `pdf` grow a [ DOWNLOAD REPORT ] button under the title: assembled from glyphs
    like everything else, amber-pulsing once settled, pinned bright + pointer cursor
-   on hover (facetButtonHit: pointer ray vs. facet plane), a still click saves the
-   PDF (downloadPDF). 'panel' keeps the HTML overlay. */
+   on hover (facetButtonHit: pointer ray vs. facet plane), a still click opens the
+   PDF in a new tab (downloadPDF). 'panel' keeps the HTML overlay. */
 let stopInfoMode='assemble'; // 'assemble' | 'panel'
+// stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
+// (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'.
+let travelAdjacent='cruise', travelFar='swoop';
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
 const ASM_ADV=0.78;                                  // per-unit-scale character advance
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
 const F_OUT_MS=900, F_OUT_FLY_MS=620;                // scatter home
 const F_FADE_MS=260;                                 // nominal fade for the cleared background patch (v39: was 420 — read as lingering)
 const F_GAZE_IN=0.40, F_GAZE_OUT=0.62;               // gaze hysteresis (rad): fire under 23°, release past 35°
-const F_EXTRA_MAX=4500;                              // absorbed-flight budget per facet; the rest just fade (v40: raised — the whole corridor flies now)
+const F_EXTRA_MAX=9000;                              // absorb-record budget per facet; only overflow merely fades. v43: raised past the
+                                                     // measured worst case (~7.2k members for a corridor aligned with the portrait's long
+                                                     // axis, checked against the real asciiData) so in practice NOTHING fades — every
+                                                     // cleared glyph flies into the content, which is the whole point
 const PHOTO_DELAY=450;                               // pause after assembly before the photo develops
 const PHOTO_STAGGER=550, PHOTO_TILE_MS=260;          // tile reveal: stagger window / one tile's fade
 const COVER_RAMP=' .:-=+*#%@';                       // luminance ramp used by the offline cover generator
@@ -1575,7 +1694,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     facets.push({yaw, pitch:0, dist, dir, right, up, anchor, f, lay:d.lay,
                  Ry:Math.atan((d.lay.w*f/2)/dist)+0.15, // angular half-extents of the cleared ellipse
                  Rp:Math.atan((d.lay.h*f/2)/dist)+0.15,
-                 strict:!!d.photoKey, // covers (v42): the WHOLE foreground clears, not just the ellipse
+                 coneY:Math.atan((d.lay.w*f/2)/dist)+0.06, // the sight cone: the content block's exact angular
+                 coneP:Math.atan((d.lay.h*f/2)/dist)+0.06, // footprint (+ a hair), used with a depth test in pass 3
                  photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pStart:0,
                  pdf:d.pdf, g:d.g, holdT0:0,
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
@@ -1599,114 +1719,131 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       const rec={m, ri:i, home:m.position.clone(), geo0:m.geometry,
         to:new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f),
         s1:li.s*F.f, geoA:glyphGeo(li.ch), L:li.L!==undefined?li.L:null,
-        from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false};
+        from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false};
       F.items.push(rec);
       if(li.btn){ const b=F.btns.find(bb=>bb.kind===li.btn); if(b) b.items.push(rec); } // button glyphs: pulsed/hover-lit each frame while assembled
     }
   });
-  /* partition pass 3: every other glyph inside a facet's rough-edged ELLIPTICAL patch.
-     The angularly nearest facet absorbs it in flight (up to the budget); every facet
-     whose ellipse contains it also fades it — patches may overlap, rims are jittered
-     per glyph and fade at per-glyph rates, so the clearing reads organic, not square.
-     OWNED glyphs (another facet's letters, still sitting in the terrain while their
-     owner is home) are cleared too — fade-only, never absorbed, and the fade pass
-     defers to the owner the moment it fires (fd.own). Without this the gallery stop
-     left ~60% of each corridor standing: its 7 facets own ~8k of the 13k glyphs. */
-  const nf=facets.length, _e=new Float32Array(nf);
+  /* partition pass 3 (v43): EVERY facet records an absorb candidate for every glyph
+     inside its rough-edged ELLIPTICAL patch — not just the angularly nearest one — so
+     a glyph in two neighbors' corridors can fly into whichever fires, and be handed
+     between them when they trade places (facetOut). On top of the ellipse, the sight
+     CONE: any glyph nearer than the content plane (depth<dist+2) and inside the block's
+     exact angular footprint (the rectangle's corners, which the inscribed ellipse
+     missed, and glyphs right at the POV) always gets a record, budget or no budget —
+     nothing may sit still between the visitor and the content. Records are self-clocked
+     (rec.st/rec.mode) so they can launch at ANY moment, e.g. into a facet already
+     holding; m.userData.hold names the facet currently animating a glyph as an absorb
+     and arbitrates every conflict (owners claim their letters back by clearing it in
+     facetIn). Only budget overflow falls back to the old fade-in-place. */
+  const nf=facets.length, byMesh=new Map(); // mesh -> its absorb records across all facets (handoff lookup)
   for(let i=0;i<N;i++){
-    const own=owner[i];
-    const v=_aV.copy(textMeshes[i].position).sub(_aP), vlen=Math.max(1e-6,v.length());
+    const own=owner[i], m=textMeshes[i];
+    const v=_aV.copy(m.position).sub(_aP), vlen=Math.max(1e-6,v.length());
     const gy=Math.atan2(v.y,v.x), gp=Math.asin(Math.max(-1,Math.min(1,v.z/vlen)));
     const rim=(1.0+(Math.random()-0.35)*0.3)              // ragged rim: each glyph's own cutoff…
               *(vlen<10?1+(10-vlen)*0.06:1);              // …widened for NEAR glyphs (v41): anything close
                                                           // to the visitor obstructs more, so it clears sooner
-    let best=-1, bestE=1e9;
+    const ownF=own>=0?facets[own]:null;
     for(let fi=0;fi<nf;fi++){
       const F=facets[fi];
+      if(fi===own) continue;                              // never clear a facet's own letters
       const depth=v.dot(F.dir);
-      if(fi===own||depth<(F.strict?0.2:1.2)){ _e[fi]=1e9; continue; } // never clear a facet's own letters; 1.2 (was 4, v41): glyphs right at the POV must clear too
-      let e=Math.hypot(wrapAng(gy-F.yaw)*Math.cos(gp)/F.Ry,(gp-F.pitch)/F.Rp);
-      /* strict foreground (v42, covers only): NOTHING may stand between the visitor and a
-         project — any glyph nearer than the content plane and inside the facing view
-         (±60° yaw / ±49° pitch, a bit past the docked 80° FOV) is pulled deep into the
-         clearing, regardless of the ellipse. The intro text facet keeps the plain ellipse. */
-      if(F.strict&&depth<F.dist+2&&Math.abs(wrapAng(gy-F.yaw))<1.05&&Math.abs(gp)<0.85) e=Math.min(e,0.3);
-      _e[fi]=e;
-      if(e<bestE){ bestE=e; best=fi; }
+      if(depth<0.2) continue;                             // beside/behind the visitor for this direction
+      const dy=Math.abs(wrapAng(gy-F.yaw))*Math.cos(gp), dp=Math.abs(gp-F.pitch);
+      const e=Math.hypot(dy/F.Ry,dp/F.Rp);
+      const cone=depth<F.dist+2&&dy<F.coneY&&dp<F.coneP;  // in front of the content AND inside its footprint
+      if(!cone&&e>=rim) continue;
+      if(cone||F.extras.length<F_EXTRA_MAX){
+        const rec={m, F, home:m.position.clone(), g0:m.geometry, own:ownF,
+          to:null, from:null, ctrl:null, st:0, mode:null, s0:1, swapped:false, done:false};
+        F.extras.push(rec);
+        let l=byMesh.get(m); if(!l) byMesh.set(m,l=[]); l.push(rec);
+      } else F.fades.push({m, k:0.9+Math.random()*1.6, own:ownF});
     }
-    /* v40: EVERYTHING inside the ellipse flies into the text (absorbed), staggered over the
-       same window as the letter flights — owned glyphs included (guards in the anim code
-       cede them to their owner the moment it fires). Only budget overflow just fades. */
-    const ownF=own>=0?facets[own]:null;
-    const exF=(best>=0&&bestE<rim&&facets[best].extras.length<F_EXTRA_MAX)?best:-1;
-    if(exF>=0){
-      const exRec={m:textMeshes[i], home:textMeshes[i].position.clone(),
-        own:ownF, to:null, from:null, ctrl:null, d:0, s0:1, done:false};
-      facets[exF].extras.push(exRec);
-      // an owned glyph can be handed back mid-hold (owner fires, then releases it home):
-      // keep a fade entry on the absorber so the returned glyph melts out of the patch
-      if(ownF) facets[exF].fades.push({m:textMeshes[i], k:0.9+Math.random()*1.6, own:ownF, ex:exRec});
-    }
-    for(let fi=0;fi<nf;fi++)
-      if(fi!==exF&&_e[fi]<rim) facets[fi].fades.push({m:textMeshes[i], k:0.9+Math.random()*1.6, own:ownF});
   }
-  stopFacets={k, facets, yaw0, pitch0};
+  stopFacets={k, facets, yaw0, pitch0, byMesh};
   // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
   // frame()), so set BOTH current and target to level: docking involves zero re-aim
   freeYaw=freeYawT=0;
   freePitch=freePitchT=-pitch0;
+}
+function handTarget(m,notF){ // an active facet that wants this glyph (i.e. holds an absorb record for it)
+  if(!stopFacets) return null;
+  const list=stopFacets.byMesh.get(m); if(!list) return null;
+  for(const r of list) if(r.F!==notF&&(r.F.state==='in'||r.F.state==='hold')) return r;
+  return null;
+}
+function launchAbsorb(F,ex,now,delay){ // fly a glyph from wherever it is into one of F's letters (self-clocked)
+  const m=ex.m;
+  m.userData.hold=F; m.visible=true;
+  ex.mode='in'; ex.st=now+delay; ex.done=false; ex.swapped=false;
+  ex.to=F.items[(Math.random()*F.items.length)|0].to; // absorbed into a random letter
+  ex.from=m.position.clone(); ex.s0=m.scale.x||1;
+  ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.to,0.5).addScaledVector(F.up,1.5+Math.random()*2);
 }
 function facetIn(F,now){
   if(F.state==='in'||F.state==='hold') return;
   F.state='in'; F.t0=now; F.pT0=0; F.pOn=false; F.pDone=false; // a fresh gaze re-develops the photo from the ASCII
   const n=F.items.length, stag=F_IN_MS-F_FLY_MS;
   for(const it of F.items){ const m=it.m; m.visible=true;
+    m.userData.hold=null; // the owner claims its letters back from any facet that absorbed them
     it.from=m.position.clone(); it.s0=m.scale.x||1;
     it.ctrl=new THREE.Vector3().lerpVectors(it.from,it.to,0.5)
       .addScaledVector(F.up,2+Math.random()*2.5).addScaledVector(F.right,(Math.random()-0.5)*3);
-    it.d=(it.ri/n)*stag+Math.random()*40; it.swapped=false; it.done=false;
+    it.d=(it.ri/n)*stag+Math.random()*40; it.swapped=false; it.done=false; it.handed=false;
   }
-  const en=F.extras.length;
-  for(let i=0;i<en;i++){ const ex=F.extras[i], m=ex.m;
-    if(ex.own&&ex.own.state!=='home'){ ex.done=true; continue; } // its owner is using it — cede
-    m.visible=true;
-    ex.to=F.items[(Math.random()*n)|0].to; // absorbed into a random letter
-    ex.from=m.position.clone(); ex.s0=m.scale.x||1;
-    ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.to,0.5).addScaledVector(F.up,1.5+Math.random()*2);
-    ex.d=(i/en)*stag+Math.random()*60; ex.done=false;
+  const en=F.extras.length; let li=0;
+  for(const ex of F.extras){
+    const own=ex.own, h=ex.m.userData.hold;
+    if(own&&(own.state==='in'||own.state==='hold')) continue;  // its owner is displaying it — handed over when the owner releases
+    if(h&&h!==F&&(h.state==='in'||h.state==='hold')) continue; // parked invisible inside another facet's text — nothing to clear here
+    launchAbsorb(F,ex,now,(li++/en)*stag+Math.random()*60);    // (an 'out'-state owner/holder is stolen from mid-flight)
   }
 }
-function facetOut(F,now){
+function facetOut(F,now,noHand){ // noHand: departure — everything goes home, no facet-to-facet handoffs
   if(F.state!=='in'&&F.state!=='hold') return;
   if(F.g) hideMore(); // a cover leaving the gaze takes its read-more card with it
   F.state='out'; F.t0=now; F.pT0=0; F.pOn=false; F.pDone=false;
   const n=F.items.length, stag=F_OUT_MS-F_OUT_FLY_MS;
-  for(const it of F.items){ const m=it.m; m.visible=true;
+  for(const it of F.items){ const m=it.m;
+    if(!noHand){ const r=handTarget(m,F); // a neighbor showing content wants this glyph:
+      if(r){ launchAbsorb(r.F,r,now,Math.random()*stag); it.done=true; it.handed=true; continue; } } // it flies STRAIGHT there instead of home (v43)
+    m.visible=true;
     it.from=m.position.clone(); it.s0=m.scale.x||0.05;
     it.ctrl=new THREE.Vector3().lerpVectors(it.from,it.home,0.5).addScaledVector(F.up,1.2+Math.random()*1.8);
     it.d=((n-1-it.ri)/n)*stag+Math.random()*40; it.swapped=false; it.done=false;
   }
   const en=F.extras.length;
   for(let i=0;i<en;i++){ const ex=F.extras[i], m=ex.m;
-    if(ex.own&&ex.own.state!=='home'){ ex.done=true; continue; } // its owner is using it — cede
+    if(m.userData.hold!==F) continue; // never launched, ceded to its owner, or already stolen
+    if(!noHand){ const r=handTarget(m,F);
+      if(r){ launchAbsorb(r.F,r,now,Math.random()*stag); continue; } }
     m.visible=true;
+    ex.mode='out'; ex.st=now+(1-i/Math.max(1,en))*stag+Math.random()*60; ex.done=false; ex.swapped=false;
     ex.from=m.position.clone(); ex.s0=m.scale.x||0.05;
     ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.home,0.5).addScaledVector(F.up,1+Math.random()*1.5);
-    ex.d=(1-i/Math.max(1,en))*stag+Math.random()*60; ex.done=false;
   }
 }
 function restoreFacet(F){ // exact snap home: geometry, position, palette, flags
-  for(const it of F.items){ const m=it.m;
+  for(const it of F.items){ const m=it.m, h=m.userData.hold;
+    if(h&&h!==F&&h.state!=='home'){ it.done=false; it.swapped=false; continue; } // handed to an active facet — it brings the glyph home itself
     m.geometry=it.geo0; m.position.copy(it.home); m.scale.setScalar(1);
     m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor());
-    m.userData.asm=false; m.userData.asmL=null;
-    it.done=false; it.swapped=false;
+    m.userData.asm=false; m.userData.asmL=null; m.userData.hold=null;
+    it.done=false; it.swapped=false; it.handed=false;
   }
   for(const ex of F.extras){ const m=ex.m;
-    if(ex.own&&ex.own.state!=='home'){ ex.done=false; continue; } // the owner will bring it home itself
-    m.position.copy(ex.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; ex.done=false;
+    if(!ex.mode) continue;                                    // never moved this dock
+    if(m.userData.hold!==F){ ex.mode=null; ex.done=false; continue; } // its owner or another facet has it
+    m.geometry=ex.g0; m.position.copy(ex.home); m.scale.setScalar(1);
+    m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor());
+    m.userData.asm=false; m.userData.asmL=null; m.userData.hold=null;
+    ex.mode=null; ex.done=false; ex.swapped=false;
   }
-  for(const fd of F.fades){ if(fd.own&&fd.own.state!=='home') continue; fd.m.material.opacity=1; fd.m.visible=true; }
+  for(const fd of F.fades){ if(fd.own&&fd.own.state!=='home') continue;
+    const h=fd.m.userData.hold; if(h&&h.state!=='home') continue; // some facet is flying/holding it
+    fd.m.material.opacity=1; fd.m.visible=true; }
   if(F.tiles) for(const t of F.tiles){ t.material.opacity=0; t.visible=false; }
   F.state='home'; F.pT0=0; F.pOn=false; F.pDone=false;
   for(const b of F.btns) b.hover=false;
@@ -1727,7 +1864,7 @@ function disassemble(instant){ // release the whole stop (dock change, mode chan
   }
   if(!stopFacets) return;
   for(const F of stopFacets.facets){
-    if(F.state==='in'||F.state==='hold') facetOut(F,performance.now());
+    if(F.state==='in'||F.state==='hold') facetOut(F,performance.now(),true); // noHand: all facets are leaving — nothing to hand off to
     if(F.state!=='home') asmRetired.push(F); else disposeFacetTiles(F);
   }
   stopFacets=null;
@@ -1757,10 +1894,8 @@ function facetButtonHit(clientX,clientY){ // pointer ray vs. facet plane, tested
   }
   return null;
 }
-function downloadPDF(href){ // one-click save; same-origin, so the download attribute is honored
-  const a=document.createElement('a');
-  a.href=href; a.download=href.split('/').pop();
-  document.body.appendChild(a); a.click(); a.remove();
+function downloadPDF(href){ // open the report in its own tab — the site keeps running in this one
+  window.open(href,'_blank','noopener');
 }
 /* READ MORE: an HTML side card with the project's context / methods / outcomes
    (glyphs would blow the budget at ~450 chars per project). Closes on ×, Esc,
@@ -1780,22 +1915,59 @@ function showMore(g){
     (g.tags?'<div class="mc-tags">'+g.tags.split(' / ').map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
     [['Context',g.more.context],['Methods',g.more.methods],['Outcomes',g.more.outcomes]]
       .map(([h,t])=>t?'<div class="mc-h">'+h+'</div><p>'+esc(t)+'</p>':'').join('')+
-    (g.pdf?'<a class="mc-dl" href="'+g.pdf+'" download>Download the full report</a>':'');
+    (g.pdf?'<a class="mc-dl" href="'+g.pdf+'" target="_blank" rel="noopener">Download the full report</a>':'');
   moreCard.scrollTop=0; moreCard.classList.add('open'); moreOpen=true;
 }
 function hideMore(){ if(!moreOpen) return; moreCard.classList.remove('open'); moreOpen=false; }
 function updateFacet(F,now,dt){
   if(F.state==='home') return;
   const dirIn=F.state==='in', dirOut=F.state==='out';
+  /* absorb records are SELF-CLOCKED (v43): launched by this facet's facetIn, sent home by
+     its facetOut, or handed over by a RELEASING NEIGHBOR — possibly while this facet is
+     already holding — so they animate in every non-home state, each on its own st/mode. */
+  let exBusy=false;
+  for(const ex of F.extras){
+    if(!ex.mode||ex.done) continue;
+    const m=ex.m;
+    if(m.userData.hold!==F){ ex.done=true; continue; } // claimed back by its owner or stolen by another facet
+    const tt=now-ex.st;
+    if(tt<=0){ exBusy=true; continue; }
+    const inF=ex.mode==='in';
+    let p=tt/(inF?F_FLY_MS:F_OUT_FLY_MS);
+    if(p>=1) p=1; else exBusy=true;
+    if(!ex.swapped&&p>=0.5){ // a handed-off LETTER morphs back into its home glyph mid-flight
+      if(m.geometry!==ex.g0){ m.geometry=ex.g0; m.material.color.set(asmRestColor()); }
+      m.userData.asm=false; m.userData.asmL=null; ex.swapped=true;
+    }
+    if(p===1){
+      if(inF){ m.position.copy(ex.to); m.material.opacity=0; m.visible=false; }
+      else { m.geometry=ex.g0; m.position.copy(ex.home); m.scale.setScalar(1);
+             m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor());
+             m.userData.asm=false; m.userData.asmL=null; m.userData.hold=null; }
+      ex.done=true; continue;
+    }
+    const e=easeInOut(p), ie=1-e, to=inF?ex.to:ex.home;
+    m.position.set(
+      ie*ie*ex.from.x+2*ie*e*ex.ctrl.x+e*e*to.x,
+      ie*ie*ex.from.y+2*ie*e*ex.ctrl.y+e*e*to.y,
+      ie*ie*ex.from.z+2*ie*e*ex.ctrl.z+e*e*to.z);
+    m.scale.setScalar(Math.max(0.05,ex.s0+((inF?0.45:1)-ex.s0)*e));
+    if(inF) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38);
+    else m.material.opacity=Math.min(1,Math.max(m.material.opacity,p/0.35));
+  }
   if(dirIn||dirOut){
     const flyMs=dirIn?F_FLY_MS:F_OUT_FLY_MS, t=now-F.t0;
     let busy=false;
     for(const it of F.items){
+      const m=it.m;
+      if(dirOut){
+        if(it.handed) continue; // handed to a neighbor at release — permanently its problem this cycle
+        const h=m.userData.hold; // stolen mid-flight by a neighbor's facetIn — same deal
+        if(h&&h!==F&&h.state!=='home'){ it.done=true; it.handed=true; continue; } }
       const tt=t-it.d;
       if(tt<=0){ busy=true; continue; }
       let p=tt/flyMs;
       if(p>=1){ if(it.done) continue; p=1; } else busy=true;
-      const m=it.m;
       if(!it.swapped&&p>=0.5){
         m.geometry=dirIn?it.geoA:it.geo0;
         if(dirIn) setImgColor(m.material.color,it.L); else m.material.color.set(asmRestColor());
@@ -1824,28 +1996,7 @@ function updateFacet(F,now,dt){
         if(it.swapped&&!inverted) m.material.color.copy(INTRO_FLASH).lerp(setImgColor(_cc,it.L),(p-0.5)*2);
       } else m.material.opacity=Math.min(1,Math.max(m.material.opacity,p/0.3));
     }
-    for(const ex of F.extras){
-      if(ex.own&&ex.own.state!=='home'){ ex.done=true; continue; } // owner fired mid-flight — hands off
-      const tt=t-ex.d;
-      if(tt<=0){ busy=true; continue; }
-      let p=tt/flyMs;
-      if(p>=1){ if(ex.done) continue; p=1; } else busy=true;
-      const m=ex.m;
-      if(p===1){
-        if(dirIn){ m.position.copy(ex.to); m.material.opacity=0; m.visible=false; }
-        else { m.position.copy(ex.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; }
-        ex.done=true; continue;
-      }
-      const e=easeInOut(p), ie=1-e, to=dirIn?ex.to:ex.home;
-      m.position.set(
-        ie*ie*ex.from.x+2*ie*e*ex.ctrl.x+e*e*to.x,
-        ie*ie*ex.from.y+2*ie*e*ex.ctrl.y+e*e*to.y,
-        ie*ie*ex.from.z+2*ie*e*ex.ctrl.z+e*e*to.z);
-      m.scale.setScalar(Math.max(0.05,ex.s0+((dirIn?0.45:1)-ex.s0)*e));
-      if(dirIn) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38);
-      else m.material.opacity=Math.min(1,Math.max(m.material.opacity,p/0.35));
-    }
-    if(!busy){ if(dirOut){ restoreFacet(F); return; } F.state='hold'; F.holdT0=now; }
+    if(!busy&&!(dirOut&&exBusy)){ if(dirOut){ restoreFacet(F); return; } F.state='hold'; F.holdT0=now; }
   }
   // the buttons "light up": a slow amber pulse once their glyphs have swapped in, pinned
   // to full brightness while hovered (facetButtonHit sets b.hover). The download button
@@ -1866,11 +2017,13 @@ function updateFacet(F,now,dt){
       }
     }
   }
-  // the cleared patch: each glyph fades at its own rate, so the rim dissolves organically
+  // budget-overflow glyphs (the only ones left that merely fade, v43): per-glyph rates,
+  // so what little fading remains still dissolves organically
   const ft=(F.state==='out')?1:0;
   for(const fd of F.fades){
     if(fd.own&&fd.own.state!=='home') continue; // its owner is flying/holding it — hands off
-    if(fd.ex&&!fd.ex.done) continue;            // our own absorb flight is carrying it right now
+    const h=fd.m.userData.hold;
+    if(h&&h.state!=='home') continue;           // an absorb flight (any facet's) is carrying it
     const mat=fd.m.material, nv=mat.opacity+(ft-mat.opacity)*Math.min(1,dt*(1400/F_FADE_MS)*fd.k);
     mat.opacity=nv; fd.m.visible=nv>0.02;
   }
@@ -1955,7 +2108,7 @@ function updateAssembly(now,dt){
 /* state: overview (orbit) -> entering -> journey (docked <-> flying) -> exiting */
 let uiState='overview';
 let jMode='docked', dockIdx=-1, depart=0, dockCool=0;
-let flight=null; // {s0,s1,t0,dur,toIdx}
+let flight=null; // {mode,s0,s1,t0,dur,toIdx,...} — per-mode fields built in buildFlight
 let bounceT=-1e9, bounceDir=1;
 let lookTX=0,lookTY=0,lookX=0,lookY=0;
 const LOOK_YAW=0.52, LOOK_PITCH=0.3; // how far (rad) the mouse can swing the docked gaze
@@ -1997,10 +2150,124 @@ function departTo(k){
   }
   if(k===dockIdx) return;
   jMode='flying'; depart=0; hidePanel(); hideHint(); disassemble(false);
-  const s0=stopS[dockIdx], s1=stopS[k];
-  flight={s0, s1, t0:performance.now(), toIdx:k,
-          dur:Math.min(6500, 1000+Math.abs(s1-s0)*pathTotal/24*1000)};
+  const mode=(Math.abs(k-dockIdx)===1)?travelAdjacent:travelFar; // adjacent hop vs. jump across the path
+  flight=buildFlight(stopS[dockIdx],stopS[k],k,mode);
   railSet(k);
+}
+/* three travel styles (dev panel > Travel Style). 'classic' is the original: one easeInOut
+   over the whole arc — long trips get sluggish ends and a whipping middle. The alternatives:
+   - 'cruise': same low rail, but a real velocity profile — fixed-time ramps (sin² ease,
+     CRUISE_RAMP s each end) around a constant cruise speed that scales with trip length,
+     so a cross-face run stays in steady motion instead of stretching one ease. The gaze
+     look-ahead grows with speed (irons out spline wiggle) and the camera banks into turns.
+   - 'swoop': leaves the rail — rises from the stop, glides a straight-line arc over the
+     portrait and descends into the target. Altitude bump ('hump', sin profile) is computed
+     per departure against the real terrain (0.5-unit samples, validated vs asciiData:
+     mid-arc always ≥ JCLEAR above glyph tops), so the hop is collision-free by construction
+     and its duration is nearly flat with distance — the first→last trip becomes one calm
+     cinematic hop instead of a 6.5 s rail sprint.
+   - 'swoop2' / 'swoop3' (v49): the swoop's two complaints fixed. v1's sin bump has its
+     steepest slope AT the endpoints (and terrain near a stop can force the scalar hump to
+     30–60 units), so it launches on a straight slant up and lands on a straight slant
+     down, the gaze pitching ~-41° into the target before craning back level. Both
+     variants swap the xy line for a quadratic bezier bowed away from the face center
+     (the hop sweeps around the portrait) and the scalar hump for a per-sample altitude
+     profile: a raised-cosine arc (zero slope at both ends — level takeoff and touchdown)
+     with the terrain requirement carved in via moving-max + box-smooth, re-clamped to
+     the raw requirement (validated vs asciiData: min clearance ≥ JCLEAR everywhere).
+     'swoop2' keeps the velocity-riding gaze (milder pitch clamp, and the level profile
+     means it reaches the horizon by itself — no down-crane); 'swoop3' bows wider, locks
+     the gaze onto the destination stop's eye-level anchor once clear of the departure
+     (pitch levels itself as the camera descends onto it) and banks gently into the
+     curve, fading out before touchdown. */
+const CRUISE_RAMP=1.0; // s of acceleration / deceleration at each end
+function swoopZ(F,u){ // linear-interp the swoop2/3 altitude-bump profile (clamped at the ends)
+  const n=F.bump.length-1, f=Math.min(n,Math.max(0,u*n)), i=Math.min(n-1,Math.floor(f));
+  return F.bump[i]+(F.bump[i+1]-F.bump[i])*(f-i);
+}
+function buildFlight(s0,s1,toIdx,mode){
+  const now=performance.now(), D=Math.abs(s1-s0)*pathTotal;
+  if(mode==='cruise'){
+    const tA=CRUISE_RAMP;
+    let vc=Math.min(48,18+D*0.14); vc=Math.max(vc,D/5.5); // long trips fly faster: total time caps ~6.5 s
+    let dA=vc*tA/2, T;                                    // sin² ramp covers half the cruise speed's distance
+    if(D<2*dA){ vc=D/tA; dA=D/2; T=2*tA; } else T=2*tA+(D-2*dA)/vc;
+    return {mode:'cruise',s0,s1,t0:now,toIdx,dur:T*1000,tA,vc,dA,D,dir:Math.sign(s1-s0),
+            bank:0,pyaw:undefined,chase:camera.quaternion.clone()};
+  }
+  if(mode==='swoop'){
+    const A=camera.position.clone();       // launch from the exact current pose — no snap
+    poseAt(s1,_pv,_lq);
+    const B=_pv.clone(), qEnd=new THREE.Quaternion();
+    if(stopInfoMode==='assemble') levelQuat(_lq,qEnd); else qEnd.copy(_lq);
+    const hd=Math.max(1e-6,Math.hypot(B.x-A.x,B.y-A.y));
+    let hump=3+hd*0.09;                    // aesthetic floor: longer hops rise higher
+    const N=Math.max(40,Math.ceil(hd*2));  // ~0.5-unit steps — dense enough to catch terrain spikes
+    for(let i=1;i<N;i++){
+      const u=i/N, x=A.x+(B.x-A.x)*u, y=A.y+(B.y-A.y)*u;
+      const req=terrainH(x,y)+JCLEAR+0.4-(A.z+(B.z-A.z)*u);
+      const sn=Math.max(0.10,Math.sin(Math.PI*u));
+      if(req/sn>hump) hump=req/sn;
+    }
+    return {mode:'swoop',s0,s1,t0:now,toIdx,dur:1500+Math.min(2400,hd*16),A,B,hump,
+            q0:camera.quaternion.clone(),qEnd,chx:(B.x-A.x)/hd,chy:(B.y-A.y)/hd};
+  }
+  if(mode==='swoop2'||mode==='swoop3'){
+    const A=camera.position.clone();       // launch from the exact current pose — no snap
+    poseAt(s1,_pv,_lq);
+    const B=_pv.clone(), qEnd=new THREE.Quaternion();
+    if(stopInfoMode==='assemble') levelQuat(_lq,qEnd); else qEnd.copy(_lq);
+    const hd=Math.max(1e-6,Math.hypot(B.x-A.x,B.y-A.y));
+    // lateral bow: quadratic-bezier control point pushed perpendicular to the hop, on the
+    // side AWAY from the face center — the flight sweeps around the portrait, not a ruler line
+    let nx=-(B.y-A.y)/hd, ny=(B.x-A.x)/hd;
+    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2;
+    if(nx*(mx-centerX)+ny*(my-centerY)<0){ nx=-nx; ny=-ny; }
+    const bow=Math.min(mode==='swoop3'?26:14, hd*(mode==='swoop3'?0.38:0.22));
+    const cx=mx+nx*bow, cy=my+ny*bow;
+    /* altitude: an aesthetic raised-cosine arc with the terrain requirement carved in
+       PER SAMPLE — moving max + box smooth (the same treatment buildJourney gives the
+       rail), then re-clamped to the raw requirement and end-anchored to the stops' own
+       altitude. A scalar hump can't do this: terrain spiking just past a stop would
+       force the whole arc 30–60 units up (validated vs asciiData — v1 swoop does
+       exactly that on some hops, which is partly why it reads as a straight-line tent). */
+    const humpA=3+hd*0.09, N=Math.max(120,Math.ceil(hd*10)); // ~0.1-unit steps: terrainH plateaus can be sub-0.25-unit
+    const raw=new Float32Array(N+1); let L=0, px=A.x, py=A.y;
+    for(let i=0;i<=N;i++){
+      const u=i/N, w=1-u;
+      const x=w*w*A.x+2*u*w*cx+u*u*B.x, y=w*w*A.y+2*u*w*cy+u*u*B.y;
+      if(i) L+=Math.hypot(x-px,y-py);
+      px=x; py=y;
+      const s=Math.sin(Math.PI*u); let b=humpA*s*s;
+      if(i>0&&i<N){ const need=terrainH(x,y)+JCLEAR+0.4-(A.z+(B.z-A.z)*u); if(need>b)b=need; }
+      raw[i]=b;
+    }
+    // terrainH is a step function: a high cell straddling samples must be HELD across all
+    // of them, or the interp between a clamped sample and its lower neighbor dives back
+    // under the cliff (caught by validation). ±2-sample moving max widens the floor.
+    const floor_=new Float32Array(N+1);
+    for(let i=1;i<N;i++){ let m=0; for(let j=Math.max(0,i-2);j<=Math.min(N,i+2);j++) if(raw[j]>m)m=raw[j]; floor_[i]=m; }
+    const W=Math.max(4,Math.round(N*1.5/Math.max(1,L))); // smoothing radius ≈ 1.5 units regardless of sampling density
+    let sm=new Float32Array(N+1); // climb BEFORE a spike, not at it: moving max…
+    for(let i=0;i<=N;i++){ let m=0; for(let j=Math.max(0,i-W);j<=Math.min(N,i+W);j++) if(raw[j]>m)m=raw[j]; sm[i]=m; }
+    for(let pass=0;pass<2;pass++){ // …then box-smoothed into gentle swells
+      const out=new Float32Array(N+1);
+      for(let i=0;i<=N;i++){ let s=0,n=0; for(let j=Math.max(0,i-W);j<=Math.min(N,i+W);j++){s+=sm[j];n++;} out[i]=s/n; }
+      sm=out;
+    }
+    const e0=sm[0], e1=sm[N]; // anchor the ends back onto the stops (floor_[0]=floor_[N]=0)…
+    for(let i=0;i<=N;i++){ const u=i/N; let b=sm[i]-(e0+(e1-e0)*u); if(b<floor_[i])b=floor_[i]; sm[i]=b; } // …but never below the requirement
+    const F={mode,s0,s1,t0:now,toIdx,dur:1500+Math.min(2400,L*16),A,B,cx,cy,bump:sm,
+             geps:2/Math.max(8,L), // gaze-derivative half-window: ~2 units of arc, so clamp kinks don't jitter the pitch
+             q0:camera.quaternion.clone(),qEnd,bank:0,pyaw:undefined};
+    if(mode==='swoop3'){ // gaze anchor: eye level at the arriving stop, LOOK_AHEAD down its path — where the content will hang
+      _fwd.set(0,0,-1).applyQuaternion(qEnd); _fwd.z=0; _fwd.normalize();
+      F.P=new THREE.Vector3(B.x+_fwd.x*LOOK_AHEAD_U, B.y+_fwd.y*LOOK_AHEAD_U, B.z);
+      F.dur=1700+Math.min(2600,L*16); // the wider bow reads better a touch statelier
+    }
+    return F;
+  }
+  return {mode:'classic',s0,s1,t0:now,toIdx,dur:Math.min(6500,1000+D/24*1000)};
 }
 function beginExit(){
   if(uiState==='overview'||uiState==='exiting') return;
@@ -2012,6 +2279,21 @@ function beginExit(){
 enterBtn.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(dockIdx>=0?dockIdx:0); });
 exploreBtn.addEventListener('click',beginExit);
 syncButtons();
+
+/* Fullscreen. Browsers refuse requestFullscreen() outside an ACTIVATING user gesture —
+   click/keypress; mouse movement never grants activation, and (unlike audible autoplay)
+   there is no trust/engagement exemption, so first-gesture fullscreen is the hard legal
+   minimum: it cannot fire on load or on mousemove, ever. We arm the visitor's FIRST real
+   gesture (pointerdown / keydown / touchend) to request it, and the corner X toggles it
+   thereafter. The "press ESC to exit fullscreen" overlay is browser chrome that page
+   code cannot suppress. All calls are guarded for browsers/contexts that block fullscreen. */
+const fsBtn=document.getElementById('fs-btn');
+function enterFS(){ const el=document.documentElement; if(!document.fullscreenElement&&el.requestFullscreen){ el.requestFullscreen().catch(()=>{}); } }
+function toggleFS(){ if(document.fullscreenElement){ if(document.exitFullscreen) document.exitFullscreen().catch(()=>{}); } else enterFS(); }
+fsBtn.addEventListener('click',toggleFS);
+let fsArmed=true;
+function fsFirst(){ if(!fsArmed) return; fsArmed=false; enterFS(); }
+['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,fsFirst,{once:true}));
 
 /* input: at a stop, scroll (or drag) charges the departure — the thin bar under the
    hint fills — then the flight launches. Arrow keys and rail dots also travel. */
@@ -2112,18 +2394,105 @@ function frame(){
   } else { /* journey: flying between stops, or docked at one */
     camera.up.set(0,0,1); journeyT=1;
     if(jMode==='flying'&&flight){
-      let k=(now-flight.t0)/flight.dur, done=false;
-      if(k>=1){ k=1; done=true; }
-      const ek=easeInOut(k);
-      poseAt(flight.s0+(flight.s1-flight.s0)*ek,_jPos,_jQuat);
-      if(stopInfoMode==='assemble'&&ek>0.7){ // approach pull-up: blend the down-gaze to the horizon
-        levelQuat(_jQuat,_lq);               // over the last stretch, so docking needs no re-aim
-        _jQuat.slerp(_lq,Math.min(1,(ek-0.7)/0.3));
+      let done=false;
+      if(flight.mode==='swoop'){ /* straight-line hop over the terrain: rise, glide, descend */
+        const F=flight;
+        let k=(now-F.t0)/F.dur; if(k>=1){ k=1; done=true; }
+        const ek=easeInOut(k);
+        _jPos.lerpVectors(F.A,F.B,ek); _jPos.z+=F.hump*Math.sin(Math.PI*ek);
+        const e2=easeInOut(Math.min(1,k+0.02));          // a step ahead on the same arc → velocity direction
+        _pv.lerpVectors(F.A,F.B,e2); _pv.z+=F.hump*Math.sin(Math.PI*e2); _pv.sub(_jPos);
+        _lq.copy(F.q0);
+        if(_pv.lengthSq()>1e-8){ /* gaze rides the velocity; heading is fixed (straight hop), only pitch flows */
+          const pitch=Math.max(-0.72,Math.min(0.14,Math.atan2(_pv.z,Math.hypot(_pv.x,_pv.y))));
+          const cp=Math.cos(pitch);
+          _fwd.set(cp*F.chx,cp*F.chy,Math.sin(pitch));
+          _pd.position.copy(_jPos); _pd.up.set(0,0,1);
+          _pd.lookAt(_pv.copy(_jPos).add(_fwd)); _pd.updateMatrixWorld();
+          _lq.slerp(_pd.quaternion,easeInOut(Math.min(1,k/0.25)));            // settle out of the departure gaze…
+        }
+        if(k>0.68) _lq.slerp(F.qEnd,easeInOut(Math.min(1,(k-0.68)/0.32)));    // …and into the arrival gaze
+        camera.position.copy(_jPos); camera.quaternion.copy(_lq);
+        fovBoost=Math.sin(Math.PI*k)*6;
+      } else if(flight.mode==='swoop2'||flight.mode==='swoop3'){ /* curved hop: bezier bow + raised-cosine climb */
+        const F=flight;
+        let k=(now-F.t0)/F.dur; if(k>=1){ k=1; done=true; }
+        const ek=easeInOut(k), u=ek, w=1-u;
+        _jPos.set(w*w*F.A.x+2*u*w*F.cx+u*u*F.B.x,
+                  w*w*F.A.y+2*u*w*F.cy+u*u*F.B.y,
+                  F.A.z+(F.B.z-F.A.z)*u+swoopZ(F,u));
+        // tangent of the curve (direction only — the time-ease scales out of it)
+        const dx=2*(w*(F.cx-F.A.x)+u*(F.B.x-F.cx)), dy=2*(w*(F.cy-F.A.y)+u*(F.B.y-F.cy));
+        const dz=(F.B.z-F.A.z)+(swoopZ(F,u+F.geps)-swoopZ(F,u-F.geps))/(2*F.geps);
+        const hh=Math.max(1e-6,Math.hypot(dx,dy));
+        _lq.copy(F.q0);
+        if(F.mode==='swoop2'){ /* gaze rides the velocity; the level profile means it reaches the horizon by itself */
+          const pitch=Math.max(-0.42,Math.min(0.14,Math.atan2(dz,hh)));
+          const cp=Math.cos(pitch);
+          _fwd.set(cp*dx/hh,cp*dy/hh,Math.sin(pitch));
+          _pd.position.copy(_jPos); _pd.up.set(0,0,1);
+          _pd.lookAt(_pv.copy(_jPos).add(_fwd)); _pd.updateMatrixWorld();
+          _lq.slerp(_pd.quaternion,easeInOut(Math.min(1,k/0.25)));          // settle out of the departure gaze…
+          if(k>0.62) _lq.slerp(F.qEnd,easeInOut(Math.min(1,(k-0.62)/0.38)));// …and into the arrival gaze
+        } else { /* swoop3: gaze locked on the destination — pitch levels itself as the camera descends to it */
+          _pd.position.copy(_jPos); _pd.up.set(0,0,1);
+          _pd.lookAt(F.P); _pd.updateMatrixWorld();
+          _lq.slerp(_pd.quaternion,easeInOut(Math.min(1,k/0.22)));
+          if(k>0.82) _lq.slerp(F.qEnd,easeInOut(Math.min(1,(k-0.82)/0.18))); // exactness only: P sits on qEnd's axis
+        }
+        camera.position.copy(_jPos); camera.quaternion.copy(_lq);
+        if(F.mode==='swoop3'&&!done){ /* bank into the sweep, fading at both ends */
+          _fwd.set(0,0,-1).applyQuaternion(_lq);
+          const yaw=Math.atan2(_fwd.y,_fwd.x);
+          if(F.pyaw===undefined) F.pyaw=yaw;
+          let dyw=yaw-F.pyaw; if(dyw>Math.PI)dyw-=2*Math.PI; else if(dyw<-Math.PI)dyw+=2*Math.PI;
+          F.pyaw=yaw;
+          const bt=Math.max(-0.2,Math.min(0.2,-(dyw/Math.max(1e-4,dt))*0.45))*Math.sin(Math.PI*k);
+          F.bank+=(bt-F.bank)*Math.min(1,dt*3.5);
+          if(Math.abs(F.bank)>1e-4){ _jOff.setFromAxisAngle(_fwd,F.bank); camera.quaternion.premultiply(_jOff); }
+        }
+        fovBoost=Math.sin(Math.PI*k)*6;
+      } else if(flight.mode==='cruise'){ /* the rail, but flown: fixed-time ramps around a constant cruise */
+        const F=flight, T=F.dur/1000, t=(now-F.t0)/1000;
+        let d,v; // distance flown, current speed (sin² ramp: v=vc·sin²(πu/2) integrates to vc·(t/2−(tA/2π)·sin(πu)))
+        if(t>=T){ d=F.D; v=0; done=true; }
+        else if(t<F.tA){ const u=t/F.tA; d=F.vc*(t/2-(F.tA/(2*Math.PI))*Math.sin(Math.PI*u)); v=F.vc*Math.pow(Math.sin(Math.PI*u/2),2); }
+        else if(t<=T-F.tA){ d=F.dA+F.vc*(t-F.tA); v=F.vc; }
+        else { const r=T-t, u=r/F.tA; d=F.D-F.vc*(r/2-(F.tA/(2*Math.PI))*Math.sin(Math.PI*u)); v=F.vc*Math.pow(Math.sin(Math.PI*u/2),2); }
+        poseAt(F.s0+F.dir*d/pathTotal,_jPos,_jQuat,LOOK_AHEAD_U+v*0.55); // faster ⇒ gaze further ahead: skips the spline wiggle
+        if(stopInfoMode==='assemble'&&t>T-F.tA){ // level out with the deceleration, so docking needs no re-aim
+          levelQuat(_jQuat,_lq);
+          _jQuat.slerp(_lq,Math.min(1,(t-(T-F.tA))/F.tA));
+        }
+        camera.position.copy(_jPos);
+        if(done) camera.quaternion.copy(_jQuat);
+        else {
+          F.chase.slerp(_jQuat,Math.min(1,dt*(5+v*0.1)+0.06)); // damped follow, tighter at speed
+          camera.quaternion.copy(F.chase);
+          _fwd.set(0,0,-1).applyQuaternion(F.chase);           // bank into turns: roll from the yaw rate
+          const yaw=Math.atan2(_fwd.y,_fwd.x);
+          if(F.pyaw===undefined) F.pyaw=yaw;
+          let dy=yaw-F.pyaw; if(dy>Math.PI)dy-=2*Math.PI; else if(dy<-Math.PI)dy+=2*Math.PI;
+          F.pyaw=yaw;
+          const bt=Math.max(-0.26,Math.min(0.26,-(dy/Math.max(1e-4,dt))*0.4))*Math.min(1,v/(F.vc*0.5));
+          F.bank+=(bt-F.bank)*Math.min(1,dt*3.5);
+          if(Math.abs(F.bank)>1e-4){ _jOff.setFromAxisAngle(_fwd,F.bank); camera.quaternion.premultiply(_jOff); }
+        }
+        fovBoost=Math.min(9,v*0.12); // speed-stretch follows the actual velocity
+      } else { /* classic: one easeInOut over the whole arc */
+        let k=(now-flight.t0)/flight.dur;
+        if(k>=1){ k=1; done=true; }
+        const ek=easeInOut(k);
+        poseAt(flight.s0+(flight.s1-flight.s0)*ek,_jPos,_jQuat);
+        if(stopInfoMode==='assemble'&&ek>0.7){ // approach pull-up: blend the down-gaze to the horizon
+          levelQuat(_jQuat,_lq);               // over the last stretch, so docking needs no re-aim
+          _jQuat.slerp(_lq,Math.min(1,(ek-0.7)/0.3));
+        }
+        camera.position.copy(_jPos);
+        if(done) camera.quaternion.copy(_jQuat);
+        else camera.quaternion.slerp(_jQuat,Math.min(1,dt*7+0.06)); // damped: soaks up spline wiggle
+        fovBoost=Math.sin(Math.PI*k)*5; // gentle speed-stretch mid-flight
       }
-      camera.position.copy(_jPos);
-      if(done) camera.quaternion.copy(_jQuat);
-      else camera.quaternion.slerp(_jQuat,Math.min(1,dt*7+0.06)); // damped: soaks up spline wiggle
-      fovBoost=Math.sin(Math.PI*k)*5; // gentle speed-stretch mid-flight
       lookX*=Math.exp(-dt*3); lookY*=Math.exp(-dt*3);
       if(done) dock(flight.toIdx);
     } else {
@@ -2161,7 +2530,8 @@ function frame(){
       _fwd.set(0,0,-1).applyQuaternion(camera.quaternion);
       camera.position.addScaledVector(_fwd,Math.sin(Math.PI*bk)*(1-bk)*1.6*bounceDir);
     }
-    departFill.style.width=(Math.min(1,Math.abs(depart))*100).toFixed(1)+'%';
+    const dw=(Math.min(1,Math.abs(depart))*100).toFixed(1)+'%';
+    if(dw!==_departW){ departFill.style.width=dw; _departW=dw; } // v50: unchanged width skips the style write
   }
 
   /* journey automation: FOV (52→80) and bloom (→0) driven by journeyT, which each state branch
@@ -2230,6 +2600,11 @@ stopInfoSelect.addEventListener('change',()=>{ // live-swaps the presentation if
     showStop(dockIdx); // re-renders the panel in its full or mini form
   }
 });
+const travelAdjSelect=document.getElementById('travelAdjSelect'), travelFarSelect=document.getElementById('travelFarSelect');
+travelAdjSelect.value=travelAdjacent; travelFarSelect.value=travelFar;
+// next departure flies the new style; a flight in progress keeps its own
+travelAdjSelect.addEventListener('change',()=>{ travelAdjacent=travelAdjSelect.value; });
+travelFarSelect.addEventListener('change',()=>{ travelFar=travelFarSelect.value; });
 document.getElementById('devReset').addEventListener('click',()=>{
   const defaults={bloomStrength:BASE_BLOOM,bloomRadius:0.5,bloomThreshold:0.2,fov:52,fogNear:0.35,fogFar:1.5};
   baseBloom.strength=defaults.bloomStrength; baseBloom.radius=defaults.bloomRadius; baseBloom.threshold=defaults.bloomThreshold;
