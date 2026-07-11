@@ -12,12 +12,15 @@ The portrait data (as of v18) is a direct Grainrad ASCII generator export (172×
 
 ## Files
 
-- `index.html` — always the current/latest version. Open this directly in a browser.
-- `v1.html` … `vN.html` (repo root) — frozen snapshots, one per round of changes. **Never overwrite an existing version.** When making a new change: save the result as the next `vN.html`, then copy that same file over `index.html`.
-- `site.html` (repo root) — a stray leftover from an early preview auto-save, predates the versioning convention. Not part of the versioning chain; safe to ignore/delete.
+- `index.html` — the single source of truth. This is the only working copy; edit it directly and open it in a browser to preview. Versioning is handled by `git`, not by numbered files.
 - `FACET-ASSEMBLY-MANUAL.md` (repo root) — **read this before touching the assembled-stop/facet system** (adding galleries or buttons to other stops, changing clearing/absorb behavior, debugging glyph transitions). Written after v43: architecture, the hold/handoff/cone design, the validation methodology (Python vs. real `asciiData`, esprima), and the pitfalls that already bit us once.
 
-The folder is now also a `git` repo (one commit per version round), but the numbered `vN.html` files remain the primary versioning convention — keep doing both. A scrapped version burns its number (v42 was deleted from the working tree; it survives only in git history).
+## Versioning (git — no more numbered files)
+
+- **Do NOT create `vN.html` copies.** The old `v1.html … vN.html` snapshot convention is retired; git history is the version record now. Older numbered snapshots are archived in `../Portfolio older versions/`.
+- **After each round of changes, commit.** One commit per change round, with a short message describing what changed (the old `vN:` messages are a fine style, e.g. `git commit -am "seamless docking + finer stencil buttons"`).
+- **To go back to an old version:** `git log --oneline` to find it, then `git show <hash>:index.html > preview.html` to inspect it, or `git checkout <hash> -- index.html` to restore it.
+- **Multiple changes at once:** to work on two things in parallel without them clobbering each other, use a separate branch (or git worktree) per task, then merge each back into `main`. Two edits to the *same* part of `index.html` will still need a manual merge — those are best done one at a time.
 
 ## How the scene works
 
