@@ -2785,10 +2785,18 @@ genEl('genCopy').addEventListener('click',async()=>{
   setTimeout(()=>genEl('genCopy').textContent='Copy asciiData',1400);
 });
 
+/* resize: camera + canvas track the window live (cheap), but composer.setSize — which
+   reallocates the 4×MSAA half-float target AND the whole bloom mip chain — is debounced,
+   because entering fullscreen (with the pref on, fsFirst fires on the same click as
+   Enter) delivers a storm of resize events right as the enter flight starts; realloc
+   once, after it settles.
+   Mid-storm the composer upscales its last-sized frame to the canvas — imperceptible. */
+let composerResizeT=0;
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
-  renderDirty=true;
+  renderer.setSize(innerWidth,innerHeight); renderDirty=true;
+  clearTimeout(composerResizeT);
+  composerResizeT=setTimeout(()=>{ composer.setSize(innerWidth,innerHeight); renderDirty=true; },180);
 });
 </script>
 </body>
