@@ -266,7 +266,7 @@
 <body>
   <div id="app"><canvas id="three"></canvas></div>
   <div id="vignette"></div>
-  <button id="fs-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen">X</button>
+  <button id="fs-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen" style="display:none">X</button>
   <button id="enter-btn">Enter</button>
   <button id="explore-btn">Roam</button>
 
@@ -325,6 +325,7 @@
       <input type="range" id="fogFar" min="0.5" max="3" step="0.01" value="1.5">
     </label>
     <div class="row"><span>Vignette</span><input type="checkbox" id="toggleVignette" checked></div>
+    <div class="row"><span>Fullscreen on enter</span><input type="checkbox" id="toggleFullscreen"></div>
     <div class="row"><span>Invert</span><input type="checkbox" id="toggleInvert"></div>
     <div class="row"><span>Raw (no processing)</span><input type="checkbox" id="toggleRaw"></div>
     <label>Path Height <span id="valJHeight">7.0</span>
@@ -2165,11 +2166,14 @@ function departTo(k){
      per departure against the real terrain (0.5-unit samples, validated vs asciiData:
      mid-arc always ≥ JCLEAR above glyph tops), so the hop is collision-free by construction
      and its duration is nearly flat with distance — the first→last trip becomes one calm
-     cinematic hop instead of a 6.5 s rail sprint.
-   - 'swoop2' / 'swoop3' (v49): the swoop's two complaints fixed. v1's sin bump has its
+     cinematic hop instead of a 6.5 s rail sprint. The landing gaze is one continuous turn:
+     the descent's velocity-dive fades out in step with an arrival-gaze blend spanning the
+     whole descent (was: dive fully, then crane back up — the old two-move ending).
+   - 'swoop2' / 'swoop3' (v49): the swoop's geometry complaints fixed. v1's sin bump has its
      steepest slope AT the endpoints (and terrain near a stop can force the scalar hump to
      30–60 units), so it launches on a straight slant up and lands on a straight slant
-     down, the gaze pitching ~-41° into the target before craning back level. Both
+     down (v1's gaze used to pitch ~-41° into the target before craning back level —
+     since fixed in v1 itself, see above). Both
      variants swap the xy line for a quadratic bezier bowed away from the face center
      (the hop sweeps around the portrait) and the scalar hump for a per-sample altitude
      profile: a raised-cosine arc (zero slope at both ends — level takeoff and touchdown)
@@ -2283,17 +2287,30 @@ syncButtons();
 /* Fullscreen. Browsers refuse requestFullscreen() outside an ACTIVATING user gesture —
    click/keypress; mouse movement never grants activation, and (unlike audible autoplay)
    there is no trust/engagement exemption, so first-gesture fullscreen is the hard legal
-   minimum: it cannot fire on load or on mousemove, ever. We arm the visitor's FIRST real
-   gesture (pointerdown / keydown / touchend) to request it, and the corner X toggles it
-   thereafter. The "press ESC to exit fullscreen" overlay is browser chrome that page
-   code cannot suppress. All calls are guarded for browsers/contexts that block fullscreen. */
+   minimum: it cannot fire on load or on mousemove, ever. Auto-fullscreen is OPT-IN
+   (dev tools ▸ "Fullscreen on enter", default OFF, persisted in localStorage
+   `pf_fullscreen`): when on, the visitor's FIRST real gesture (pointerdown / keydown /
+   touchend) requests it and the corner X toggle is shown; when off, the X is hidden and
+   fullscreen is never auto-requested. The "press ESC to exit fullscreen" overlay is
+   browser chrome that page code cannot suppress. All calls are guarded for
+   browsers/contexts that block fullscreen. */
 const fsBtn=document.getElementById('fs-btn');
 function enterFS(){ const el=document.documentElement; if(!document.fullscreenElement&&el.requestFullscreen){ el.requestFullscreen().catch(()=>{}); } }
 function toggleFS(){ if(document.fullscreenElement){ if(document.exitFullscreen) document.exitFullscreen().catch(()=>{}); } else enterFS(); }
 fsBtn.addEventListener('click',toggleFS);
-let fsArmed=true;
-function fsFirst(){ if(!fsArmed) return; fsArmed=false; enterFS(); }
+let fsEnabled=false; try{ fsEnabled=localStorage.getItem('pf_fullscreen')==='1'; }catch(e){}
+// `userGesture` is true when called from the settings checkbox change (itself an
+// activating gesture), so we can enter/exit fullscreen immediately; false at load, where
+// visibility is set and the first-gesture arm below handles the actual request.
+function applyFullscreenPref(on,userGesture){
+  fsEnabled=on;
+  try{ localStorage.setItem('pf_fullscreen', on?'1':'0'); }catch(e){}
+  fsBtn.style.display = on ? 'flex' : 'none';
+  if(userGesture){ if(on) enterFS(); else if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }
+}
+function fsFirst(){ if(fsEnabled) enterFS(); }
 ['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,fsFirst,{once:true}));
+applyFullscreenPref(fsEnabled,false); // set initial X visibility from the saved pref
 
 /* input: at a stop, scroll (or drag) charges the departure — the thin bar under the
    hint fills — then the flight launches. Arrow keys and rail dots also travel. */
@@ -2403,15 +2420,22 @@ function frame(){
         const e2=easeInOut(Math.min(1,k+0.02));          // a step ahead on the same arc → velocity direction
         _pv.lerpVectors(F.A,F.B,e2); _pv.z+=F.hump*Math.sin(Math.PI*e2); _pv.sub(_jPos);
         _lq.copy(F.q0);
+        /* arrival blend spans the whole descent and completes just before touchdown. It used
+           to start at k=0.68 with a near-flat ramp — but the sin bump's dive is STEEPEST at
+           the very end, so the gaze kept pitching into the ground and only then craned up to
+           the content: two separate moves. Now the dive fades out (pitch×(1-g)) in step with
+           the gaze rotating onto the arrival anchor — one continuous turn, no ground-stare. */
+        const g=k>0.55?easeInOut(Math.min(1,(k-0.55)/0.40)):0;
         if(_pv.lengthSq()>1e-8){ /* gaze rides the velocity; heading is fixed (straight hop), only pitch flows */
-          const pitch=Math.max(-0.72,Math.min(0.14,Math.atan2(_pv.z,Math.hypot(_pv.x,_pv.y))));
+          let pitch=Math.max(-0.72,Math.min(0.14,Math.atan2(_pv.z,Math.hypot(_pv.x,_pv.y))));
+          if(pitch<0) pitch*=1-g;
           const cp=Math.cos(pitch);
           _fwd.set(cp*F.chx,cp*F.chy,Math.sin(pitch));
           _pd.position.copy(_jPos); _pd.up.set(0,0,1);
           _pd.lookAt(_pv.copy(_jPos).add(_fwd)); _pd.updateMatrixWorld();
           _lq.slerp(_pd.quaternion,easeInOut(Math.min(1,k/0.25)));            // settle out of the departure gaze…
         }
-        if(k>0.68) _lq.slerp(F.qEnd,easeInOut(Math.min(1,(k-0.68)/0.32)));    // …and into the arrival gaze
+        if(g>0) _lq.slerp(F.qEnd,g);                                          // …and into the arrival gaze
         camera.position.copy(_jPos); camera.quaternion.copy(_lq);
         fovBoost=Math.sin(Math.PI*k)*6;
       } else if(flight.mode==='swoop2'||flight.mode==='swoop3'){ /* curved hop: bezier bow + raised-cosine climb */
@@ -2581,6 +2605,9 @@ bindRange('jHeight','valJHeight',v=>{ JCLEAR=v; buildJourney(JCLEAR); },v=>v.toF
 const vignetteCheck=document.getElementById('toggleVignette');
 function syncVignette(){ vignetteEl.style.display=(vignetteCheck.checked&&!rawMode)?'':'none'; }
 vignetteCheck.addEventListener('change',syncVignette);
+const fullscreenCheck=document.getElementById('toggleFullscreen');
+fullscreenCheck.checked=fsEnabled;
+fullscreenCheck.addEventListener('change',e=>applyFullscreenPref(e.target.checked,true));
 document.getElementById('toggleInvert').addEventListener('change',e=>applyInvert(e.target.checked));
 document.getElementById('toggleRaw').addEventListener('change',e=>applyRaw(e.target.checked));
 const introSelect=document.getElementById('introSelect');
@@ -2620,6 +2647,7 @@ document.getElementById('devReset').addEventListener('click',()=>{
   document.getElementById('toggleRaw').checked=false;
   document.getElementById('toggleVignette').checked=true;
   document.getElementById('toggleInvert').checked=false;
+  fullscreenCheck.checked=false; applyFullscreenPref(false,true);
   applyRaw(false); syncVignette(); applyInvert(false);
   renderDirty=true;
 });
