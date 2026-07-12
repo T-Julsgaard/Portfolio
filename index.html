@@ -1932,7 +1932,14 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   // clearM: how far past the content the terrain is absorbed (the halo beyond the sight
   // cone). Welcome uses a tight halo so the scene stays visible right up to the block on
   // both sides — the wide title+calendar+mini-me otherwise eats too much of the flanks.
-  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, clearM:isWelcome?0.08:0.15, photoKey:null, pdf:null, g:null}];
+  // sizeMul shrinks the welcome panorama below the fit cap so it does NOT fill the whole
+  // 80° docked FOV: at 1.0 the content+halo reached ~39° of the 40° half-FOV (only a
+  // ~0.6° sliver of scene survived, and the dense calendar reaching the right flank left
+  // that side pure black while the sparse mini-me let scene peek through on the left —
+  // the felt imbalance). 0.80 pulls the block in to ~29° so ~8° of real scene frames it
+  // on BOTH flanks; combined with the tighter clearM the terrain comes right up to the
+  // content (fine here — nothing sits in front of the POV at the welcome stop).
+  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, sizeMul:isWelcome?0.80:1, clearM:isWelcome?0.05:0.15, photoKey:null, pdf:null, g:null}];
   if(st.gallery){ // covers ring the visitor at even 360/7 spacing (intro holds the 0° slot)
     const step=360/7;
     const SPREAD=[-step,step,-2*step,2*step,-3*step,3*step];
@@ -1953,7 +1960,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     const right=new THREE.Vector3(dir.y,-dir.x,0);
     const up=new THREE.Vector3(0,0,1);
     const viewH=viewHBase*dist, viewW=viewH*camera.aspect;
-    const f=Math.min(1, d.hFit*viewH/d.lay.h, 0.86*viewW/d.lay.w);
+    const f=Math.min(1, d.hFit*viewH/d.lay.h, 0.86*viewW/d.lay.w)*(d.sizeMul||1);
     facets.push({yaw, pitch:0, dist, dir, right, up, anchor, f, lay:d.lay,
                  Ry:Math.atan((d.lay.w*f/2)/dist)+(d.clearM!==undefined?d.clearM:0.15), // angular half-extents of the cleared ellipse
                  Rp:Math.atan((d.lay.h*f/2)/dist)+(d.clearM!==undefined?d.clearM:0.15),
