@@ -1584,7 +1584,9 @@ const COVER_PHOTOS={"vrchat": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
 let stopInfoMode='assemble'; // 'assemble' | 'panel'
 // stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
 // (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'|'swoop5'.
-let travelAdjacent='cruise', travelFar='swoop5';
+// Adjacent default moved off the rail (cruise → swoop4): the rail is terrain-following by
+// design, so riding it bobs over every ridge between stops — the swoop family flies over.
+let travelAdjacent='swoop4', travelFar='swoop5';
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
 const ASM_ADV=0.78;                                  // per-unit-scale character advance
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
@@ -2230,7 +2232,8 @@ function departTo(k){
      the gaze onto the destination stop's eye-level anchor once clear of the departure
      (pitch levels itself as the camera descends onto it) and banks gently into the
      curve, fading out before touchdown.
-   - 'swoop4': swoop2's geometry (mild bow, level takeoff/touchdown)
+   - 'swoop4' (default for adjacent hops — off the rail, so no terrain-following bob):
+     swoop2's geometry (mild bow, level takeoff/touchdown)
      with the arrival handled as ONE move — the qEnd blend spans the whole descent
      (k 0.55→0.95, finished just before touchdown) and the velocity-dive is scaled down by
      the same blend weight, so the descent itself rotates the camera onto the arriving text.
@@ -2316,24 +2319,61 @@ function buildFlight(s0,s1,toIdx,mode){
       if(i) L+=Math.hypot(x-px,y-py);
       px=x; py=y;
       const s=Math.sin(Math.PI*u); let b=humpA*s*s;
-      if(i>0&&i<N){ const need=terrainH(x,y)+JCLEAR+0.4-(A.z+(B.z-A.z)*u); if(need>b)b=need; }
+      if(i>0&&i<N){ const need=terrainH(x,y)+JCLEAR+1.5-(A.z+(B.z-A.z)*u); if(need>b)b=need; }
       raw[i]=b;
     }
-    // terrainH is a step function: a high cell straddling samples must be HELD across all
-    // of them, or the interp between a clamped sample and its lower neighbor dives back
-    // under the cliff (caught by validation). ±2-sample moving max widens the floor.
-    const floor_=new Float32Array(N+1);
-    for(let i=1;i<N;i++){ let m=0; for(let j=Math.max(0,i-2);j<=Math.min(N,i+2);j++) if(raw[j]>m)m=raw[j]; floor_[i]=m; }
-    const W=Math.max(4,Math.round(N*1.5/Math.max(1,L))); // smoothing radius ≈ 1.5 units regardless of sampling density
+    /* smooth safety floor. The OLD floor was the raw requirement widened by a ±2-sample moving
+       max — a STAIRCASE (terrainH is a step function), and wherever the profile was clamped to
+       it (takeoff/landing zones; most of a low adjacent hop) the camera rode rounded-off stairs:
+       measured against the real asciiData, gaze kicks up to ~27°/frame — the felt "bumping on
+       edge detection". It was never the mid-flight carve (the real relief spans only ~21 units;
+       high arcs clear it outright). Now: moving max ±2h, then two ±h box averages — provably
+       still ≥ raw at every sample, since every movmax term inside a ±h average covers the
+       center sample. Ends ease onto the stops by SUBTRACTING a smoothstep decay of the floor's
+       end values (subtraction preserves smoothness; multiplying would re-expose the stairs),
+       with a hard raw clamp where the decay cuts below the true requirement — that binds by at
+       most the margin, within ~3 units of a stop where flight speed is near zero. The carve
+       margin grew 0.4 → 1.5 so between-sample interp dips at terrain steps stay ≥ JCLEAR
+       (validated vs asciiData at 4× sample density, all 42 stop pairs, clearance ≥ 7.0). */
+    const h=Math.max(2,Math.round(N*1.5/Math.max(1,L))), H2=2*h;
+    let floor_=new Float32Array(N+1);
+    for(let i=0;i<=N;i++){ let m=0; for(let j=Math.max(0,i-H2);j<=Math.min(N,i+H2);j++) if(raw[j]>m)m=raw[j]; floor_[i]=m; }
+    for(let pass=0;pass<2;pass++){
+      const out=new Float32Array(N+1);
+      for(let i=0;i<=N;i++){ let s=0,n=0; for(let j=Math.max(0,i-h);j<=Math.min(N,i+h);j++){s+=floor_[j];n++;} out[i]=s/n; }
+      floor_=out;
+    }
+    const f0=floor_[0], f1=floor_[N];
+    for(let i=0;i<=N;i++){
+      const t0=Math.min(1,i/H2), t1=Math.min(1,(N-i)/H2);
+      floor_[i]=Math.max(raw[i], floor_[i]-f0*(1-t0*t0*(3-2*t0))-f1*(1-t1*t1*(3-2*t1)));
+    }
+    /* smoothing radius: ~8 units of arc (L/6 for short hops). The old 1.5-unit radius kept
+       terrain-carve kinks that pass in ~15 ms at flight speed — felt as bumping over invisible
+       edges even high above the glyphs. Widening is safe by construction: box-averaging a
+       ±W moving max stays ≥ raw at every sample (each averaged term covers the center), so
+       the floor clamp below almost never binds — no cliffs snap back in. */
+    const W=Math.max(4,Math.round(N*Math.min(8,L/6)/Math.max(1,L)));
     let sm=new Float32Array(N+1); // climb BEFORE a spike, not at it: moving max…
     for(let i=0;i<=N;i++){ let m=0; for(let j=Math.max(0,i-W);j<=Math.min(N,i+W);j++) if(raw[j]>m)m=raw[j]; sm[i]=m; }
-    for(let pass=0;pass<2;pass++){ // …then box-smoothed into gentle swells
+    for(let pass=0;pass<3;pass++){ // …then box-smoothed into long swells
       const out=new Float32Array(N+1);
       for(let i=0;i<=N;i++){ let s=0,n=0; for(let j=Math.max(0,i-W);j<=Math.min(N,i+W);j++){s+=sm[j];n++;} out[i]=s/n; }
       sm=out;
     }
-    const e0=sm[0], e1=sm[N]; // anchor the ends back onto the stops (floor_[0]=floor_[N]=0)…
-    for(let i=0;i<=N;i++){ const u=i/N; let b=sm[i]-(e0+(e1-e0)*u); if(b<floor_[i])b=floor_[i]; sm[i]=b; } // …but never below the requirement
+    /* anchor the ends onto the stops with a LOCAL smoothstep taper (~2W each end), not the old
+       global linear ramp: the wide smoothing makes sm[0]/sm[N] see terrain up to 2W units in,
+       and globally subtracting values that big drags the whole mid-route under the safety
+       floor — the clamp then rebuilds the stepy raw requirement sample by sample and the
+       "smoothed" profile turns into exactly the bumpy edge-following we're removing. The taper
+       zeroes the ends (flight starts/ends at the stops' real z, s'(0)=0 keeps takeoff/touchdown
+       level) and leaves everything beyond 2W untouched, where sm ≥ raw holds by construction. */
+    const e0=sm[0], e1=sm[N], T=2*W;
+    for(let i=0;i<=N;i++){
+      const t0=Math.min(1,i/T), t1=Math.min(1,(N-i)/T);
+      let b=sm[i]-e0*(1-t0*t0*(3-2*t0))-e1*(1-t1*t1*(3-2*t1));
+      if(b<floor_[i])b=floor_[i]; sm[i]=b; // …but never below the requirement
+    }
     if(mode==='swoop5'){ /* ONE clean arch, no bumps: unimodal envelope — running max in from
        both ends toward the peak, so the profile rises once and falls once. Any mid-route dip
        the terrain carve left becomes a level glide instead of a bump; the envelope only ever
@@ -2545,6 +2585,10 @@ function frame(){
              and scaled out by the arrival blend so the landing stays V4's level settle */
             pitch=Math.max(-0.60, pitch-Math.min(0.55,Math.atan2(swoopZ(F,u),70))*Math.pow(Math.sin(Math.PI*u),2)*(1-g));
           }
+          /* damp the pitch (~170 ms) so residual profile kinks can never nod the camera — the
+             arrival stays exact because the g-blend to qEnd below dominates the touchdown */
+          if(F.ps===undefined) F.ps=pitch;
+          F.ps+=(pitch-F.ps)*Math.min(1,dt*6); pitch=F.ps;
           const cp=Math.cos(pitch);
           _fwd.set(cp*dx/hh,cp*dy/hh,Math.sin(pitch));
           _pd.position.copy(_jPos); _pd.up.set(0,0,1);
