@@ -184,6 +184,12 @@
   #inspect-hud #inspect-act .ib-keep:hover { background:#39d353; border-color:#39d353; }
   #inspect-hud #inspect-act .ib-abs:hover { background:#ff5555; border-color:#ff5555; }
   #inspect-hud #inspect-ovr { margin-top:6px; color:rgba(255,255,255,0.55); text-transform:none; letter-spacing:0.02em; }
+  #inspect-hud #inspect-note { display:none; margin-top:4px; max-width:186px; color:#ffb020; text-transform:none; letter-spacing:0.02em; }
+  #inspect-hud.mismatch #inspect-note { display:block; }
+  #inspect-hud.mismatch .ir-row,
+  #inspect-hud.mismatch #inspect-sel,
+  #inspect-hud.mismatch #inspect-act,
+  #inspect-hud.mismatch #inspect-ovr { display:none; }
   #inspect-box {
     position:fixed; z-index:59; display:none; pointer-events:none;
     border:1px solid rgba(255,255,255,0.9); background:rgba(120,170,255,0.14);
@@ -427,6 +433,18 @@
     </label>
     <h4 class="sub">Diagnostics</h4>
     <div class="row"><span>Glyph inspector</span><input type="checkbox" id="toggleInspect"></div>
+    <label>Scene
+      <select id="inspectScene"></select>
+    </label>
+    <label>Show only
+      <select id="inspectRole">
+        <option value="all">All roles</option>
+        <option value="absorb">Absorbed &middot; red</option>
+        <option value="scene">Scene &middot; green</option>
+        <option value="content">Content &middot; blue</option>
+        <option value="banner">Banner &middot; orange</option>
+      </select>
+    </label>
     <label>Selection density <span id="valInspectHard">100%</span>
       <input type="range" id="inspectHard" min="0.05" max="1" step="0.05" value="1">
     </label>
@@ -2577,6 +2595,7 @@ function dock(k){
   // instead of cutting over — no discontinuity of any kind at flight end (v41)
   dockT0=performance.now(); dockPos.copy(camera.position); dockQuat.copy(camera.quaternion);
   freeYaw=freeYawT=freePitch=freePitchT=0; // arrive facing down-path, where the first facet hangs
+  syncInspectScene(); // the glyph inspector auto-follows the stop you land on
   showStop(k);
   if(stopInfoMode==='assemble') assembleStop(k);
 }
@@ -2834,11 +2853,15 @@ applyFullscreenPref(fsEnabled,false); // set initial X visibility from the saved
    overrides (by glyph index) persist in localStorage and are honoured by assembleStop, so the
    real scene reflects them with the inspector off too. With no overrides set, assembly behaves
    exactly as before. Selection density (dev slider) thins the marquee to a fraction of the
-   glyphs under the box for granular edits. Nothing here costs anything unless docked in
-   assemble mode with the inspector ticked (except the assembleStop override check, which is a
-   Map lookup that's a no-op when the map is empty). */
-let inspectOn=false, inspectHard=1;
-const inspect={ entries:null, token:null, sel:new Set(), counts:null, dragging:false, boxOn:false, x0:0, y0:0 };
+   glyphs under the box for granular edits. A "Show only" role filter isolates one colour
+   (e.g. just the red/absorbed glyphs) so you can edit that class alone, and a "Scene"
+   dropdown scopes the whole tool to one stop — it auto-follows the stop you dock at, and is
+   the seam for adding more scenes later. Nothing here costs anything unless docked in assemble
+   mode with the inspector ticked (except the assembleStop override check, a Map lookup that's
+   a no-op when the map is empty). */
+let inspectOn=false, inspectHard=1, inspectRoleFilter='all';
+let inspectScene=(STOPS.find(s=>s.id==='welcome')?'welcome':(STOPS[0]&&STOPS[0].id)); // the stop the inspector targets
+const inspect={ entries:null, token:null, sel:new Set(), counts:null, dragging:false, boxOn:false, x0:0, y0:0, painted:false };
 const ROLE_COL={ scene:'#39d353', absorb:'#ff5555', content:'#4aa3ff', banner:'#ffb020' };
 const INSPECT_SEL='#ffffff';
 /* overrides are PER STOP (keyed by stop id), never global: stops share the same 13,268
@@ -2853,10 +2876,13 @@ function curStopId(){ return (dockIdx>=0&&STOPS[dockIdx])?STOPS[dockIdx].id:null
 function saveOverrides(){ const o={}; for(const id in inspectOverrides){ const m=inspectOverrides[id]; if(m&&m.size) o[id]=[...m]; }
   try{ localStorage.setItem('pf_glyph_overrides',JSON.stringify(o)); }catch(e){} }
 const _idh=i=>{ const h=Math.sin(i*12.9898)*43758.5453; return h-Math.floor(h); }; // stable per-glyph 0..1 for density thinning
-function inspectActive(){ return inspectOn && uiState==='journey' && jMode==='docked' && stopInfoMode==='assemble' && !!stopFacets; }
+function sceneLabel(id){ const s=STOPS.find(x=>x.id===id); return s?s.label:id; }
+function inspectDocked(){ return inspectOn && uiState==='journey' && jMode==='docked' && stopInfoMode==='assemble' && !!stopFacets; }
+function inspectActive(){ return inspectDocked() && curStopId()===inspectScene; } // paints/selects only at the chosen scene
 const inspectHud=document.createElement('div'); inspectHud.id='inspect-hud';
 inspectHud.innerHTML=
   '<div class="ih-title">Glyph Inspector</div>'+
+  '<div id="inspect-note"></div>'+
   '<div class="ir-row"><span class="sw sw-scene"></span>stays &mdash; scene</div>'+
   '<div class="ir-row"><span class="sw sw-absorb"></span>absorbed into text</div>'+
   '<div class="ir-row"><span class="sw sw-content"></span>content letters</div>'+
@@ -2871,6 +2897,7 @@ inspectHud.innerHTML=
 document.body.appendChild(inspectHud);
 const inspectSelReadout=inspectHud.querySelector('#inspect-sel');
 const inspectOvrLine=inspectHud.querySelector('#inspect-ovr');
+const inspectNote=inspectHud.querySelector('#inspect-note');
 inspectHud.querySelector('#inspect-act').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   const r=b.dataset.role;
@@ -2878,6 +2905,14 @@ inspectHud.querySelector('#inspect-act').addEventListener('click',e=>{
 });
 inspectHud.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // don't charge a departure over the HUD
 const inspectBox=document.createElement('div'); inspectBox.id='inspect-box'; document.body.appendChild(inspectBox);
+/* Scene + role-filter dropdowns (in the dev panel). Scene scopes the tool to one stop and
+   auto-follows the stop you dock at; role filter isolates one colour class. */
+const inspectSceneSel=document.getElementById('inspectScene'), inspectRoleSel=document.getElementById('inspectRole');
+STOPS.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.label; inspectSceneSel.appendChild(o); });
+inspectSceneSel.value=inspectScene;
+inspectSceneSel.addEventListener('change',()=>{ inspectScene=inspectSceneSel.value; inspect.sel.clear(); inspect.counts=null; updateInspectReadout(); updateOverrideCount(); glyphsDirty=true; renderDirty=true; });
+inspectRoleSel.addEventListener('change',()=>{ inspectRoleFilter=inspectRoleSel.value; inspect.sel.clear(); inspect.counts=null; updateInspectReadout(); glyphsDirty=true; renderDirty=true; });
+function syncInspectScene(){ const id=curStopId(); if(id){ inspectScene=id; if(inspectSceneSel) inspectSceneSel.value=id; } } // called from dock()
 function buildInspect(){ // map every glyph -> {role, home} from the live facet records
   const role=new Map(), home=new Map();
   if(stopFacets){
@@ -2893,22 +2928,39 @@ function buildInspect(){ // map every glyph -> {role, home} from the live facet 
 }
 function ensureInspect(){ if(inspect.token!==stopFacets||!inspect.entries) buildInspect(); }
 const _ipv=new THREE.Vector3();
+function restoreInspectPaint(){ // undo the x-ray's recolouring/hiding of EVERY glyph (terrain included)
+  const rest=asmRestColor();
+  for(const m of textMeshes){ m.material.color.set(rest); m.visible=true; }
+  glyphsDirty=true; renderDirty=true;
+  if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx); // rebuild the docked content
+}
 function applyInspect(){ // called from frame() AFTER updateAssembly, BEFORE syncPools
-  const active=inspectActive();
-  inspectHud.style.display=active?'block':'none';
-  if(!active){ if(inspect.boxOn){ inspectBox.style.display='none'; inspect.boxOn=false; } return; }
-  ensureInspect();
-  for(const e of inspect.entries){ const m=e.m;
-    m.position.copy(e.home); m.scale.setScalar(1); m.visible=true; m.material.opacity=1;
-    m.material.color.set(inspect.sel.has(m)?INSPECT_SEL:ROLE_COL[e.role]);
+  const docked=inspectDocked(), active=docked&&curStopId()===inspectScene;
+  inspectHud.style.display=docked?'block':'none';
+  inspectHud.classList.toggle('mismatch',docked&&!active);
+  if(!active){
+    if(inspect.boxOn){ inspectBox.style.display='none'; inspect.boxOn=false; }
+    if(docked) inspectNote.textContent='Selected scene "'+sceneLabel(inspectScene)+'". You\'re at "'+sceneLabel(curStopId())+'" — dock at the selected scene (or pick this one) to inspect.';
+    if(inspect.painted){ restoreInspectPaint(); inspect.painted=false; } // deactivated while painting → restore in one place (untick, scene change, leaving, mode swap)
+    return;
   }
+  ensureInspect();
+  const filt=inspectRoleFilter;
+  for(const e of inspect.entries){ const m=e.m;
+    const show=(filt==='all'||e.role===filt); // "Show only" isolates one colour class
+    m.visible=show;
+    if(show){ m.position.copy(e.home); m.scale.setScalar(1); m.material.opacity=1;
+      m.material.color.set(inspect.sel.has(m)?INSPECT_SEL:ROLE_COL[e.role]); }
+  }
+  inspect.painted=true;
   glyphsDirty=true; renderDirty=true;
 }
 function inspectSelect(x0,y0,x1,y1){
   const minx=Math.min(x0,x1),maxx=Math.max(x0,x1),miny=Math.min(y0,y1),maxy=Math.max(y0,y1);
-  const c={content:0,absorb:0,banner:0,scene:0};
+  const c={content:0,absorb:0,banner:0,scene:0}, filt=inspectRoleFilter;
   inspect.sel.clear();
   for(const e of inspect.entries){
+    if(filt!=='all' && e.role!==filt) continue;           // only ever select the filtered role
     if(inspectHard<1 && _idh(e.i)>=inspectHard) continue; // density: thin the marquee to a stable fraction
     _ipv.copy(e.home).project(camera);
     if(_ipv.z>1) continue; // behind the camera
@@ -2987,17 +3039,10 @@ function inspectUp(e){
 }
 function setInspect(on){
   inspectOn=on;
-  if(!on){ inspect.sel.clear(); inspect.counts=null; inspect.dragging=false;
-    inspectBox.style.display='none'; inspect.boxOn=false;
-    if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0){
-      // the x-ray recoloured EVERY glyph — including the plain terrain glyphs that belong to
-      // no facet, which assembleStop/restoreFacet never touch (that left them stuck green).
-      // Reset all glyphs to the resting colour first, then rebuild the stop's content facets.
-      const rest=asmRestColor();
-      for(const m of textMeshes) m.material.color.set(rest);
-      assembleStop(dockIdx);
-    }
-  } else { updateInspectReadout(); updateOverrideCount(); }
+  if(!on){ inspect.sel.clear(); inspect.counts=null; inspect.dragging=false; inspectBox.style.display='none'; inspect.boxOn=false; }
+  else { updateInspectReadout(); updateOverrideCount(); }
+  // the actual glyph restore (terrain colours/visibility the x-ray changed) happens in
+  // applyInspect via the painted flag, which covers every deactivation path uniformly
   renderDirty=true; glyphsDirty=true;
 }
 
@@ -3374,7 +3419,8 @@ document.getElementById('devReset').addEventListener('click',()=>{
   document.getElementById('toggleInvert').checked=false;
   fullscreenCheck.checked=false; applyFullscreenPref(false,true);
   if(inspectOn){ inspectCheck.checked=false; setInspect(false); }
-  inspectHard=1; document.getElementById('inspectHard').value=1; document.getElementById('valInspectHard').textContent='100%'; // glyph overrides kept (use the inspector's Reset all)
+  inspectHard=1; document.getElementById('inspectHard').value=1; document.getElementById('valInspectHard').textContent='100%'; // glyph overrides kept (use the inspector's Reset)
+  inspectRoleFilter='all'; inspectRoleSel.value='all';
   applyRaw(false); syncVignette(); applyInvert(false);
   renderDirty=true;
 });
