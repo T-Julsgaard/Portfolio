@@ -156,6 +156,29 @@
   }
   #dev-panel button.reset:hover { background:#fff; color:#000; }
 
+  /* Glyph inspector overlay (dev diagnostic — colours each glyph by its role at a stop) */
+  #inspect-hud {
+    position:fixed; left:14px; bottom:64px; z-index:60; display:none; pointer-events:none;
+    font:10px/1.55 ui-monospace,monospace; letter-spacing:0.05em; color:#e8ecf3;
+    background:rgba(0,0,0,0.62); border:1px solid rgba(255,255,255,0.18); border-radius:8px;
+    padding:9px 11px; backdrop-filter:blur(6px); min-width:158px; text-transform:uppercase;
+  }
+  #inspect-hud .ih-title { font-size:9px; letter-spacing:0.2em; color:rgba(255,255,255,0.55); margin-bottom:6px; }
+  #inspect-hud .ir-row { display:flex; align-items:center; gap:6px; }
+  #inspect-hud .sw { width:9px; height:9px; border-radius:2px; display:inline-block; flex:0 0 auto; }
+  #inspect-hud .sw-scene { background:#39d353; }
+  #inspect-hud .sw-absorb { background:#ff5555; }
+  #inspect-hud .sw-content { background:#4aa3ff; }
+  #inspect-hud .sw-banner { background:#ffb020; }
+  #inspect-hud #inspect-sel { margin-top:7px; padding-top:7px; border-top:1px solid rgba(255,255,255,0.14); }
+  #inspect-hud #inspect-sel b { color:#fff; }
+  #inspect-hud .ir-ang { margin-top:4px; color:rgba(255,255,255,0.6); text-transform:none; letter-spacing:0.02em; }
+  #inspect-hud .ir-dim { color:rgba(255,255,255,0.4); }
+  #inspect-box {
+    position:fixed; z-index:59; display:none; pointer-events:none;
+    border:1px solid rgba(255,255,255,0.9); background:rgba(120,170,255,0.14);
+  }
+
   /* Playlist reorder modal (opened from the dev panel) */
   #playlist-modal {
     position:fixed; inset:0; z-index:20; display:none; align-items:center; justify-content:center;
@@ -392,6 +415,8 @@
     <label>Clearing Halo <span id="valWelHalo">0.05</span>
       <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
     </label>
+    <h4 class="sub">Diagnostics</h4>
+    <div class="row"><span>Glyph inspector</span><input type="checkbox" id="toggleInspect"></div>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
     <button class="reset" id="introReplay">Replay intro</button>
     <button class="reset" id="devReset">Reset defaults</button>
@@ -2771,10 +2796,123 @@ function fsFirst(){ if(fsEnabled) enterFS(); }
 ['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,fsFirst,{once:true}));
 applyFullscreenPref(fsEnabled,false); // set initial X visibility from the saved pref
 
+/* ===== GLYPH INSPECTOR (dev diagnostic, v55) =============================================
+   A purely additive x-ray of a docked stop's assembly: it does NOT change any assembly
+   logic — it only, on frames where it's on, repaints every glyph AT ITS SCENE HOME position,
+   colour-coded by the role it plays in the current dock, so you can see (and marquee-select)
+   even the glyphs that would normally have flown into the text and vanished. Roles come
+   straight from the live facet records (F.items / F.extras / F.fades) + the welcome banner
+   pool, so it's an honest picture of what stays vs. what gets absorbed. Turning it off
+   re-runs assembleStop to restore the real colours/positions. Nothing here runs (or costs
+   anything) unless the checkbox is ticked AND you're docked in assemble mode. */
+let inspectOn=false;
+const inspect={ entries:null, token:null, sel:new Set(), counts:null, dragging:false, boxOn:false, x0:0, y0:0 };
+const ROLE_COL={ scene:'#39d353', absorb:'#ff5555', content:'#4aa3ff', banner:'#ffb020' };
+const INSPECT_SEL='#ffffff';
+function inspectActive(){ return inspectOn && uiState==='journey' && jMode==='docked' && stopInfoMode==='assemble' && !!stopFacets; }
+const inspectHud=document.createElement('div'); inspectHud.id='inspect-hud';
+inspectHud.innerHTML=
+  '<div class="ih-title">Glyph Inspector</div>'+
+  '<div class="ir-row"><span class="sw sw-scene"></span>stays &mdash; scene</div>'+
+  '<div class="ir-row"><span class="sw sw-absorb"></span>absorbed into text</div>'+
+  '<div class="ir-row"><span class="sw sw-content"></span>content letters</div>'+
+  '<div class="ir-row"><span class="sw sw-banner"></span>commit banner</div>'+
+  '<div id="inspect-sel"></div>';
+document.body.appendChild(inspectHud);
+const inspectSelReadout=inspectHud.querySelector('#inspect-sel');
+const inspectBox=document.createElement('div'); inspectBox.id='inspect-box'; document.body.appendChild(inspectBox);
+function buildInspect(){ // map every glyph -> {role, home} from the live facet records
+  const role=new Map(), home=new Map();
+  if(stopFacets){
+    for(const F of stopFacets.facets) for(const it of F.items){ role.set(it.m,'content'); home.set(it.m,it.home); }
+    for(const F of stopFacets.facets){
+      for(const ex of F.extras) if(!role.has(ex.m)){ role.set(ex.m,'absorb'); home.set(ex.m,ex.home); }
+      for(const fd of F.fades) if(!role.has(fd.m)){ role.set(fd.m,'absorb'); home.set(fd.m,fd.m.position.clone()); }
+    }
+  }
+  if(welcome.pool) for(const rec of welcome.pool) if(!role.has(rec.m)){ role.set(rec.m,'banner'); home.set(rec.m,rec.home); }
+  inspect.entries=textMeshes.map(m=>({ m, role:role.get(m)||'scene', home:home.get(m)||m.position.clone() }));
+  inspect.token=stopFacets;
+}
+function ensureInspect(){ if(inspect.token!==stopFacets||!inspect.entries) buildInspect(); }
+const _ipv=new THREE.Vector3();
+function applyInspect(){ // called from frame() AFTER updateAssembly, BEFORE syncPools
+  const active=inspectActive();
+  inspectHud.style.display=active?'block':'none';
+  if(!active){ if(inspect.boxOn){ inspectBox.style.display='none'; inspect.boxOn=false; } return; }
+  ensureInspect();
+  for(const e of inspect.entries){ const m=e.m;
+    m.position.copy(e.home); m.scale.setScalar(1); m.visible=true; m.material.opacity=1;
+    m.material.color.set(inspect.sel.has(m)?INSPECT_SEL:ROLE_COL[e.role]);
+  }
+  glyphsDirty=true; renderDirty=true;
+}
+function inspectSelect(x0,y0,x1,y1){
+  const minx=Math.min(x0,x1),maxx=Math.max(x0,x1),miny=Math.min(y0,y1),maxy=Math.max(y0,y1);
+  const c={content:0,absorb:0,banner:0,scene:0};
+  inspect.sel.clear();
+  for(const e of inspect.entries){
+    _ipv.copy(e.home).project(camera);
+    if(_ipv.z>1) continue; // behind the camera
+    const sx=(_ipv.x*0.5+0.5)*innerWidth, sy=(-_ipv.y*0.5+0.5)*innerHeight;
+    if(sx>=minx&&sx<=maxx&&sy>=miny&&sy<=maxy){ inspect.sel.add(e.m); c[e.role]++; }
+  }
+  inspect.counts=c; updateInspectReadout();
+}
+function updateInspectReadout(){
+  const c=inspect.counts, tot=c?c.content+c.absorb+c.banner+c.scene:0;
+  if(!tot){ inspectSelReadout.innerHTML='<span class="ir-dim">drag on the scene to select</span>'; return; }
+  let ang='';
+  if(stopFacets){ // yaw/pitch span of the selection relative to the main facet — the lever the clearing is tuned on
+    const F=stopFacets.facets[0]; let mn=1e9,mx=-1e9,vn=1e9,vx=-1e9;
+    for(const e of inspect.entries){ if(!inspect.sel.has(e.m)) continue;
+      _ipv.copy(e.home).sub(camera.position);
+      const len=Math.max(1e-6,_ipv.length());
+      const gy=Math.atan2(_ipv.y,_ipv.x), gp=Math.asin(Math.max(-1,Math.min(1,_ipv.z/len)));
+      const dy=wrapAng(gy-F.yaw)*180/Math.PI, dp=(gp-F.pitch)*180/Math.PI;
+      if(dy<mn)mn=dy; if(dy>mx)mx=dy; if(dp<vn)vn=dp; if(dp>vx)vx=dp;
+    }
+    ang='<div class="ir-ang">yaw '+mn.toFixed(0)+'°…'+mx.toFixed(0)+'° · pitch '+vn.toFixed(0)+'°…'+vx.toFixed(0)+'°</div>';
+  }
+  inspectSelReadout.innerHTML=
+    '<b>'+tot+' selected</b>'+
+    '<div class="ir-row"><span class="sw sw-scene"></span>stays: '+c.scene+'</div>'+
+    '<div class="ir-row"><span class="sw sw-absorb"></span>absorbed: '+c.absorb+'</div>'+
+    '<div class="ir-row"><span class="sw sw-content"></span>content: '+c.content+'</div>'+
+    (c.banner?'<div class="ir-row"><span class="sw sw-banner"></span>banner: '+c.banner+'</div>':'')+
+    ang;
+}
+function inspectDown(e){
+  inspect.dragging=true; inspect.boxOn=true; inspect.x0=e.clientX; inspect.y0=e.clientY;
+  inspectBox.style.display='block';
+  inspectBox.style.left=e.clientX+'px'; inspectBox.style.top=e.clientY+'px';
+  inspectBox.style.width='0px'; inspectBox.style.height='0px';
+}
+function inspectMove(e){
+  const x0=inspect.x0,y0=inspect.y0,x1=e.clientX,y1=e.clientY;
+  inspectBox.style.left=Math.min(x0,x1)+'px'; inspectBox.style.top=Math.min(y0,y1)+'px';
+  inspectBox.style.width=Math.abs(x1-x0)+'px'; inspectBox.style.height=Math.abs(y1-y0)+'px';
+  inspectSelect(x0,y0,x1,y1);
+}
+function inspectUp(e){
+  inspect.dragging=false; inspect.boxOn=false; inspectBox.style.display='none';
+  if(Math.hypot(e.clientX-inspect.x0,e.clientY-inspect.y0)<4){ inspect.sel.clear(); inspect.counts=null; updateInspectReadout(); }
+  if(inspect.counts) console.log('[glyph-inspector] selection',inspect.counts);
+}
+function setInspect(on){
+  inspectOn=on;
+  if(!on){ inspect.sel.clear(); inspect.counts=null; inspect.dragging=false;
+    inspectBox.style.display='none'; inspect.boxOn=false;
+    if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx); // restore real colours/positions
+  } else updateInspectReadout();
+  renderDirty=true; glyphsDirty=true;
+}
+
 /* input: at a stop, scroll (or drag) charges the departure — the thin bar under the
    hint fills — then the flight launches. Arrow keys and rail dots also travel. */
 addEventListener('wheel',e=>{
   if(moreOpen) return; // reading the card shouldn't charge a departure
+  if(inspectActive()) return; // inspector: freeze the view so the x-ray can be studied
   if(uiState!=='journey'||jMode!=='docked'||performance.now()<dockCool) return;
   depart=Math.max(-1.001,Math.min(1.001,depart+e.deltaY*0.0021));
   if(depart>=1) departTo(dockIdx+1);
@@ -2783,9 +2921,11 @@ addEventListener('wheel',e=>{
 let dragging=false,lastY=0,lastX=0,downX=0,downY=0;
 addEventListener('pointerdown',e=>{
   if(e.target&&e.target.tagName!=='CANVAS') return; // don't hijack clicks on the rail/panels
+  if(inspectActive()){ inspectDown(e); return; } // inspector: drag paints a selection box, not a look-around
   if(uiState==='journey'&&jMode==='docked'){ dragging=true; lastX=downX=e.clientX; lastY=downY=e.clientY; }
 });
 addEventListener('pointerup',e=>{
+  if(inspectActive()){ inspectUp(e); return; }
   // a press that never really moved is a CLICK: fire whichever button is under the pointer
   if(dragging&&stopInfoMode==='assemble'&&Math.hypot(e.clientX-downX,e.clientY-downY)<6){
     const hit=facetButtonHit(e.clientX,e.clientY);
@@ -2793,9 +2933,10 @@ addEventListener('pointerup',e=>{
   }
   dragging=false;
 });
-addEventListener('pointercancel',()=>dragging=false);
+addEventListener('pointercancel',()=>{ dragging=false; inspect.dragging=false; inspect.boxOn=false; inspectBox.style.display='none'; });
 addEventListener('pointermove',e=>{
   lookTX=(e.clientX/innerWidth)*2-1; lookTY=(e.clientY/innerHeight)*2-1;
+  if(inspectActive()){ if(inspect.dragging) inspectMove(e); return; } // inspector owns the drag while it's on
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets){
     const hit=dragging?null:facetButtonHit(e.clientX,e.clientY); // hover: pin the button bright + pointer cursor
     for(const F of stopFacets.facets) for(const b of F.btns) b.hover=!!(hit&&hit.b===b);
@@ -3041,6 +3182,7 @@ function frame(){
   bloom.threshold=baseBloom.threshold*(1-journeyT);
 
   updateAssembly(now,dt); // stop-text glyph flights (instance buffers sync just below)
+  applyInspect();         // dev x-ray: repaints glyphs at home by role (no-op unless the inspector is on)
   /* pooled glyphs: one shared quaternion uniform billboards all 13k instances in the
      vertex shader (zero per-glyph work when the camera moves); the instance buffers
      re-upload only on frames where an animation actually changed glyph state */
@@ -3113,6 +3255,8 @@ welFigSelect.addEventListener('change',()=>{ // swap the welcome figure; live-re
   welcomeFigure=welFigSelect.value; localStorage.setItem('pf_welcome_figure',welcomeFigure); reassembleWelcome(); });
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
+const inspectCheck=document.getElementById('toggleInspect');
+inspectCheck.addEventListener('change',e=>setInspect(e.target.checked));
 devPanel.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scrolling the panel must not charge a journey departure
 document.getElementById('devReset').addEventListener('click',()=>{
   const defaults={bloomStrength:BASE_BLOOM,bloomRadius:0.5,bloomThreshold:0.2,fov:52,fogNear:0.35,fogFar:1.5};
@@ -3135,6 +3279,7 @@ document.getElementById('devReset').addEventListener('click',()=>{
   document.getElementById('toggleVignette').checked=true;
   document.getElementById('toggleInvert').checked=false;
   fullscreenCheck.checked=false; applyFullscreenPref(false,true);
+  if(inspectOn){ inspectCheck.checked=false; setInspect(false); }
   applyRaw(false); syncVignette(); applyInvert(false);
   renderDirty=true;
 });
