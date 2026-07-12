@@ -380,6 +380,12 @@
       </select>
     </label>
     <h4 class="sub">Welcome Stop</h4>
+    <label>Welcome figure
+      <select id="welFigSelect">
+        <option value="scene">New scene (waving)</option>
+        <option value="classic">Classic portrait</option>
+      </select>
+    </label>
     <label>Panorama Size <span id="valWelSize">0.80</span>
       <input type="range" id="welSize" min="0.5" max="1" step="0.01" value="0.80">
     </label>
@@ -1636,6 +1642,46 @@ const MINIME={cols:30,rows:48,g:[
 '      =+===-     ===+==       ','      ++==--     ======       ','      ====--     -=++==-      ',
 '      ++=---     :=====       ','     ++==--       ===+==      ','   -+++==-+-      #=++++=     ',
 '   ++++=*++       ##+++++=    ','   %%##**           ##%##*    ','                       :      ']};
+/* the new welcome figure (v54): a seated full-body character, downsampled offline from a
+   second Grainrad export (Downloads 'ascii-scene (7).html', 12,719 glyphs → 26×66 = 1120
+   cells, box-averaged luminance, ramp ' .:-=+*#%@'). Same colour-luminance-grid form as
+   MINIME, so it drops straight into buildWelcomeLayout. Its viewer-left hand (the wave
+   region flagged below) is rotated up about a shoulder pivot for the greeting wave. */
+const MINIME2={cols:26,rows:66,g:[
+'          ---==-          ','         ==:.--=-         ','        :==-==---:        ',
+'        :==***=-::        ','         =+=+---:.        ','         ++++=+==:        ',
+'         =*++-+=-         ','         :=--:--:         ','          =*+==:          ',
+'       ...:==-::...:      ','       :.::=-::-.:.:      ','      :-::+*+=---::-.     ',
+'     :-:-:#*++=++:::-:    ','   :----:-=%%#%#-:::---.  ','   -----::-#%%#+-::----:  ',
+'  .------::+%##-::::::::  ','  :-:----::-##+:::::::::  ','  --:----:-:=*::-:::::::: ',
+'  --::------:-:--:::::::: ','  ---.---:----::::::.:::: ',' :--:.:--:--:-::::::.:::: ',
+' :-::.:-----:-::::::.:::-.',' --::.:-:---:-::::::.:::-:',' -:::.::---::-::::::.:::::',
+'.-:::.::----:-::::::..::::',':-:::.:-------:-::::..::::',':--:..----------::::..::-:',
+'--::..:--------:::::..::::',':-::.:--------::::::..::::','--::.::-------::::::..::::',
+'--::.::-------::::::..::-:','--:. ::----:--::::::. ::::',':::. :::::::--::::::. ::::',
+':-:. .:--:::-:::::::. :::.','-=-. ......:::......  :-:.','=*+- ..:..............+*+-',
+'+*+= .:::::..........-**+:','+*=+ .:::............==++-','=*==:.:::... ........+=+=:',
+'.+=- .::.... ...:....:-+- ','  -: .::....  ..:.... =:  ','     .::....  .......     ',
+'     .::....  .......     ','     :::....  .......     ','     .:.....  ..:....     ',
+'     .:.....  .......     ','     .:.....  .......     ','     .:....   .......     ',
+'     .:....   .......     ','     .:....   .......     ','     .::...    ......     ',
+'     .::...    ......     ','     .:....    ......     ','     .:....    ......     ',
+'     .:....    ......     ','     .:....    ..:...     ','     .....     ......     ',
+'     .....     ......     ','     .....     ......     ','     .....     ......     ',
+'    .:....     ......     ','   .......     :..:...    ','  .::...::     :=::....   ',
+'  :::..:.       :-.:::.   ','  =-:::.         :=--:-   ','  --::            -===:   '
+]};
+/* welcome-figure options (dev panel > Welcome figure). Each: the glyph grid + its display
+   pitch (cw/ch/s, facet units) + optional wave descriptor — the hand-cluster grid box
+   [c0..c1]×[r0..r1], the shoulder pivot (pc,pr) it rotates about, and the raised base angle
+   (rad, negative = clockwise, lifts the viewer-left hand up-and-out). 'scene' is the new
+   seated figure (default, waves); 'classic' is the original headshot (static, no arm). */
+const WFIG={
+  scene:{grid:MINIME2, cw:0.130, ch:0.144, s:0.13,
+         wave:{c0:0,c1:5,r0:34,r1:41, pc:5,pr:33, base:-1.5}},
+  classic:{grid:MINIME, cw:0.165, ch:0.185, s:0.16, wave:null}
+};
+let welcomeFigure=localStorage.getItem('pf_welcome_figure')||'scene';
 /* Live stats: fetched from data/stats.json (written ahead of time by the Actions
    workflow — the browser never touches the GitHub API or a token). Cache-busted,
    polled every 60 s, degrades gracefully when the file is missing. On localhost
@@ -1804,8 +1850,7 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
    banner itself is NOT layout items — reserved glyphs animate it (updateWelcome). */
 const WCAL_CW=0.40, WCAL_CH=0.44, WCAL_S=0.34;      // calendar column/row pitch, glyph scale (leaves a GitHub-style gap)
 const WLBL_S=0.30;                                  // month / weekday label scale
-const WMINI_CW=0.165, WMINI_CH=0.185, WMINI_S=0.16; // mini-me cell pitch / glyph scale
-const WBANNER_S=0.6;                                // commit-banner glyph scale
+const WBANNER_S=0.6;                                // commit-banner glyph scale (mini-me pitch now lives per-figure in WFIG)
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function buildWelcomeLayout(){
   const items=[], calCells=[];
@@ -1836,11 +1881,17 @@ function buildWelcomeLayout(){
   const titleY=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+tS*0.5;
   for(let i=0;i<title.length;i++){ const ch=title[i]; if(ch===' ') continue; items.push({ch, x:calCX-tW/2+i*tAdv, y:titleY, s:tS, L:null}); }
   const bannerCY=calBot-WCAL_CH*0.5-1.5;
-  // mini-me to the LEFT of the whole right-hand stack, vertically centred on it
-  const miW=(MINIME.cols-1)*WMINI_CW, miH=(MINIME.rows-1)*WMINI_CH;
+  // the figure (mini-me) to the LEFT of the whole right-hand stack, vertically centred on it.
+  // Grid + pitch come from the selected WFIG entry; wave-region cells are flagged for updateWelcomeWave.
+  const fig=WFIG[welcomeFigure]||WFIG.scene, G=fig.grid, cwP=fig.cw, chP=fig.ch, sP=fig.s, wv=fig.wave;
+  const miW=(G.cols-1)*cwP, miH=(G.rows-1)*chP;
   const miTop=(titleY+tS*0.5+bannerCY)/2+miH/2, miX0=-3.4-miW;
-  for(let r=0;r<MINIME.rows;r++){ const row=MINIME.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
-    items.push({ch, x:miX0+c*WMINI_CW, y:miTop-r*WMINI_CH, s:WMINI_S, L:COVER_RAMP.indexOf(ch)/9}); } }
+  let wavePivot=null, waveBase=0;
+  if(wv){ wavePivot={x:miX0+wv.pc*cwP, y:miTop-wv.pr*chP}; waveBase=wv.base; }
+  for(let r=0;r<G.rows;r++){ const row=G.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
+    const it={ch, x:miX0+c*cwP, y:miTop-r*chP, s:sP, L:COVER_RAMP.indexOf(ch)/9};
+    if(wv&&c>=wv.c0&&c<=wv.c1&&r>=wv.r0&&r<=wv.r1) it.wave=true;
+    items.push(it); } }
   // recentre the whole block on (0,0), banner line included in the vertical extent
   let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
   for(const it of items){ const h=it.s*0.5; minX=Math.min(minX,it.x-h); maxX=Math.max(maxX,it.x+h); minY=Math.min(minY,it.y-h); maxY=Math.max(maxY,it.y+h); }
@@ -1848,13 +1899,15 @@ function buildWelcomeLayout(){
   const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
   for(const it of items){ it.x-=cx; it.y-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
+  if(wavePivot){ wavePivot.x-=cx; wavePivot.y-=cy; }
   return {items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
-          bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns:[]};
+          bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns:[],
+          wavePivot, waveBase};
 }
 /* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
    scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
-const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0};
+const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
 function reserveWelcomeBanner(F){
   const c=new THREE.Vector3().copy(F.anchor).addScaledVector(F.up,F.lay.bannerCY*F.f).addScaledVector(F.right,F.lay.bannerCX*F.f);
@@ -1917,14 +1970,44 @@ function updateWelcomeBanner(now){
 }
 function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', t0:now-WB_GAP+700, letters:[], s:welcome.F.lay.bannerS}; hideBannerGlyphs(); }
 function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor()); m.userData.asm=false; } }
+/* the greeting wave: once the figure has settled (facet 'hold'), his flagged hand glyphs
+   rotate as a rigid cluster about the shoulder pivot — a raise (ease up), a ~1 s wiggle,
+   then a lower, then a few seconds at rest, on repeat. Rotation happens in layout space
+   (lx,ly about the pivot) and is remapped to the facet plane, so at angle 0 every glyph
+   sits exactly on its settled position (it.to). Only the settled hand cells move. */
+const WAVE_PERIOD=5200, WAVE_RAISE=360, WAVE_WIG=1150, WAVE_LOWER=380, WAVE_AMP=0.26, WAVE_W=0.0185;
+function welcomeWaveAngle(tp,base){
+  const c=tp%WAVE_PERIOD;
+  if(c<WAVE_RAISE) return base*easeInOut(c/WAVE_RAISE);          // lift the hand up
+  const c2=c-WAVE_RAISE;
+  if(c2<WAVE_WIG) return base+WAVE_AMP*Math.sin(c2*WAVE_W);      // wave it side to side
+  const c3=c2-WAVE_WIG;
+  if(c3<WAVE_LOWER) return base*(1-easeInOut(c3/WAVE_LOWER));    // lower it back down
+  return 0;                                                     // rest until the next cycle
+}
+function updateWelcomeWave(now){
+  const F=welcome.F;
+  if(!F||F.state!=='hold'||!F.lay.waveBase){ welcome.waveT0=null; return; }
+  if(welcome.waveItems==null) welcome.waveItems=F.items.filter(it=>it.wave);
+  if(!welcome.waveItems.length) return;
+  if(welcome.waveT0==null) welcome.waveT0=now+900; // a beat to settle before the first wave
+  const piv=F.lay.wavePivot, a=welcomeWaveAngle(Math.max(0,now-welcome.waveT0),F.lay.waveBase);
+  const ca=Math.cos(a), sa=Math.sin(a), f=F.f;
+  for(const it of welcome.waveItems){
+    if(!it.done) continue; // not landed yet — leave the flight in charge
+    const dx=it.lx-piv.x, dy=it.ly-piv.y;
+    it.m.position.copy(F.anchor).addScaledVector(F.right,(piv.x+dx*ca-dy*sa)*f).addScaledVector(F.up,(piv.y+dx*sa+dy*ca)*f);
+  }
+}
 function updateWelcome(now,dt){
   if(!welcome.active||!welcome.F) return;
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
-  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); }
+  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); }
   else if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; hideCalTip(); }
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
-  welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null; hideCalTip(); glyphsDirty=true; }
+  welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
+  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
   const n=cc.count, d=new Date(cc.date+'T00:00:00');
   calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -1995,6 +2078,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      facet partition, so pass 2/3 leave them alone (the banner animates them itself) */
   let reserved=null;
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
+  welcome.waveItems=null; welcome.waveT0=null;
   if(isWelcome){ const F0=facets[0]; const rb=reserveWelcomeBanner(F0);
     reserved=rb.reserved; welcome.pool=rb.pool; welcome.active=true; welcome.F=F0;
     welcome.calCells=F0.lay.calCells; welcome.calHW=F0.lay.calHW; welcome.calHH=F0.lay.calHH; }
@@ -2017,7 +2101,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       const rec={m, ri:i, home:m.position.clone(), geo0:m.geometry,
         to:new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f),
         s1:li.s*F.f, geoA:glyphGeo(li.ch), L:li.L!==undefined?li.L:null,
-        from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false};
+        from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
+        wave:li.wave, lx:li.x, ly:li.y};
       F.items.push(rec);
       if(li.btn){ const b=F.btns.find(bb=>bb.kind===li.btn); if(b) b.items.push(rec); } // button glyphs: pulsed/hover-lit each frame while assembled
     }
@@ -3022,6 +3107,10 @@ travelAdjSelect.value=travelAdjacent; travelFarSelect.value=travelFar;
 // next departure flies the new style; a flight in progress keeps its own
 travelAdjSelect.addEventListener('change',()=>{ travelAdjacent=travelAdjSelect.value; });
 travelFarSelect.addEventListener('change',()=>{ travelFar=travelFarSelect.value; });
+const welFigSelect=document.getElementById('welFigSelect');
+welFigSelect.value=welcomeFigure;
+welFigSelect.addEventListener('change',()=>{ // swap the welcome figure; live-rebuilds if docked there
+  welcomeFigure=welFigSelect.value; localStorage.setItem('pf_welcome_figure',welcomeFigure); reassembleWelcome(); });
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
 devPanel.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scrolling the panel must not charge a journey departure
@@ -3040,6 +3129,7 @@ document.getElementById('devReset').addEventListener('click',()=>{
   WELCOME_SIZE=0.80; WELCOME_HALO=0.05;
   document.getElementById('welSize').value=0.80; document.getElementById('valWelSize').textContent='0.80';
   document.getElementById('welHalo').value=0.05; document.getElementById('valWelHalo').textContent='0.05';
+  welcomeFigure='scene'; localStorage.setItem('pf_welcome_figure','scene'); welFigSelect.value='scene';
   reassembleWelcome();
   document.getElementById('toggleRaw').checked=false;
   document.getElementById('toggleVignette').checked=true;
