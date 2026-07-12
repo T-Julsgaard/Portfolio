@@ -2123,7 +2123,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   /* partition pass 2: each facet claims its letter glyphs exclusively (nearest to its anchor) */
   const N=textMeshes.length, owner=new Int8Array(N).fill(-1);
   if(reserved) for(const i of reserved) owner[i]=100; // sentinel ≥0 so pass 2 skips them
-  const ovr=inspectOverride; // glyph-inspector role overrides (empty ⇒ no-op): 'scene' keep / 'absorb' clear
+  const ovr=ovrFor(st.id,false); // glyph-inspector role overrides for THIS stop (empty ⇒ no-op): 'scene' keep / 'absorb' clear
   facets.forEach((F,fi)=>{
     const pool=[];
     for(let i=0;i<N;i++) if(owner[i]<0 && ovr.get(i)!=='scene') pool.push(i); // never recruit a force-kept glyph as a letter
@@ -2841,10 +2841,17 @@ let inspectOn=false, inspectHard=1;
 const inspect={ entries:null, token:null, sel:new Set(), counts:null, dragging:false, boxOn:false, x0:0, y0:0 };
 const ROLE_COL={ scene:'#39d353', absorb:'#ff5555', content:'#4aa3ff', banner:'#ffb020' };
 const INSPECT_SEL='#ffffff';
-let inspectOverride=new Map(); // glyph index -> 'scene'(keep) | 'absorb'(clear); persisted, honoured by assembleStop
-try{ const s=JSON.parse(localStorage.getItem('pf_glyph_overrides')||'[]');
-  if(Array.isArray(s)) inspectOverride=new Map(s.filter(x=>Array.isArray(x)&&x.length===2)); }catch(e){}
-function saveOverrides(){ try{ localStorage.setItem('pf_glyph_overrides',JSON.stringify([...inspectOverride])); }catch(e){} }
+/* overrides are PER STOP (keyed by stop id), never global: stops share the same 13,268
+   glyphs, so a Keep/Absorb at 'welcome' must not touch 'case studies' etc. Each stop keeps
+   its own index->role map; assembleStop reads only the map for the stop it's building. */
+const inspectOverrides={}; // stopId -> Map<glyphIndex, 'scene'(keep)|'absorb'(clear)>
+const EMPTY_OVR=new Map();  // shared read-only empty map for stops with no overrides (never mutated)
+try{ const s=JSON.parse(localStorage.getItem('pf_glyph_overrides')||'{}');
+  if(s&&typeof s==='object'&&!Array.isArray(s)) for(const id in s){ if(Array.isArray(s[id])) inspectOverrides[id]=new Map(s[id].filter(x=>Array.isArray(x)&&x.length===2)); } }catch(e){}
+function ovrFor(id,create){ let m=inspectOverrides[id]; if(!m&&create) m=inspectOverrides[id]=new Map(); return m||EMPTY_OVR; }
+function curStopId(){ return (dockIdx>=0&&STOPS[dockIdx])?STOPS[dockIdx].id:null; }
+function saveOverrides(){ const o={}; for(const id in inspectOverrides){ const m=inspectOverrides[id]; if(m&&m.size) o[id]=[...m]; }
+  try{ localStorage.setItem('pf_glyph_overrides',JSON.stringify(o)); }catch(e){} }
 const _idh=i=>{ const h=Math.sin(i*12.9898)*43758.5453; return h-Math.floor(h); }; // stable per-glyph 0..1 for density thinning
 function inspectActive(){ return inspectOn && uiState==='journey' && jMode==='docked' && stopInfoMode==='assemble' && !!stopFacets; }
 const inspectHud=document.createElement('div'); inspectHud.id='inspect-hud';
@@ -2858,7 +2865,7 @@ inspectHud.innerHTML=
   '<div id="inspect-act">'+
     '<button class="ib-keep" data-role="scene" title="Force the selected glyphs to stay as scene">Keep</button>'+
     '<button class="ib-abs" data-role="absorb" title="Force the selected glyphs to be absorbed into the text">Absorb</button>'+
-    '<button class="ib-reset" data-role="reset" title="Clear all saved overrides">Reset all</button>'+
+    '<button class="ib-reset" data-role="reset" title="Clear this stop\'s overrides">Reset</button>'+
   '</div>'+
   '<div id="inspect-ovr"></div>';
 document.body.appendChild(inspectHud);
@@ -2911,26 +2918,31 @@ function inspectSelect(x0,y0,x1,y1){
   inspect.counts=c; updateInspectReadout();
 }
 function updateOverrideCount(){
-  let keep=0,abs=0; for(const r of inspectOverride.values()){ if(r==='scene')keep++; else if(r==='absorb')abs++; }
+  const id=curStopId(), m=id?ovrFor(id,false):EMPTY_OVR;
+  let keep=0,abs=0; for(const r of m.values()){ if(r==='scene')keep++; else if(r==='absorb')abs++; }
+  const label=(id&&STOPS[dockIdx]&&STOPS[dockIdx].label)||'stop';
   inspectOvrLine.innerHTML = (keep||abs)
-    ? 'overrides: <span style="color:#39d353">'+keep+' kept</span> · <span style="color:#ff5555">'+abs+' absorbed</span>'
-    : 'no overrides set';
+    ? label+': <span style="color:#39d353">'+keep+' kept</span> · <span style="color:#ff5555">'+abs+' absorbed</span>'
+    : 'no overrides on '+label;
 }
-function inspectApplyRole(role){ // force every selected glyph to 'scene' or 'absorb'
+function inspectApplyRole(role){ // force every selected glyph to 'scene' or 'absorb' — for THIS stop only
   if(!inspect.entries||!inspect.sel.size) return;
-  let n=0; for(const e of inspect.entries) if(inspect.sel.has(e.m)){ inspectOverride.set(e.i,role); n++; }
+  const id=curStopId(); if(!id) return;
+  const m=ovrFor(id,true);
+  let n=0; for(const e of inspect.entries) if(inspect.sel.has(e.m)){ m.set(e.i,role); n++; }
   if(!n) return;
   saveOverrides();
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx); // re-partition honouring the new overrides
   inspect.sel.clear(); inspect.counts=null; updateInspectReadout(); updateOverrideCount();
-  console.log('[glyph-inspector] set',n,'glyph(s) ->',role,'· total overrides',inspectOverride.size);
+  console.log('[glyph-inspector]',id,': set',n,'glyph(s) ->',role,'·',m.size,'override(s) on this stop');
   glyphsDirty=true; renderDirty=true;
 }
-function inspectClearOverrides(){
-  if(!inspectOverride.size) return;
-  inspectOverride.clear(); saveOverrides();
+function inspectClearOverrides(){ // clears only the CURRENT stop's overrides
+  const id=curStopId(), m=id&&inspectOverrides[id];
+  if(!m||!m.size) return;
+  delete inspectOverrides[id]; saveOverrides();
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx);
-  updateOverrideCount(); console.log('[glyph-inspector] cleared all overrides');
+  updateOverrideCount(); console.log('[glyph-inspector] cleared overrides on',id);
   glyphsDirty=true; renderDirty=true;
 }
 function updateInspectReadout(){
