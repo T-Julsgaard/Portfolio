@@ -2989,7 +2989,14 @@ function setInspect(on){
   inspectOn=on;
   if(!on){ inspect.sel.clear(); inspect.counts=null; inspect.dragging=false;
     inspectBox.style.display='none'; inspect.boxOn=false;
-    if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx); // restore real colours/positions
+    if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0){
+      // the x-ray recoloured EVERY glyph — including the plain terrain glyphs that belong to
+      // no facet, which assembleStop/restoreFacet never touch (that left them stuck green).
+      // Reset all glyphs to the resting colour first, then rebuild the stop's content facets.
+      const rest=asmRestColor();
+      for(const m of textMeshes) m.material.color.set(rest);
+      assembleStop(dockIdx);
+    }
   } else { updateInspectReadout(); updateOverrideCount(); }
   renderDirty=true; glyphsDirty=true;
 }
