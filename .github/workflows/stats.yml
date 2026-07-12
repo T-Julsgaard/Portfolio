@@ -1,0 +1,55 @@
+# Refreshes data/stats.json with my GitHub statistics.
+#
+# - Runs every 30 minutes (GitHub's cron is best-effort — often 10–30 min late,
+#   which is fine; the site shows the file's own generatedAt timestamp).
+# - Can be run by hand: repo → Actions → "Update GitHub stats" → Run workflow.
+# - Reads the API with the STATS_TOKEN secret (read:user scope only).
+# - Commits with the workflow's own GITHUB_TOKEN as github-actions[bot].
+# - Skips the commit entirely when the numbers haven't changed, so the repo
+#   doesn't fill with empty commits (which would inflate the very contribution
+#   graph this displays).
+#
+# NOTE: the repo-level default workflow permission is read-only; the
+# `permissions:` block below grants THIS workflow write access to contents.
+# If the push step ever fails with a 403, that override didn't take — flip
+# Settings → Actions → General → Workflow permissions to "Read and write"
+# instead. Do not work around it any other way.
+
+name: Update GitHub stats
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch stats from the GitHub API
+        env:
+          GH_TOKEN: ${{ secrets.STATS_TOKEN }}
+        run: node scripts/fetch-stats.js
+
+      - name: Commit the file (only if it changed)
+        run: |
+          if git diff --quiet -- data/stats.json && [ -z "$(git status --porcelain data/stats.json)" ]; then
+            echo "stats.json unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/stats.json
+          git commit -m "chore: update stats [skip ci]"
+          git push

@@ -87,6 +87,13 @@
     border:none; color:rgba(255,255,255,0.6); font-family:inherit; font-size:16px; line-height:1; cursor:pointer; }
   #more-close:hover { color:#fff; }
 
+  /* contribution-calendar hover tooltip (welcome stop, v53) — GitHub-style
+     "N contributions on July 12th." following the pointer over the glyph grid */
+  #cal-tip { position:fixed; z-index:8; display:none; pointer-events:none;
+    background:rgba(6,8,10,0.92); border:1px solid rgba(255,255,255,0.22); backdrop-filter:blur(4px);
+    color:rgba(255,255,255,0.88); font-size:11px; line-height:1.4; letter-spacing:0.04em;
+    padding:5px 9px; white-space:nowrap; }
+
   /* minimalist ASCII-style fullscreen toggle where the old "ASCII PORTRAIT" label sat:
      solid black fill, thin sleek white border, a bare white X in the mono font */
   #fs-btn { position:fixed; left:18px; top:16px; z-index:6;
@@ -1217,7 +1224,10 @@ function terrainH(x,y){ /* tallest glyph within ~±3 units of (x,y); minZ where 
    assembled text scales down to fit, so shorter reads bigger. media/links stay HTML. */
 const JOURNEY=[
   {xf: 0.06, yf: 1.00},
-  {xf: 0.00, yf: 0.84, stop:{id:'welcome', label:'Welcome', title:'Welcome', body:'This landscape is my face — 13,268 ASCII characters of it.\nScroll to travel: the path snakes over the terrain and pauses at seven stops, each one a piece of what I do. Drag to look around at any stop.', media:[]}},
+  /* github:true → assemble mode builds this stop with buildWelcomeLayout (title +
+     live contribution calendar + commit ticker + the mini-me figure) instead of the
+     generic title/body layout. Panel mode still shows the title/body below. */
+  {xf: 0.00, yf: 0.84, stop:{id:'welcome', label:'Welcome', title:'Welcome', github:true, body:'Hi, I\'m Thomas.\nThis landscape is my face — 13,268 ASCII characters of it.\nScroll to travel: the path snakes over the terrain and pauses at seven stops, each one a piece of what I do. Drag to look around at any stop.', media:[]}},
   {xf:-0.26, yf: 0.80},
   {xf:-0.44, yf: 0.64, stop:{id:'profile', label:'Profile', title:'Who I am', body:'Thomas Julsgaard — Techno-Anthropologist.\nBSc in Techno-Anthropology, Aalborg University Copenhagen (2022–2025), weighted average 11.3.\nMy strength is speaking both \'developer\' and \'user\' — I translate complex technical systems into concrete design and organizational strategy.', media:[{src:'images/Profile 2.jpeg',caption:'Thomas Julsgaard'}], links:[{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'Download CV'}]}},
   {xf:-0.18, yf: 0.54},
@@ -1581,6 +1591,60 @@ const COVER_PHOTOS={"vrchat": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
    like everything else, amber-pulsing once settled, pinned bright + pointer cursor
    on hover (facetButtonHit: pointer ray vs. facet plane), a still click opens the
    PDF in a new tab (downloadPDF). 'panel' keeps the HTML overlay. */
+/* ===== GitHub welcome stop (v53) =====
+   The welcome stop is special: instead of the generic title/body it assembles a
+   panorama of live GitHub data out of the terrain — the title "Hi, I'm Thomas.",
+   a 1:1 recreation of the contribution calendar, a commit ticker banner (glyphs
+   stream in from the scene, spell a stat, then dissolve back — a horizontal
+   waterfall), and a small ASCII figure of me (the mini-me). All of it is built
+   from the portrait's own glyphs, so it only exists while docked here: leaving
+   the stop flies every glyph home into the face. */
+// GitHub contribution-level colours (index 0=NONE … 4=FOURTH_QUARTILE).
+// CAL_DARK: greens on the black scene. CAL_LIGHT: GitHub's light-theme greens (invert mode).
+const CAL_DARK=['#1c2b22','#0e4429','#006d32','#26a641','#39d353'];
+const CAL_LIGHT=['#ebedf0','#9be9a8','#40c463','#30a14e','#216e39'];
+const CAL_LEVELS={NONE:0,FIRST_QUARTILE:1,SECOND_QUARTILE:2,THIRD_QUARTILE:3,FOURTH_QUARTILE:4};
+const CAL_CHARS=['.',':','+','#','@']; // glyph per level — colour carries the intensity, char keeps texture in mono/raw
+// the mini-me: a downsampled colour-luminance grid of the Grainrad portrait figure
+const MINIME={cols:30,rows:48,g:[
+'           +%#%%@%            ','          %%#++##%%%          ','         =%%%@@%##*%          ',
+'         :@@@@@%%##*          ','          @@%%@%%%#*          ','          #@@@%%%%#+          ',
+'          :%@@%###*=          ','        +++-%@%##**+-+        ','       -+++#@@%#**#==+=       ',
+'     ++*=+=*%@%%##*===+++     ','    +++++=+*#%%%%%*====+++    ','   ++++++++=+#%%%*=======++   ',
+'   ++=+++++===%%===+======+   ','  +++==++++===*#===+===-====  ','  ++==-==++===*+===+=---====  ',
+'  ++==-===+========+==-:====  ',' ++===:===============-:-==== ',' ====-:==============--:--=== ',
+' +==--:==++===+======--:--=== ','++==---=======+======== -==== ','+====:-=======*=======-:-==== ',
+'++==-:-=======#======----====-','++==- ========#======---:-====','===-- -=======+==------  -===-',
+'===-  ========*--------  ==== ','-@@%* ==++====-======--  @%%# ','=@@%% ++++=++=========- %@@%% ',
+'#@@:% =+++===-=-======- @#@%% ',' %%#% =+++==--=====+==- %%@#  ','   ## =+++---- -===+=== :#:   ',
+'      =++==--=  =======       ','      =++==---  -==+===       ','      +++==--   -======       ',
+'      +++=---   -======       ','      +++----    ======       ','      +++=---   -======       ',
+'      ++==---    ======-      ','      +=+=---    ======       ','      ==+==-     ======       ',
+'      =+===-     ===+==       ','      ++==--     ======       ','      ====--     -=++==-      ',
+'      ++=---     :=====       ','     ++==--       ===+==      ','   -+++==-+-      #=++++=     ',
+'   ++++=*++       ##+++++=    ','   %%##**           ##%##*    ','                       :      ']};
+/* Live stats: fetched from data/stats.json (written ahead of time by the Actions
+   workflow — the browser never touches the GitHub API or a token). Cache-busted,
+   polled every 60 s, degrades gracefully when the file is missing. On localhost
+   with no real file yet, falls back to data/stats.sample.json (obviously fake). */
+let GH_STATS=null, GH_STAMP='';
+function statsReady(){ return GH_STATS&&GH_STATS.calendar&&GH_STATS.calendar.length; }
+async function fetchJSON(url){ const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw 0; return r.json(); }
+async function loadStats(){
+  let data=null;
+  try{ data=await fetchJSON('data/stats.json?t='+Date.now()); }
+  catch(e){
+    const local=/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)||location.protocol==='file:';
+    if(local){ try{ data=await fetchJSON('data/stats.sample.json?t='+Date.now()); }catch(e2){} }
+  }
+  if(!data||!data.calendar) return; // keep whatever we had; the layout degrades if still null
+  const stamp=data.generatedAt||'';
+  const changed=(stamp!==GH_STAMP);
+  GH_STATS=data; GH_STAMP=stamp;
+  // if we're parked at the welcome stop, rebuild it with the fresh numbers
+  if(changed&&uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
+}
+loadStats(); setInterval(loadStats,60000);
 let stopInfoMode='assemble'; // 'assemble' | 'panel'
 // stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
 // (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'|'swoop5'.
@@ -1658,7 +1722,9 @@ function buildStopLayout(k){ // -> {items:[{ch,x,y,s}], w, h}: text-plane coords
 }
 const _aP=new THREE.Vector3(), _aQ=new THREE.Quaternion(), _aF=new THREE.Vector3(), _aV=new THREE.Vector3(), _cc=new THREE.Color();
 function asmRestColor(){ return inverted?GLYPH_DARK:(rawMode?GLYPH_RAW:GLYPH_LIGHT); }
-function setImgColor(c,L){ // L=null -> text (a notch brighter than the terrain); else luminance-gray image cell
+function setImgColor(c,L){ // L=null -> text (a notch brighter than the terrain); {cal:n} -> GitHub
+  // contribution level n (palette flips with invert); else luminance-gray image cell
+  if(L!=null&&L.cal!==undefined) return c.set((inverted?CAL_LIGHT:CAL_DARK)[L.cal]);
   if(L==null) c.set(inverted?GLYPH_DARK:'#ffffff');
   else { const g=inverted?(0.72-0.58*L):(0.30+0.70*L); c.setRGB(g,g,g); }
   return c;
@@ -1712,13 +1778,158 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-bot, imgW:iw, imgH:ih, imgCY:imgCY0-cy2, btns}; // img* = where the photo plane develops
 }
+/* ---- welcome layout: title + 1:1 contribution calendar + mini-me. Same
+   {items,w,h} shape as the other layouts (so the facet machinery assembles it
+   for free), plus calendar hit-test data and where the commit banner sits. The
+   banner itself is NOT layout items — reserved glyphs animate it (updateWelcome). */
+const WCAL_CW=0.40, WCAL_CH=0.44, WCAL_S=0.34;      // calendar column/row pitch, glyph scale (leaves a GitHub-style gap)
+const WLBL_S=0.30;                                  // month / weekday label scale
+const WMINI_CW=0.165, WMINI_CH=0.185, WMINI_S=0.16; // mini-me cell pitch / glyph scale
+const WBANNER_S=0.6;                                // commit-banner glyph scale
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function buildWelcomeLayout(){
+  const items=[], calCells=[];
+  const cal=statsReady()?GH_STATS.calendar:null;
+  const cols=[]; // cols[c] = the days in week-column c (rows 0=Sun … 6=Sat)
+  if(cal){ let c=0;
+    for(const d of cal){ (cols[c]||(cols[c]=[])).push({r:d.weekday,level:CAL_LEVELS[d.level]||0,date:d.date,count:d.count}); if(d.weekday===6) c++; }
+  } else { for(let c=0;c<53;c++){ cols[c]=[]; for(let r=0;r<7;r++) cols[c].push({r,level:0,date:null,count:0}); } }
+  const ncol=cols.length;
+  // grid: column 0 centre at x=0, Sun row at y=0 (top), rows descend
+  for(let c=0;c<ncol;c++) for(const cell of cols[c]){
+    const x=c*WCAL_CW, y=-cell.r*WCAL_CH;
+    items.push({ch:CAL_CHARS[cell.level], x, y, s:WCAL_S, L:{cal:cell.level}});
+    if(cell.date) calCells.push({cx:x, cy:y, date:cell.date, count:cell.count});
+  }
+  const calW=(ncol-1)*WCAL_CW, calCX=calW/2, calTop=0, calBot=-6*WCAL_CH;
+  // month labels above the grid, at each column where the month first changes
+  let lastM=-1;
+  for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
+    const m=+first.date.slice(5,7)-1;
+    if(m!==lastM&&c<ncol-1){ lastM=m; const t=MONTHS[m], adv=ASM_ADV*WLBL_S;
+      for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6, s:WLBL_S, L:null}); } }
+  // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
+  [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
+    for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH, s:WLBL_S, L:null}); });
+  // title, centred over the calendar
+  const title="Hi, I'm Thomas.", tS=1.35, tAdv=ASM_ADV*tS, tW=(title.length-1)*tAdv;
+  const titleY=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+tS*0.5;
+  for(let i=0;i<title.length;i++){ const ch=title[i]; if(ch===' ') continue; items.push({ch, x:calCX-tW/2+i*tAdv, y:titleY, s:tS, L:null}); }
+  const bannerCY=calBot-WCAL_CH*0.5-1.5;
+  // mini-me to the LEFT of the whole right-hand stack, vertically centred on it
+  const miW=(MINIME.cols-1)*WMINI_CW, miH=(MINIME.rows-1)*WMINI_CH;
+  const miTop=(titleY+tS*0.5+bannerCY)/2+miH/2, miX0=-3.4-miW;
+  for(let r=0;r<MINIME.rows;r++){ const row=MINIME.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
+    items.push({ch, x:miX0+c*WMINI_CW, y:miTop-r*WMINI_CH, s:WMINI_S, L:COVER_RAMP.indexOf(ch)/9}); } }
+  // recentre the whole block on (0,0), banner line included in the vertical extent
+  let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+  for(const it of items){ const h=it.s*0.5; minX=Math.min(minX,it.x-h); maxX=Math.max(maxX,it.x+h); minY=Math.min(minY,it.y-h); maxY=Math.max(maxY,it.y+h); }
+  minY=Math.min(minY,bannerCY-WBANNER_S);
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  for(const it of items){ it.x-=cx; it.y-=cy; }
+  for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
+  return {items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
+          bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns:[]};
+}
+/* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
+   scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
+   the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
+const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0};
+const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
+function reserveWelcomeBanner(F){
+  const c=new THREE.Vector3().copy(F.anchor).addScaledVector(F.up,F.lay.bannerCY*F.f).addScaledVector(F.right,F.lay.bannerCX*F.f);
+  const N=textMeshes.length, order=[]; for(let i=0;i<N;i++) order.push(i);
+  order.sort((a,b)=>textMeshes[a].position.distanceToSquared(c)-textMeshes[b].position.distanceToSquared(c));
+  const want=Math.min(30,N), reserved=new Set(), pool=[];
+  for(let k=0;k<want;k++){ const i=order[k]; reserved.add(i); const m=textMeshes[i];
+    pool.push({m, home:m.position.clone(), geo0:m.geometry}); }
+  return {reserved, pool};
+}
+const WB_FLY=560, WB_STAG=46, WB_HOLD=2200, WB_GAP=520;
+function welcomeMessages(){
+  if(!statsReady()||!GH_STATS.commits) return ['LOADING COMMITS'];
+  const c=GH_STATS.commits;
+  return [c.today+' COMMITS TODAY', c.month+' COMMITS THIS MONTH', c.year+' COMMITS THIS YEAR', c.total+' COMMITS TOTAL'];
+}
+function hideBannerGlyphs(){ for(const rec of welcome.pool){ rec.m.visible=false; rec.m.material.opacity=0; rec.m.position.copy(rec.home); } }
+function startBannerWrite(now){
+  const b=welcome.banner, F=welcome.F, lay=F.lay, msg=b.msgs[b.mi%b.msgs.length];
+  const adv=ASM_ADV*lay.bannerS, w=(msg.length-1)*adv, letters=[];
+  for(let i=0;i<msg.length;i++){ const ch=msg[i]; if(ch===' ') continue;
+    const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,(lay.bannerCX-w/2+i*adv)*F.f).addScaledVector(F.up,lay.bannerCY*F.f);
+    letters.push({ch, to, rec:null}); }
+  hideBannerGlyphs();
+  letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=glyphGeo(L.ch); L.delay=i*WB_STAG; L.swapped=false;
+    L.from=rec.home.clone();
+    L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.5).addScaledVector(F.right,2.2+Math.random()*1.6).addScaledVector(F.up,0.5+Math.random()*0.8); });
+  b.letters=letters; b.phase='write'; b.t0=now;
+}
+function startBannerClear(now){
+  const b=welcome.banner, F=welcome.F;
+  b.letters.forEach(L=>{ L.swapped=false;
+    L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.rec.home,0.5).addScaledVector(F.right,-(1.6+Math.random()*1.6)).addScaledVector(F.up,0.4+Math.random()*0.7); });
+  b.phase='clear'; b.t0=now;
+}
+function animateBanner(L,p,writing){
+  const b=welcome.banner, F=welcome.F, rec=L.rec, m=rec.m, sc=b.s*F.f;
+  if(p>=1){
+    if(writing){ m.geometry=L.geoT; m.position.copy(L.to); m.scale.setScalar(sc); m.material.opacity=1; m.visible=true; m.material.color.set(inverted?GLYPH_DARK:'#ffffff'); m.userData.asm=true; }
+    else { m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=0; m.visible=false; m.material.color.set(asmRestColor()); m.userData.asm=false; }
+    L.swapped=true; return;
+  }
+  const from=writing?L.from:L.to, to=writing?L.to:rec.home, ctrl=writing?L.wctrl:L.cctrl, e=easeInOut(p), ie=1-e;
+  m.visible=true;
+  m.position.set(ie*ie*from.x+2*ie*e*ctrl.x+e*e*to.x, ie*ie*from.y+2*ie*e*ctrl.y+e*e*to.y, ie*ie*from.z+2*ie*e*ctrl.z+e*e*to.z);
+  if(!L.swapped&&p>=0.5){ m.geometry=writing?L.geoT:rec.geo0; m.material.color.set(writing?(inverted?GLYPH_DARK:'#ffffff'):asmRestColor()); m.userData.asm=writing; L.swapped=true; }
+  m.scale.setScalar(writing?(1+(sc-1)*e):(sc+(1-sc)*e));
+  m.material.opacity=writing?Math.min(1,p*2):Math.max(0,1-p);
+}
+function updateWelcomeBanner(now){
+  const b=welcome.banner;
+  if(b.phase==='wait'){ if(now-b.t0>=WB_GAP) startBannerWrite(now); return; }
+  if(b.phase==='write'){ let done=true;
+    for(const L of b.letters){ const lt=now-b.t0-L.delay; if(lt<=0){ done=false; continue; } let p=lt/WB_FLY; if(p<1) done=false; else p=1; animateBanner(L,p,true); }
+    if(done){ b.phase='hold'; b.t0=now; } }
+  else if(b.phase==='hold'){ if(now-b.t0>=WB_HOLD) startBannerClear(now); }
+  else if(b.phase==='clear'){ let done=true;
+    for(let i=0;i<b.letters.length;i++){ const L=b.letters[i], lt=now-b.t0-i*WB_STAG; if(lt<=0){ done=false; continue; } let p=lt/WB_FLY; if(p<1) done=false; else p=1; animateBanner(L,p,false); }
+    if(done){ b.mi=(b.mi+1)%b.msgs.length; b.phase='wait'; b.t0=now; } }
+}
+function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', t0:now-WB_GAP+700, letters:[], s:welcome.F.lay.bannerS}; hideBannerGlyphs(); }
+function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor()); m.userData.asm=false; } }
+function updateWelcome(now,dt){
+  if(!welcome.active||!welcome.F) return;
+  const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
+  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); }
+  else if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; hideCalTip(); }
+}
+function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
+  welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null; hideCalTip(); glyphsDirty=true; }
+function showCalTip(x,y,cc){
+  const n=cc.count, d=new Date(cc.date+'T00:00:00');
+  calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  calTip.style.display='block'; calTip.style.left=(x+14)+'px'; calTip.style.top=(y-12)+'px';
+}
+function hideCalTip(){ calTip.style.display='none'; }
+function welcomeCalTip(x,y){
+  if(!welcome.active||!welcome.F||!welcome.calCells){ hideCalTip(); return; }
+  const F=welcome.F; if(F.state!=='in'&&F.state!=='hold'){ hideCalTip(); return; }
+  _hRay.set((x/innerWidth)*2-1,-(y/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
+  const denom=_hRay.dot(F.dir); if(denom<1e-4){ hideCalTip(); return; }
+  const t=_hP.copy(F.anchor).sub(camera.position).dot(F.dir)/denom; if(t<=0){ hideCalTip(); return; }
+  _hP.copy(camera.position).addScaledVector(_hRay,t).sub(F.anchor);
+  const u=_hP.dot(F.right)/F.f, v=_hP.dot(F.up)/F.f;
+  for(const cc of welcome.calCells){ if(Math.abs(u-cc.cx)<=welcome.calHW&&Math.abs(v-cc.cy)<=welcome.calHH){ showCalTip(x,y,cc); return; } }
+  hideCalTip();
+}
 function assembleStop(k){ // build the docked stop's facet panorama and partition the terrain once
   disassemble(true);
   poseAt(stopS[k],_aP,_aQ);
   _aF.set(0,0,-1).applyQuaternion(_aQ);
   const yaw0=Math.atan2(_aF.y,_aF.x), pitch0=Math.asin(Math.max(-1,Math.min(1,_aF.z)));
   const st=STOPS[k];
-  const defs=[{lay:buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:0.60, photoKey:null, pdf:null, g:null}];
+  const isWelcome=!!st.github;
+  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, photoKey:null, pdf:null, g:null}];
   if(st.gallery){ // covers ring the visitor at even 360/7 spacing (intro holds the 0° slot)
     const step=360/7;
     const SPREAD=[-step,step,-2*step,2*step,-3*step,3*step];
@@ -1750,8 +1961,16 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
                  state:'home', items:[], extras:[], fades:[], t0:0});
   }
+  /* welcome stop: reserve a set of terrain glyphs for the commit banner BEFORE the
+     facet partition, so pass 2/3 leave them alone (the banner animates them itself) */
+  let reserved=null;
+  welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
+  if(isWelcome){ const F0=facets[0]; const rb=reserveWelcomeBanner(F0);
+    reserved=rb.reserved; welcome.pool=rb.pool; welcome.active=true; welcome.F=F0;
+    welcome.calCells=F0.lay.calCells; welcome.calHW=F0.lay.calHW; welcome.calHH=F0.lay.calHH; }
   /* partition pass 2: each facet claims its letter glyphs exclusively (nearest to its anchor) */
   const N=textMeshes.length, owner=new Int8Array(N).fill(-1);
+  if(reserved) for(const i of reserved) owner[i]=100; // sentinel ≥0 so pass 2 skips them
   facets.forEach((F,fi)=>{
     const pool=[];
     for(let i=0;i<N;i++) if(owner[i]<0) pool.push(i);
@@ -1787,6 +2006,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      facetIn). Only budget overflow falls back to the old fade-in-place. */
   const nf=facets.length, byMesh=new Map(); // mesh -> its absorb records across all facets (handoff lookup)
   for(let i=0;i<N;i++){
+    if(reserved&&reserved.has(i)) continue; // banner glyphs are the welcome subsystem's — never absorb them
     const own=owner[i], m=textMeshes[i];
     const v=_aV.copy(m.position).sub(_aP), vlen=Math.max(1e-6,v.length());
     const gy=Math.atan2(v.y,v.x), gp=Math.asin(Math.max(-1,Math.min(1,v.z/vlen)));
@@ -1906,6 +2126,7 @@ function disassemble(instant){ // release the whole stop (dock change, mode chan
   glyphsDirty=true;
   renderer.domElement.style.cursor=''; // a hovered button may have left it as a pointer
   hideMore();
+  releaseWelcome(); // banner glyphs (if any) snap home into the face
   if(instant){
     if(stopFacets) for(const F of stopFacets.facets){ restoreFacet(F); disposeFacetTiles(F); }
     for(const F of asmRetired){ restoreFacet(F); disposeFacetTiles(F); }
@@ -2148,6 +2369,7 @@ function buildPhotoTiles(F){ // a grid of textured tiles over the cover's image 
 function updateAssembly(now,dt){
   if(stopFacets||asmRetired.length) glyphsDirty=true; // flights, fades and photo dissolves all animate glyph state
   if(stopFacets) for(const F of stopFacets.facets) updateFacet(F,now,dt);
+  updateWelcome(now,dt); // the commit banner waterfall (welcome stop only)
   for(let i=asmRetired.length-1;i>=0;i--){
     const F=asmRetired[i]; updateFacet(F,now,dt);
     if(F.state==='home'){ disposeFacetTiles(F); asmRetired.splice(i,1); }
@@ -2463,6 +2685,7 @@ addEventListener('pointermove',e=>{
     const hit=dragging?null:facetButtonHit(e.clientX,e.clientY); // hover: pin the button bright + pointer cursor
     for(const F of stopFacets.facets) for(const b of F.btns) b.hover=!!(hit&&hit.b===b);
     renderer.domElement.style.cursor=hit?'pointer':'';
+    if(welcome.active){ if(dragging) hideCalTip(); else welcomeCalTip(e.clientX,e.clientY); } // calendar hover tooltip
   }
   if(!dragging) return;
   if(stopInfoMode==='assemble'){ // drag to look around: the world follows the pointer, street-view style
