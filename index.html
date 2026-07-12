@@ -352,6 +352,7 @@
         <option value="swoop2">Swoop V2 (curved arc)</option>
         <option value="swoop3">Swoop V3 (banked approach)</option>
         <option value="swoop4">Swoop V4 (settles onto the text)</option>
+        <option value="swoop5">Swoop V5 (high arch)</option>
       </select>
     </label>
     <label>Travel — Far stops
@@ -362,6 +363,7 @@
         <option value="swoop2">Swoop V2 (curved arc)</option>
         <option value="swoop3">Swoop V3 (banked approach)</option>
         <option value="swoop4">Swoop V4 (settles onto the text)</option>
+        <option value="swoop5">Swoop V5 (high arch)</option>
       </select>
     </label>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
@@ -1550,8 +1552,8 @@ const COVER_PHOTOS={"vrchat": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAA
    PDF in a new tab (downloadPDF). 'panel' keeps the HTML overlay. */
 let stopInfoMode='assemble'; // 'assemble' | 'panel'
 // stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
-// (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'.
-let travelAdjacent='cruise', travelFar='swoop4';
+// (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'|'swoop5'.
+let travelAdjacent='cruise', travelFar='swoop5';
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
 const ASM_ADV=0.78;                                  // per-unit-scale character advance
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
@@ -2197,7 +2199,7 @@ function departTo(k){
      the gaze onto the destination stop's eye-level anchor once clear of the departure
      (pitch levels itself as the camera descends onto it) and banks gently into the
      curve, fading out before touchdown.
-   - 'swoop4' (default for far hops): swoop2's geometry (mild bow, level takeoff/touchdown)
+   - 'swoop4': swoop2's geometry (mild bow, level takeoff/touchdown)
      with the arrival handled as ONE move — the qEnd blend spans the whole descent
      (k 0.55→0.95, finished just before touchdown) and the velocity-dive is scaled down by
      the same blend weight, so the descent itself rotates the camera onto the arriving text.
@@ -2207,9 +2209,18 @@ function departTo(k){
      lookAt faced -z and levelQuat's l<1e-4 guard passed it through. Every swoop therefore
      landed staring into the ground (and ~2 units low), and dock()'s 1.6 s blend craned it back
      up. Fixed at the two poseAt call sites in buildFlight (B has its own vector now); all
-     swoop variants land level and on-height since. */
+     swoop variants land level and on-height since.
+   - 'swoop5' (default for far hops): swoop4 taken aerial. The aesthetic hump is much taller
+     (min(64, 10+0.24·hd) vs 3+0.09·hd) so a cross-face hop becomes a high pass over the whole
+     portrait, and the altitude profile is forced UNIMODAL (running-max envelope in from both
+     ends to the peak) — the terrain carve can only raise the rise/fall into level glides, never
+     leave mid-route bumps; the envelope only raises samples, so clearance holds by construction.
+     A 'survey tilt' pitches the gaze down toward the face while high (deeper the higher, up to
+     ~-31° at a 64-unit apex, sin²-windowed to zero at both ends and scaled out by the arrival
+     blend), so the extra altitude is actually spent looking at the portrait. The arrival is
+     exactly swoop4's: one continuous turn onto the text, never into the ground. */
 const CRUISE_RAMP=1.0; // s of acceleration / deceleration at each end
-function swoopZ(F,u){ // linear-interp the swoop2/3/4 altitude-bump profile (clamped at the ends)
+function swoopZ(F,u){ // linear-interp the swoop2/3/4/5 altitude-bump profile (clamped at the ends)
   const n=F.bump.length-1, f=Math.min(n,Math.max(0,u*n)), i=Math.min(n-1,Math.floor(f));
   return F.bump[i]+(F.bump[i+1]-F.bump[i])*(f-i);
 }
@@ -2245,7 +2256,7 @@ function buildFlight(s0,s1,toIdx,mode){
     return {mode:'swoop',s0,s1,t0:now,toIdx,dur:1500+Math.min(2400,hd*16),A,B,hump,
             q0:camera.quaternion.clone(),qEnd,chx:(B.x-A.x)/hd,chy:(B.y-A.y)/hd};
   }
-  if(mode==='swoop2'||mode==='swoop3'||mode==='swoop4'){
+  if(mode==='swoop2'||mode==='swoop3'||mode==='swoop4'||mode==='swoop5'){
     const A=camera.position.clone();       // launch from the exact current pose — no snap
     const B=new THREE.Vector3(); poseAt(s1,B,_lq); // own vector, NOT _pv — see the aliasing note in the swoop branch
     const qEnd=new THREE.Quaternion();
@@ -2264,7 +2275,9 @@ function buildFlight(s0,s1,toIdx,mode){
        altitude. A scalar hump can't do this: terrain spiking just past a stop would
        force the whole arc 30–60 units up (validated vs asciiData — v1 swoop does
        exactly that on some hops, which is partly why it reads as a straight-line tent). */
-    const humpA=3+hd*0.09, N=Math.max(120,Math.ceil(hd*10)); // ~0.1-unit steps: terrainH plateaus can be sub-0.25-unit
+    // swoop5 flies MUCH higher — the arch itself is the sight: an aerial pass over the face
+    const humpA=mode==='swoop5'?Math.min(64,10+hd*0.24):3+hd*0.09,
+          N=Math.max(120,Math.ceil(hd*10)); // ~0.1-unit steps: terrainH plateaus can be sub-0.25-unit
     const raw=new Float32Array(N+1); let L=0, px=A.x, py=A.y;
     for(let i=0;i<=N;i++){
       const u=i/N, w=1-u;
@@ -2290,6 +2303,14 @@ function buildFlight(s0,s1,toIdx,mode){
     }
     const e0=sm[0], e1=sm[N]; // anchor the ends back onto the stops (floor_[0]=floor_[N]=0)…
     for(let i=0;i<=N;i++){ const u=i/N; let b=sm[i]-(e0+(e1-e0)*u); if(b<floor_[i])b=floor_[i]; sm[i]=b; } // …but never below the requirement
+    if(mode==='swoop5'){ /* ONE clean arch, no bumps: unimodal envelope — running max in from
+       both ends toward the peak, so the profile rises once and falls once. Any mid-route dip
+       the terrain carve left becomes a level glide instead of a bump; the envelope only ever
+       RAISES samples (env ≥ sm ≥ floor_), so terrain clearance is preserved by construction. */
+      let p=0; for(let i=1;i<=N;i++) if(sm[i]>sm[p])p=i;
+      for(let i=1;i<p;i++) if(sm[i]<sm[i-1])sm[i]=sm[i-1];
+      for(let i=N-1;i>p;i--) if(sm[i]<sm[i+1])sm[i]=sm[i+1];
+    }
     const F={mode,s0,s1,t0:now,toIdx,dur:1500+Math.min(2400,L*16),A,B,cx,cy,bump:sm,
              geps:2/Math.max(8,L), // gaze-derivative half-window: ~2 units of arc, so clamp kinks don't jitter the pitch
              q0:camera.quaternion.clone(),qEnd,bank:0,pyaw:undefined};
@@ -2298,6 +2319,7 @@ function buildFlight(s0,s1,toIdx,mode){
       F.P=new THREE.Vector3(B.x+_fwd.x*LOOK_AHEAD_U, B.y+_fwd.y*LOOK_AHEAD_U, B.z);
       F.dur=1700+Math.min(2600,L*16); // the wider bow reads better a touch statelier
     }
+    if(mode==='swoop5') F.dur=1800+Math.min(2800,L*16); // the high arch reads better a touch statelier
     return F;
   }
   return {mode:'classic',s0,s1,t0:now,toIdx,dur:Math.min(6500,1000+D/24*1000)};
@@ -2467,7 +2489,7 @@ function frame(){
         if(g>0) _lq.slerp(F.qEnd,g);                                          // …and into the arrival gaze
         camera.position.copy(_jPos); camera.quaternion.copy(_lq);
         fovBoost=Math.sin(Math.PI*k)*6;
-      } else if(flight.mode==='swoop2'||flight.mode==='swoop3'||flight.mode==='swoop4'){ /* curved hop: bezier bow + raised-cosine climb */
+      } else if(flight.mode==='swoop2'||flight.mode==='swoop3'||flight.mode==='swoop4'||flight.mode==='swoop5'){ /* curved hop: bezier bow + raised-cosine climb */
         const F=flight;
         let k=(now-F.t0)/F.dur; if(k>=1){ k=1; done=true; }
         const ek=easeInOut(k), u=ek, w=1-u;
@@ -2479,14 +2501,19 @@ function frame(){
         const dz=(F.B.z-F.A.z)+(swoopZ(F,u+F.geps)-swoopZ(F,u-F.geps))/(2*F.geps);
         const hh=Math.max(1e-6,Math.hypot(dx,dy));
         _lq.copy(F.q0);
-        if(F.mode==='swoop2'||F.mode==='swoop4'){ /* gaze rides the velocity; the level profile means it reaches the horizon by itself */
-          /* swoop4: the arrival blend spans the whole descent (done just before touchdown) and
+        if(F.mode==='swoop2'||F.mode==='swoop4'||F.mode==='swoop5'){ /* gaze rides the velocity; the level profile means it reaches the horizon by itself */
+          /* swoop4/5: the arrival blend spans the whole descent (done just before touchdown) and
              the velocity-dive fades out in step with it — the descent IS the rotation onto the
              text, with no phase where the camera stares at the ground and then cranes up */
-          const g=F.mode==='swoop4' ? (k>0.55?easeInOut(Math.min(1,(k-0.55)/0.40)):0)
+          const g=F.mode!=='swoop2' ? (k>0.55?easeInOut(Math.min(1,(k-0.55)/0.40)):0)
                                     : (k>0.62?easeInOut(Math.min(1,(k-0.62)/0.38)):0);
           let pitch=Math.max(-0.42,Math.min(0.14,Math.atan2(dz,hh)));
-          if(F.mode==='swoop4'&&pitch<0) pitch*=1-g;
+          if(F.mode!=='swoop2'&&pitch<0) pitch*=1-g;
+          if(F.mode==='swoop5'){ /* survey tilt: from the high arch, glance down at the face passing
+             below — deeper the higher we are, peaking at the apex, faded to zero at both ends
+             and scaled out by the arrival blend so the landing stays V4's level settle */
+            pitch=Math.max(-0.60, pitch-Math.min(0.55,Math.atan2(swoopZ(F,u),70))*Math.pow(Math.sin(Math.PI*u),2)*(1-g));
+          }
           const cp=Math.cos(pitch);
           _fwd.set(cp*dx/hh,cp*dy/hh,Math.sin(pitch));
           _pd.position.copy(_jPos); _pd.up.set(0,0,1);
