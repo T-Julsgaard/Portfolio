@@ -1929,7 +1929,10 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   const yaw0=Math.atan2(_aF.y,_aF.x), pitch0=Math.asin(Math.max(-1,Math.min(1,_aF.z)));
   const st=STOPS[k];
   const isWelcome=!!st.github;
-  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, photoKey:null, pdf:null, g:null}];
+  // clearM: how far past the content the terrain is absorbed (the halo beyond the sight
+  // cone). Welcome uses a tight halo so the scene stays visible right up to the block on
+  // both sides — the wide title+calendar+mini-me otherwise eats too much of the flanks.
+  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, clearM:isWelcome?0.08:0.15, photoKey:null, pdf:null, g:null}];
   if(st.gallery){ // covers ring the visitor at even 360/7 spacing (intro holds the 0° slot)
     const step=360/7;
     const SPREAD=[-step,step,-2*step,2*step,-3*step,3*step];
@@ -1952,8 +1955,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     const viewH=viewHBase*dist, viewW=viewH*camera.aspect;
     const f=Math.min(1, d.hFit*viewH/d.lay.h, 0.86*viewW/d.lay.w);
     facets.push({yaw, pitch:0, dist, dir, right, up, anchor, f, lay:d.lay,
-                 Ry:Math.atan((d.lay.w*f/2)/dist)+0.15, // angular half-extents of the cleared ellipse
-                 Rp:Math.atan((d.lay.h*f/2)/dist)+0.15,
+                 Ry:Math.atan((d.lay.w*f/2)/dist)+(d.clearM!==undefined?d.clearM:0.15), // angular half-extents of the cleared ellipse
+                 Rp:Math.atan((d.lay.h*f/2)/dist)+(d.clearM!==undefined?d.clearM:0.15),
                  coneY:Math.atan((d.lay.w*f/2)/dist)+0.06, // the sight cone: the content block's exact angular
                  coneP:Math.atan((d.lay.h*f/2)/dist)+0.06, // footprint (+ a hair), used with a depth test in pass 3
                  photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pStart:0,
