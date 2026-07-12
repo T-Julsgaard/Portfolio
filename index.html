@@ -158,10 +158,10 @@
 
   /* Glyph inspector overlay (dev diagnostic — colours each glyph by its role at a stop) */
   #inspect-hud {
-    position:fixed; left:14px; bottom:64px; z-index:60; display:none; pointer-events:none;
+    position:fixed; right:16px; bottom:16px; z-index:60; display:none; pointer-events:auto;
     font:10px/1.55 ui-monospace,monospace; letter-spacing:0.05em; color:#e8ecf3;
     background:rgba(0,0,0,0.62); border:1px solid rgba(255,255,255,0.18); border-radius:8px;
-    padding:9px 11px; backdrop-filter:blur(6px); min-width:158px; text-transform:uppercase;
+    padding:9px 11px; backdrop-filter:blur(6px); min-width:170px; text-transform:uppercase;
   }
   #inspect-hud .ih-title { font-size:9px; letter-spacing:0.2em; color:rgba(255,255,255,0.55); margin-bottom:6px; }
   #inspect-hud .ir-row { display:flex; align-items:center; gap:6px; }
@@ -174,6 +174,16 @@
   #inspect-hud #inspect-sel b { color:#fff; }
   #inspect-hud .ir-ang { margin-top:4px; color:rgba(255,255,255,0.6); text-transform:none; letter-spacing:0.02em; }
   #inspect-hud .ir-dim { color:rgba(255,255,255,0.4); }
+  #inspect-hud #inspect-act { display:flex; gap:5px; margin-top:8px; }
+  #inspect-hud #inspect-act button {
+    flex:1; font:9px/1 ui-monospace,monospace; letter-spacing:0.08em; text-transform:uppercase;
+    padding:5px 3px; cursor:pointer; color:#e8ecf3; background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.3); border-radius:4px;
+  }
+  #inspect-hud #inspect-act button:hover { background:#fff; color:#000; }
+  #inspect-hud #inspect-act .ib-keep:hover { background:#39d353; border-color:#39d353; }
+  #inspect-hud #inspect-act .ib-abs:hover { background:#ff5555; border-color:#ff5555; }
+  #inspect-hud #inspect-ovr { margin-top:6px; color:rgba(255,255,255,0.55); text-transform:none; letter-spacing:0.02em; }
   #inspect-box {
     position:fixed; z-index:59; display:none; pointer-events:none;
     border:1px solid rgba(255,255,255,0.9); background:rgba(120,170,255,0.14);
@@ -417,6 +427,9 @@
     </label>
     <h4 class="sub">Diagnostics</h4>
     <div class="row"><span>Glyph inspector</span><input type="checkbox" id="toggleInspect"></div>
+    <label>Selection density <span id="valInspectHard">100%</span>
+      <input type="range" id="inspectHard" min="0.05" max="1" step="0.05" value="1">
+    </label>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
     <button class="reset" id="introReplay">Replay intro</button>
     <button class="reset" id="devReset">Reset defaults</button>
@@ -2110,9 +2123,10 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   /* partition pass 2: each facet claims its letter glyphs exclusively (nearest to its anchor) */
   const N=textMeshes.length, owner=new Int8Array(N).fill(-1);
   if(reserved) for(const i of reserved) owner[i]=100; // sentinel ≥0 so pass 2 skips them
+  const ovr=inspectOverride; // glyph-inspector role overrides (empty ⇒ no-op): 'scene' keep / 'absorb' clear
   facets.forEach((F,fi)=>{
     const pool=[];
-    for(let i=0;i<N;i++) if(owner[i]<0) pool.push(i);
+    for(let i=0;i<N;i++) if(owner[i]<0 && ovr.get(i)!=='scene') pool.push(i); // never recruit a force-kept glyph as a letter
     pool.sort((a,b)=>textMeshes[a].position.distanceToSquared(F.anchor)-textMeshes[b].position.distanceToSquared(F.anchor));
     const need=Math.min(F.lay.items.length,pool.length);
     const picked=pool.slice(0,need).map(idx=>{ // reading-order pairing so flights don't crisscross
@@ -2147,6 +2161,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   const nf=facets.length, byMesh=new Map(); // mesh -> its absorb records across all facets (handoff lookup)
   for(let i=0;i<N;i++){
     if(reserved&&reserved.has(i)) continue; // banner glyphs are the welcome subsystem's — never absorb them
+    if(ovr.get(i)==='scene') continue;      // force-kept: never enters any facet's absorb set — stays as scene
     const own=owner[i], m=textMeshes[i];
     const v=_aV.copy(m.position).sub(_aP), vlen=Math.max(1e-6,v.length());
     const gy=Math.atan2(v.y,v.x), gp=Math.asin(Math.max(-1,Math.min(1,v.z/vlen)));
@@ -2170,6 +2185,19 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         let l=byMesh.get(m); if(!l) byMesh.set(m,l=[]); l.push(rec);
       } else F.fades.push({m, k:0.9+Math.random()*1.6, own:ownF});
     }
+  }
+  /* force-absorb overrides: a glyph the user marked 'absorb' that no facet's ellipse/cone
+     caught — hand it to the facet most in front of it as an extra so it flies into the text */
+  if(ovr.size) for(const [i,role] of ovr){
+    if(role!=='absorb'||i<0||i>=N) continue;
+    if((reserved&&reserved.has(i))||(owner[i]>=0&&owner[i]<100)) continue; // banner or a content letter — leave it
+    const m=textMeshes[i]; if(byMesh.has(m)) continue;                      // already absorbable by some facet
+    const v=_aV.copy(m.position).sub(_aP); let bF=null,bd=0.2;
+    for(let fi=0;fi<nf;fi++){ const d=v.dot(facets[fi].dir); if(d>bd){ bd=d; bF=facets[fi]; } }
+    if(!bF) continue;                                                       // nothing in front to fly into
+    const rec={m, F:bF, home:m.position.clone(), g0:m.geometry, own:null,
+      to:null, from:null, ctrl:null, st:0, mode:null, s0:1, swapped:false, done:false};
+    bF.extras.push(rec); byMesh.set(m,[rec]);
   }
   stopFacets={k, facets, yaw0, pitch0, byMesh};
   // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
@@ -2796,19 +2824,28 @@ function fsFirst(){ if(fsEnabled) enterFS(); }
 ['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,fsFirst,{once:true}));
 applyFullscreenPref(fsEnabled,false); // set initial X visibility from the saved pref
 
-/* ===== GLYPH INSPECTOR (dev diagnostic, v55) =============================================
-   A purely additive x-ray of a docked stop's assembly: it does NOT change any assembly
-   logic — it only, on frames where it's on, repaints every glyph AT ITS SCENE HOME position,
-   colour-coded by the role it plays in the current dock, so you can see (and marquee-select)
-   even the glyphs that would normally have flown into the text and vanished. Roles come
-   straight from the live facet records (F.items / F.extras / F.fades) + the welcome banner
-   pool, so it's an honest picture of what stays vs. what gets absorbed. Turning it off
-   re-runs assembleStop to restore the real colours/positions. Nothing here runs (or costs
-   anything) unless the checkbox is ticked AND you're docked in assemble mode. */
-let inspectOn=false;
+/* ===== GLYPH INSPECTOR (dev tool, v55; role overrides v56) ================================
+   An x-ray of a docked stop's assembly: while it's on it repaints every glyph AT ITS SCENE
+   HOME position, colour-coded by the role it plays in the current dock, so you can see (and
+   marquee-select) even the glyphs that would normally have flown into the text and vanished.
+   Roles come from the live facet records (F.items / F.extras / F.fades) + the welcome banner
+   pool. On top of the read-only x-ray it can now actually CHANGE a glyph's status: select a
+   patch and press Keep (force it to stay as scene) or Absorb (force it into the text). Those
+   overrides (by glyph index) persist in localStorage and are honoured by assembleStop, so the
+   real scene reflects them with the inspector off too. With no overrides set, assembly behaves
+   exactly as before. Selection density (dev slider) thins the marquee to a fraction of the
+   glyphs under the box for granular edits. Nothing here costs anything unless docked in
+   assemble mode with the inspector ticked (except the assembleStop override check, which is a
+   Map lookup that's a no-op when the map is empty). */
+let inspectOn=false, inspectHard=1;
 const inspect={ entries:null, token:null, sel:new Set(), counts:null, dragging:false, boxOn:false, x0:0, y0:0 };
 const ROLE_COL={ scene:'#39d353', absorb:'#ff5555', content:'#4aa3ff', banner:'#ffb020' };
 const INSPECT_SEL='#ffffff';
+let inspectOverride=new Map(); // glyph index -> 'scene'(keep) | 'absorb'(clear); persisted, honoured by assembleStop
+try{ const s=JSON.parse(localStorage.getItem('pf_glyph_overrides')||'[]');
+  if(Array.isArray(s)) inspectOverride=new Map(s.filter(x=>Array.isArray(x)&&x.length===2)); }catch(e){}
+function saveOverrides(){ try{ localStorage.setItem('pf_glyph_overrides',JSON.stringify([...inspectOverride])); }catch(e){} }
+const _idh=i=>{ const h=Math.sin(i*12.9898)*43758.5453; return h-Math.floor(h); }; // stable per-glyph 0..1 for density thinning
 function inspectActive(){ return inspectOn && uiState==='journey' && jMode==='docked' && stopInfoMode==='assemble' && !!stopFacets; }
 const inspectHud=document.createElement('div'); inspectHud.id='inspect-hud';
 inspectHud.innerHTML=
@@ -2817,9 +2854,22 @@ inspectHud.innerHTML=
   '<div class="ir-row"><span class="sw sw-absorb"></span>absorbed into text</div>'+
   '<div class="ir-row"><span class="sw sw-content"></span>content letters</div>'+
   '<div class="ir-row"><span class="sw sw-banner"></span>commit banner</div>'+
-  '<div id="inspect-sel"></div>';
+  '<div id="inspect-sel"></div>'+
+  '<div id="inspect-act">'+
+    '<button class="ib-keep" data-role="scene" title="Force the selected glyphs to stay as scene">Keep</button>'+
+    '<button class="ib-abs" data-role="absorb" title="Force the selected glyphs to be absorbed into the text">Absorb</button>'+
+    '<button class="ib-reset" data-role="reset" title="Clear all saved overrides">Reset all</button>'+
+  '</div>'+
+  '<div id="inspect-ovr"></div>';
 document.body.appendChild(inspectHud);
 const inspectSelReadout=inspectHud.querySelector('#inspect-sel');
+const inspectOvrLine=inspectHud.querySelector('#inspect-ovr');
+inspectHud.querySelector('#inspect-act').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const r=b.dataset.role;
+  if(r==='reset') inspectClearOverrides(); else inspectApplyRole(r);
+});
+inspectHud.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // don't charge a departure over the HUD
 const inspectBox=document.createElement('div'); inspectBox.id='inspect-box'; document.body.appendChild(inspectBox);
 function buildInspect(){ // map every glyph -> {role, home} from the live facet records
   const role=new Map(), home=new Map();
@@ -2831,7 +2881,7 @@ function buildInspect(){ // map every glyph -> {role, home} from the live facet 
     }
   }
   if(welcome.pool) for(const rec of welcome.pool) if(!role.has(rec.m)){ role.set(rec.m,'banner'); home.set(rec.m,rec.home); }
-  inspect.entries=textMeshes.map(m=>({ m, role:role.get(m)||'scene', home:home.get(m)||m.position.clone() }));
+  inspect.entries=textMeshes.map((m,i)=>({ m, i, role:role.get(m)||'scene', home:home.get(m)||m.position.clone() }));
   inspect.token=stopFacets;
 }
 function ensureInspect(){ if(inspect.token!==stopFacets||!inspect.entries) buildInspect(); }
@@ -2852,12 +2902,36 @@ function inspectSelect(x0,y0,x1,y1){
   const c={content:0,absorb:0,banner:0,scene:0};
   inspect.sel.clear();
   for(const e of inspect.entries){
+    if(inspectHard<1 && _idh(e.i)>=inspectHard) continue; // density: thin the marquee to a stable fraction
     _ipv.copy(e.home).project(camera);
     if(_ipv.z>1) continue; // behind the camera
     const sx=(_ipv.x*0.5+0.5)*innerWidth, sy=(-_ipv.y*0.5+0.5)*innerHeight;
     if(sx>=minx&&sx<=maxx&&sy>=miny&&sy<=maxy){ inspect.sel.add(e.m); c[e.role]++; }
   }
   inspect.counts=c; updateInspectReadout();
+}
+function updateOverrideCount(){
+  let keep=0,abs=0; for(const r of inspectOverride.values()){ if(r==='scene')keep++; else if(r==='absorb')abs++; }
+  inspectOvrLine.innerHTML = (keep||abs)
+    ? 'overrides: <span style="color:#39d353">'+keep+' kept</span> · <span style="color:#ff5555">'+abs+' absorbed</span>'
+    : 'no overrides set';
+}
+function inspectApplyRole(role){ // force every selected glyph to 'scene' or 'absorb'
+  if(!inspect.entries||!inspect.sel.size) return;
+  let n=0; for(const e of inspect.entries) if(inspect.sel.has(e.m)){ inspectOverride.set(e.i,role); n++; }
+  if(!n) return;
+  saveOverrides();
+  if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx); // re-partition honouring the new overrides
+  inspect.sel.clear(); inspect.counts=null; updateInspectReadout(); updateOverrideCount();
+  console.log('[glyph-inspector] set',n,'glyph(s) ->',role,'· total overrides',inspectOverride.size);
+  glyphsDirty=true; renderDirty=true;
+}
+function inspectClearOverrides(){
+  if(!inspectOverride.size) return;
+  inspectOverride.clear(); saveOverrides();
+  if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx);
+  updateOverrideCount(); console.log('[glyph-inspector] cleared all overrides');
+  glyphsDirty=true; renderDirty=true;
 }
 function updateInspectReadout(){
   const c=inspect.counts, tot=c?c.content+c.absorb+c.banner+c.scene:0;
@@ -2904,7 +2978,7 @@ function setInspect(on){
   if(!on){ inspect.sel.clear(); inspect.counts=null; inspect.dragging=false;
     inspectBox.style.display='none'; inspect.boxOn=false;
     if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets&&dockIdx>=0) assembleStop(dockIdx); // restore real colours/positions
-  } else updateInspectReadout();
+  } else { updateInspectReadout(); updateOverrideCount(); }
   renderDirty=true; glyphsDirty=true;
 }
 
@@ -3257,6 +3331,7 @@ bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
 const inspectCheck=document.getElementById('toggleInspect');
 inspectCheck.addEventListener('change',e=>setInspect(e.target.checked));
+bindRange('inspectHard','valInspectHard',v=>{ inspectHard=v; },v=>Math.round(v*100)+'%');
 devPanel.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scrolling the panel must not charge a journey departure
 document.getElementById('devReset').addEventListener('click',()=>{
   const defaults={bloomStrength:BASE_BLOOM,bloomRadius:0.5,bloomThreshold:0.2,fov:52,fogNear:0.35,fogFar:1.5};
@@ -3280,6 +3355,7 @@ document.getElementById('devReset').addEventListener('click',()=>{
   document.getElementById('toggleInvert').checked=false;
   fullscreenCheck.checked=false; applyFullscreenPref(false,true);
   if(inspectOn){ inspectCheck.checked=false; setInspect(false); }
+  inspectHard=1; document.getElementById('inspectHard').value=1; document.getElementById('valInspectHard').textContent='100%'; // glyph overrides kept (use the inspector's Reset all)
   applyRaw(false); syncVignette(); applyInvert(false);
   renderDirty=true;
 });
