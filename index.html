@@ -608,8 +608,9 @@
           else if (e.data === 1) {
             if (audibleTry) { audibleTry = false; engaged = true; } // v51: gamble won — audible from t=0
             playing = true; wantPlay = false; errStreak = 0; syncUI();
+            refreshFade();
           }
-          else if (e.data === 2) { playing = false; syncUI(); }
+          else if (e.data === 2) { playing = false; syncUI(); refreshFade(); }
         },
         onError: e => {
           console.warn('[music] YT error ' + e.data + ' on ' + TRACKS[idx].id);
@@ -644,11 +645,40 @@
     setTrack(idx - 1, playing || wantPlay);
   });
 
+  /* 3-second fade-in whenever the audio first becomes audible (audible autostart, the
+     first-gesture unmute, and manual play/resume all land on the inaudible→audible edge via
+     refreshFade()). Track-to-track auto-advance keeps `playing` true throughout, so it never
+     re-fades; a manual volume change cancels the ramp and snaps to the chosen level. */
+  let fadeRAF = 0, audible = false;
+  const FADE_MS = 3000;
+  function stopFade() { if (fadeRAF) { cancelAnimationFrame(fadeRAF); fadeRAF = 0; } }
+  function fadeInVolume() {
+    if (!player || !ready) return;
+    stopFade();
+    const t0 = performance.now();
+    try { player.setVolume(0); } catch (e) {}
+    const step = now => {
+      const p = Math.min(1, (now - t0) / FADE_MS);
+      try { player.setVolume(Math.round(vol * p)); } catch (e) {} // vol read live: default may change
+      if (p < 1) fadeRAF = requestAnimationFrame(step);
+      else { fadeRAF = 0; try { player.setVolume(vol); } catch (e) {} }
+    };
+    fadeRAF = requestAnimationFrame(step);
+  }
+  function refreshFade() { // fade in on the moment sound starts reaching the visitor
+    const nowAudible = !!(player && ready && playing && !effMute());
+    if (nowAudible && !audible) fadeInVolume();
+    else if (!nowAudible && audible) stopFade(); // paused/muted mid-fade → freeze the ramp
+    audible = nowAudible;
+  }
+
   function applyVolume() {
     try { localStorage.setItem('pf_music_vol', String(vol)); } catch (e) {}
     if (player && ready) {
+      stopFade();                 // a manual volume change takes over any in-progress fade
       player.setVolume(vol);
       effMute() ? player.mute() : player.unMute();
+      audible = playing && !effMute();
     }
     syncUI();
   }
@@ -714,8 +744,9 @@
     engaged = true;                 // effMute() now honours the user's own mute pref only
     if (!player) { autostart(); return; }
     if (!ready) { wantPlay = true; return; }
-    if (!muted) { player.unMute(); player.setVolume(vol); }
+    if (!muted) { player.unMute(); if (!fadeRAF) player.setVolume(vol); } // don't clobber a live ramp
     if (!playing) { wantPlay = true; player.playVideo(); }
+    refreshFade();
     syncUI();
   }
   ['mousemove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev =>
