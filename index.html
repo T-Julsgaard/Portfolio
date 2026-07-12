@@ -134,10 +134,16 @@
   #dev-toggle:hover { background:#fff; color:#000; }
   #dev-panel {
     position:fixed; left:18px; bottom:54px; z-index:7; width:220px;
+    max-height:calc(100vh - 72px); overflow-y:auto; overflow-x:hidden;
     background:rgba(0,0,0,0.78); border:1px solid rgba(255,255,255,0.25); backdrop-filter:blur(6px);
     padding:14px; display:none; flex-direction:column; gap:10px;
+    scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.3) transparent;
   }
   #dev-panel.open { display:flex; }
+  #dev-panel::-webkit-scrollbar { width:7px; }
+  #dev-panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.28); border-radius:4px; }
+  #dev-panel::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.45); }
+  #dev-panel h4.sub { margin-top:4px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.14); }
   #dev-panel h4 { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.5); font-weight:600; }
   #dev-panel label { display:flex; flex-direction:column; gap:4px; font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.7); }
   #dev-panel label span { display:flex; justify-content:space-between; color:rgba(255,255,255,0.9); }
@@ -372,6 +378,13 @@
         <option value="swoop4">Swoop V4 (settles onto the text)</option>
         <option value="swoop5">Swoop V5 (high arch)</option>
       </select>
+    </label>
+    <h4 class="sub">Welcome Stop</h4>
+    <label>Panorama Size <span id="valWelSize">0.80</span>
+      <input type="range" id="welSize" min="0.5" max="1" step="0.01" value="0.80">
+    </label>
+    <label>Clearing Halo <span id="valWelHalo">0.05</span>
+      <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
     </label>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
     <button class="reset" id="introReplay">Replay intro</button>
@@ -1646,6 +1659,13 @@ async function loadStats(){
 }
 loadStats(); setInterval(loadStats,60000);
 let stopInfoMode='assemble'; // 'assemble' | 'panel'
+// welcome-stop framing (dev panel > Welcome Stop): WELCOME_SIZE scales the panorama
+// below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
+// halo (rad past the content) — see the assembleStop def note.
+let WELCOME_SIZE=0.80, WELCOME_HALO=0.05;
+function reassembleWelcome(){ // live-rebuild the welcome facet if currently docked there
+  if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
+}
 // stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
 // (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'|'swoop5'.
 // Adjacent default moved off the rail (cruise → swoop4): the rail is terrain-following by
@@ -1939,7 +1959,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   // the felt imbalance). 0.80 pulls the block in to ~29° so ~8° of real scene frames it
   // on BOTH flanks; combined with the tighter clearM the terrain comes right up to the
   // content (fine here — nothing sits in front of the POV at the welcome stop).
-  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, sizeMul:isWelcome?0.80:1, clearM:isWelcome?0.05:0.15, photoKey:null, pdf:null, g:null}];
+  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:null, pdf:null, g:null}];
   if(st.gallery){ // covers ring the visitor at even 360/7 spacing (intro holds the 0° slot)
     const step=360/7;
     const SPREAD=[-step,step,-2*step,2*step,-3*step,3*step];
@@ -3002,6 +3022,9 @@ travelAdjSelect.value=travelAdjacent; travelFarSelect.value=travelFar;
 // next departure flies the new style; a flight in progress keeps its own
 travelAdjSelect.addEventListener('change',()=>{ travelAdjacent=travelAdjSelect.value; });
 travelFarSelect.addEventListener('change',()=>{ travelFar=travelFarSelect.value; });
+bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
+bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
+devPanel.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scrolling the panel must not charge a journey departure
 document.getElementById('devReset').addEventListener('click',()=>{
   const defaults={bloomStrength:BASE_BLOOM,bloomRadius:0.5,bloomThreshold:0.2,fov:52,fogNear:0.35,fogFar:1.5};
   baseBloom.strength=defaults.bloomStrength; baseBloom.radius=defaults.bloomRadius; baseBloom.threshold=defaults.bloomThreshold;
@@ -3014,6 +3037,10 @@ document.getElementById('devReset').addEventListener('click',()=>{
   document.getElementById('valFov').textContent=String(defaults.fov);
   document.getElementById('jHeight').value=7; document.getElementById('valJHeight').textContent='7.0';
   if(JCLEAR!==7){ JCLEAR=7; buildJourney(JCLEAR); }
+  WELCOME_SIZE=0.80; WELCOME_HALO=0.05;
+  document.getElementById('welSize').value=0.80; document.getElementById('valWelSize').textContent='0.80';
+  document.getElementById('welHalo').value=0.05; document.getElementById('valWelHalo').textContent='0.05';
+  reassembleWelcome();
   document.getElementById('toggleRaw').checked=false;
   document.getElementById('toggleVignette').checked=true;
   document.getElementById('toggleInvert').checked=false;
