@@ -145,6 +145,19 @@
   #dev-panel::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.45); }
   #dev-panel h4.sub { margin-top:4px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.14); }
   #dev-panel h4 { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.5); font-weight:600; }
+  /* collapsible topic sections */
+  #dev-panel .dev-sect { display:flex; flex-direction:column; gap:10px; }
+  #dev-panel .dev-h {
+    display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left;
+    margin:0; padding:8px 0 0; border:none; border-top:1px solid rgba(255,255,255,0.14); background:transparent;
+    font-family:inherit; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600;
+    color:rgba(255,255,255,0.62); cursor:pointer;
+  }
+  #dev-panel .dev-h:hover { color:#fff; }
+  #dev-panel .dev-h::after { content:'\25BE'; font-size:9px; opacity:0.7; transition:transform 0.15s ease; }
+  #dev-panel .dev-sect.collapsed .dev-h::after { transform:rotate(-90deg); }
+  #dev-panel .dev-sect-b { display:flex; flex-direction:column; gap:10px; }
+  #dev-panel .dev-sect.collapsed .dev-sect-b { display:none; }
   #dev-panel label { display:flex; flex-direction:column; gap:4px; font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.7); }
   #dev-panel label span { display:flex; justify-content:space-between; color:rgba(255,255,255,0.9); }
   #dev-panel input[type="range"] { width:100%; accent-color:#fff; }
@@ -358,96 +371,114 @@
   <button id="dev-toggle" title="Dev tools">&#9881;</button>
   <div id="dev-panel">
     <h4>Dev Tools</h4>
-    <label>Bloom Strength <span id="valBloomStrength">0.70</span>
-      <input type="range" id="bloomStrength" min="0" max="2" step="0.01" value="0.7">
-    </label>
-    <label>Bloom Radius <span id="valBloomRadius">0.50</span>
-      <input type="range" id="bloomRadius" min="0" max="1.5" step="0.01" value="0.5">
-    </label>
-    <label>Bloom Threshold <span id="valBloomThreshold">0.20</span>
-      <input type="range" id="bloomThreshold" min="0" max="1" step="0.01" value="0.2">
-    </label>
-    <label>Field of View <span id="valFov">52</span>
-      <input type="range" id="fov" min="20" max="90" step="1" value="52">
-    </label>
-    <label>Fog Near <span id="valFogNear">0.35</span>
-      <input type="range" id="fogNear" min="0" max="1" step="0.01" value="0.35">
-    </label>
-    <label>Fog Far <span id="valFogFar">1.50</span>
-      <input type="range" id="fogFar" min="0.5" max="3" step="0.01" value="1.5">
-    </label>
-    <div class="row"><span>Vignette</span><input type="checkbox" id="toggleVignette" checked></div>
-    <div class="row"><span>Fullscreen on enter</span><input type="checkbox" id="toggleFullscreen"></div>
-    <div class="row"><span>Invert</span><input type="checkbox" id="toggleInvert"></div>
-    <div class="row"><span>Raw (no processing)</span><input type="checkbox" id="toggleRaw"></div>
-    <label>Path Height <span id="valJHeight">7.0</span>
-      <input type="range" id="jHeight" min="3" max="16" step="0.5" value="7">
-    </label>
-    <label>Load Animation
-      <select id="introSelect">
-        <option value="progressive-soft">Progressive (soft finish)</option>
-        <option value="progressive">Progressive (resolution)</option>
-        <option value="surface">Surface (embers)</option>
-      </select>
-    </label>
-    <label>Stop Info
-      <select id="stopInfoSelect">
-        <option value="assemble">Characters assemble</option>
-        <option value="panel">Overlay panel</option>
-      </select>
-    </label>
-    <label>Travel — Adjacent stops
-      <select id="travelAdjSelect">
-        <option value="classic">Classic (eased rail)</option>
-        <option value="cruise">Cruise (steady rail)</option>
-        <option value="swoop">Swoop (over the terrain)</option>
-        <option value="swoop2">Swoop V2 (curved arc)</option>
-        <option value="swoop3">Swoop V3 (banked approach)</option>
-        <option value="swoop4">Swoop V4 (settles onto the text)</option>
-        <option value="swoop5">Swoop V5 (high arch)</option>
-      </select>
-    </label>
-    <label>Travel — Far stops
-      <select id="travelFarSelect">
-        <option value="classic">Classic (eased rail)</option>
-        <option value="cruise">Cruise (steady rail)</option>
-        <option value="swoop">Swoop (over the terrain)</option>
-        <option value="swoop2">Swoop V2 (curved arc)</option>
-        <option value="swoop3">Swoop V3 (banked approach)</option>
-        <option value="swoop4">Swoop V4 (settles onto the text)</option>
-        <option value="swoop5">Swoop V5 (high arch)</option>
-      </select>
-    </label>
-    <h4 class="sub">Welcome Stop</h4>
-    <label>Welcome figure
-      <select id="welFigSelect">
-        <option value="scene">New scene (waving)</option>
-        <option value="classic">Classic portrait</option>
-      </select>
-    </label>
-    <label>Panorama Size <span id="valWelSize">0.80</span>
-      <input type="range" id="welSize" min="0.5" max="1" step="0.01" value="0.80">
-    </label>
-    <label>Clearing Halo <span id="valWelHalo">0.05</span>
-      <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
-    </label>
-    <h4 class="sub">Diagnostics</h4>
-    <div class="row"><span>Glyph inspector</span><input type="checkbox" id="toggleInspect"></div>
-    <label>Scene
-      <select id="inspectScene"></select>
-    </label>
-    <label>Show only
-      <select id="inspectRole">
-        <option value="all">All roles</option>
-        <option value="absorb">Absorbed &middot; red</option>
-        <option value="scene">Scene &middot; green</option>
-        <option value="content">Content &middot; blue</option>
-        <option value="banner">Banner &middot; orange</option>
-      </select>
-    </label>
-    <label>Selection density <span id="valInspectHard">100%</span>
-      <input type="range" id="inspectHard" min="0.05" max="1" step="0.05" value="1">
-    </label>
+    <section class="dev-sect" data-sect="render">
+      <button type="button" class="dev-h">Render</button>
+      <div class="dev-sect-b">
+        <label>Bloom Strength <span id="valBloomStrength">0.70</span>
+          <input type="range" id="bloomStrength" min="0" max="2" step="0.01" value="0.7">
+        </label>
+        <label>Bloom Radius <span id="valBloomRadius">0.50</span>
+          <input type="range" id="bloomRadius" min="0" max="1.5" step="0.01" value="0.5">
+        </label>
+        <label>Bloom Threshold <span id="valBloomThreshold">0.20</span>
+          <input type="range" id="bloomThreshold" min="0" max="1" step="0.01" value="0.2">
+        </label>
+        <label>Field of View <span id="valFov">52</span>
+          <input type="range" id="fov" min="20" max="90" step="1" value="52">
+        </label>
+        <label>Fog Near <span id="valFogNear">0.35</span>
+          <input type="range" id="fogNear" min="0" max="1" step="0.01" value="0.35">
+        </label>
+        <label>Fog Far <span id="valFogFar">1.50</span>
+          <input type="range" id="fogFar" min="0.5" max="3" step="0.01" value="1.5">
+        </label>
+        <div class="row"><span>Vignette</span><input type="checkbox" id="toggleVignette" checked></div>
+        <div class="row"><span>Fullscreen on enter</span><input type="checkbox" id="toggleFullscreen"></div>
+        <div class="row"><span>Invert</span><input type="checkbox" id="toggleInvert"></div>
+        <div class="row"><span>Raw (no processing)</span><input type="checkbox" id="toggleRaw"></div>
+      </div>
+    </section>
+    <section class="dev-sect" data-sect="journey">
+      <button type="button" class="dev-h">Journey</button>
+      <div class="dev-sect-b">
+        <label>Path Height <span id="valJHeight">7.0</span>
+          <input type="range" id="jHeight" min="3" max="16" step="0.5" value="7">
+        </label>
+        <label>Load Animation
+          <select id="introSelect">
+            <option value="progressive-soft">Progressive (soft finish)</option>
+            <option value="progressive">Progressive (resolution)</option>
+            <option value="surface">Surface (embers)</option>
+          </select>
+        </label>
+        <label>Stop Info
+          <select id="stopInfoSelect">
+            <option value="assemble">Characters assemble</option>
+            <option value="panel">Overlay panel</option>
+          </select>
+        </label>
+        <label>Travel — Adjacent stops
+          <select id="travelAdjSelect">
+            <option value="classic">Classic (eased rail)</option>
+            <option value="cruise">Cruise (steady rail)</option>
+            <option value="swoop">Swoop (over the terrain)</option>
+            <option value="swoop2">Swoop V2 (curved arc)</option>
+            <option value="swoop3">Swoop V3 (banked approach)</option>
+            <option value="swoop4">Swoop V4 (settles onto the text)</option>
+            <option value="swoop5">Swoop V5 (high arch)</option>
+          </select>
+        </label>
+        <label>Travel — Far stops
+          <select id="travelFarSelect">
+            <option value="classic">Classic (eased rail)</option>
+            <option value="cruise">Cruise (steady rail)</option>
+            <option value="swoop">Swoop (over the terrain)</option>
+            <option value="swoop2">Swoop V2 (curved arc)</option>
+            <option value="swoop3">Swoop V3 (banked approach)</option>
+            <option value="swoop4">Swoop V4 (settles onto the text)</option>
+            <option value="swoop5">Swoop V5 (high arch)</option>
+          </select>
+        </label>
+      </div>
+    </section>
+    <section class="dev-sect" data-sect="welcome">
+      <button type="button" class="dev-h">Welcome Stop</button>
+      <div class="dev-sect-b">
+        <label>Welcome figure
+          <select id="welFigSelect">
+            <option value="scene">New scene (waving)</option>
+            <option value="classic">Classic portrait</option>
+          </select>
+        </label>
+        <label>Panorama Size <span id="valWelSize">0.80</span>
+          <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.80">
+        </label>
+        <label>Clearing Halo <span id="valWelHalo">0.05</span>
+          <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
+        </label>
+      </div>
+    </section>
+    <section class="dev-sect" data-sect="diagnostics">
+      <button type="button" class="dev-h">Diagnostics</button>
+      <div class="dev-sect-b">
+        <div class="row"><span>Glyph inspector</span><input type="checkbox" id="toggleInspect"></div>
+        <label>Scene
+          <select id="inspectScene"></select>
+        </label>
+        <label>Show only
+          <select id="inspectRole">
+            <option value="all">All roles</option>
+            <option value="absorb">Absorbed &middot; red</option>
+            <option value="scene">Scene &middot; green</option>
+            <option value="content">Content &middot; blue</option>
+            <option value="banner">Banner &middot; orange</option>
+          </select>
+        </label>
+        <label>Selection density <span id="valInspectHard">100%</span>
+          <input type="range" id="inspectHard" min="0.05" max="1" step="0.05" value="1">
+        </label>
+      </div>
+    </section>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
     <button class="reset" id="introReplay">Replay intro</button>
     <button class="reset" id="devReset">Reset defaults</button>
@@ -3346,6 +3377,18 @@ frame();
 const vignetteEl=document.getElementById('vignette');
 const devToggle=document.getElementById('dev-toggle'), devPanel=document.getElementById('dev-panel');
 devToggle.addEventListener('click',()=>devPanel.classList.toggle('open'));
+/* collapsible topic sections — each header toggles its body; open/closed state persists */
+(function(){
+  let saved={}; try{ saved=JSON.parse(localStorage.getItem('pf_dev_sections')||'{}')||{}; }catch(e){}
+  devPanel.querySelectorAll('.dev-sect').forEach(sec=>{
+    const name=sec.dataset.sect;
+    if(saved[name]) sec.classList.add('collapsed');
+    sec.querySelector('.dev-h').addEventListener('click',()=>{
+      const collapsed=sec.classList.toggle('collapsed');
+      saved[name]=collapsed; try{ localStorage.setItem('pf_dev_sections',JSON.stringify(saved)); }catch(e){}
+    });
+  });
+})();
 function bindRange(id,valId,onInput,fmt){
   const el=document.getElementById(id), val=document.getElementById(valId);
   el.addEventListener('input',()=>{ const v=parseFloat(el.value); val.textContent=fmt?fmt(v):v.toFixed(2); onInput(v); renderDirty=true; });
