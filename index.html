@@ -94,6 +94,24 @@
     color:rgba(255,255,255,0.88); font-size:11px; line-height:1.4; letter-spacing:0.04em;
     padding:5px 9px; white-space:nowrap; }
 
+  /* faithful HTML GitHub calendar (welcome stop, 'html' version — a react-github-calendar
+     recreation overlaid while docked; toggled in dev tools > Welcome Stop > GitHub calendar) */
+  #gh-cal { position:fixed; left:50%; top:66px; transform:translateX(-50%) translateY(-8px); z-index:7;
+    max-width:min(92vw,760px); padding:14px 16px 12px;
+    background:rgba(0,0,0,0.82); border:1px solid rgba(255,255,255,0.22); backdrop-filter:blur(6px);
+    opacity:0; pointer-events:none; transition:opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,0.8,0.28,1);
+    font-family:inherit; color:rgba(255,255,255,0.85); }
+  #gh-cal.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  #gh-cal .ghc-head { font-size:12px; letter-spacing:0.03em; color:rgba(255,255,255,0.78); margin-bottom:9px; }
+  #gh-cal .ghc-scroll { overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.3) transparent; }
+  #gh-cal .ghc-body svg { display:block; }
+  #gh-cal .ghc-empty { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.5); padding:14px 2px; }
+  #gh-cal .ghc-legend { display:flex; align-items:center; justify-content:flex-end; gap:4px; margin-top:8px;
+    font-size:10px; letter-spacing:0.04em; color:rgba(255,255,255,0.55); }
+  #gh-cal .ghc-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; }
+  #gh-cal .ghc-legend span:first-child { margin-right:2px; }
+  #gh-cal .ghc-legend span:last-child { margin-left:2px; }
+
   /* minimalist ASCII-style fullscreen toggle where the old "ASCII PORTRAIT" label sat:
      solid black fill, thin sleek white border, a bare white X in the mono font */
   #fs-btn { position:fixed; left:18px; top:16px; z-index:6;
@@ -168,6 +186,24 @@
     font-family:inherit; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:6px; cursor:pointer;
   }
   #dev-panel button.reset:hover { background:#fff; color:#000; }
+  /* per-section reset (replaces the old global "Reset defaults"): each group resets on its
+     own, behind an inline "are you sure" confirm so nothing wipes by accident */
+  #dev-panel .sect-reset { margin-top:2px; }
+  #dev-panel .sreset-btn {
+    width:100%; background:transparent; border:1px dashed rgba(255,255,255,0.28); color:rgba(255,255,255,0.6);
+    font-family:inherit; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; padding:5px; cursor:pointer;
+  }
+  #dev-panel .sreset-btn:hover { border-style:solid; color:rgba(255,255,255,0.9); }
+  #dev-panel .sreset-confirm { display:none; gap:6px; align-items:center; }
+  #dev-panel .sect-reset.arm .sreset-btn { display:none; }
+  #dev-panel .sect-reset.arm .sreset-confirm { display:flex; }
+  #dev-panel .sreset-confirm span { flex:1; font-size:9px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.75); }
+  #dev-panel .sreset-confirm button {
+    background:transparent; border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.8);
+    font-family:inherit; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; padding:4px 8px; cursor:pointer;
+  }
+  #dev-panel .sreset-confirm button.yes:hover { background:#fff; color:#000; }
+  #dev-panel .sreset-confirm button.no:hover { border-color:rgba(255,255,255,0.7); color:#fff; }
 
   /* Glyph inspector overlay (dev diagnostic — colours each glyph by its role at a stop) */
   #inspect-hud {
@@ -396,6 +432,10 @@
         <div class="row"><span>Fullscreen on enter</span><input type="checkbox" id="toggleFullscreen"></div>
         <div class="row"><span>Invert</span><input type="checkbox" id="toggleInvert"></div>
         <div class="row"><span>Raw (no processing)</span><input type="checkbox" id="toggleRaw"></div>
+        <div class="sect-reset" data-reset="render">
+          <button type="button" class="sreset-btn">Reset Render</button>
+          <div class="sreset-confirm"><span>Sure?</span><button type="button" class="yes">Reset</button><button type="button" class="no">Cancel</button></div>
+        </div>
       </div>
     </section>
     <section class="dev-sect" data-sect="journey">
@@ -439,6 +479,10 @@
             <option value="swoop5">Swoop V5 (high arch)</option>
           </select>
         </label>
+        <div class="sect-reset" data-reset="journey">
+          <button type="button" class="sreset-btn">Reset Journey</button>
+          <div class="sreset-confirm"><span>Sure?</span><button type="button" class="yes">Reset</button><button type="button" class="no">Cancel</button></div>
+        </div>
       </div>
     </section>
     <section class="dev-sect" data-sect="welcome">
@@ -450,12 +494,23 @@
             <option value="classic">Classic portrait</option>
           </select>
         </label>
+        <label>GitHub calendar
+          <select id="welCalSelect">
+            <option value="blocks">Blocks (GitHub-style glyphs)</option>
+            <option value="html">HTML overlay (exact)</option>
+            <option value="classic">Classic (original glyphs)</option>
+          </select>
+        </label>
         <label>Panorama Size <span id="valWelSize">0.80</span>
           <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.80">
         </label>
         <label>Clearing Halo <span id="valWelHalo">0.05</span>
           <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
         </label>
+        <div class="sect-reset" data-reset="welcome">
+          <button type="button" class="sreset-btn">Reset Welcome</button>
+          <div class="sreset-confirm"><span>Sure?</span><button type="button" class="yes">Reset</button><button type="button" class="no">Cancel</button></div>
+        </div>
       </div>
     </section>
     <section class="dev-sect" data-sect="diagnostics">
@@ -481,7 +536,6 @@
     </section>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
     <button class="reset" id="introReplay">Replay intro</button>
-    <button class="reset" id="devReset">Reset defaults</button>
   </div>
 
   <button id="gen-toggle" title="ASCII generator">&#9638;</button>
@@ -1039,6 +1093,7 @@ function applyInvert(on){
   sceneFog.color.set(bg);
   // glyphs currently serving as assembled stop content re-derive their palette-aware tint
   for(const m of textMeshes){ if(m.userData.asm) setImgColor(m.material.color,m.userData.asmL); else m.material.color.set(glyph); }
+  if(ghCalEl&&ghCalEl.classList.contains('show')) buildGhCal(); // repaint the HTML calendar in the new theme
 }
 /* raw mode: bypass every processing layer added on top of the grainrad export — bloom (the whole
    composer), ACES tone mapping, distance fog, the vignette overlay, and the off-white glyph tint —
@@ -1796,6 +1851,12 @@ let stopInfoMode='assemble'; // 'assemble' | 'panel'
 // below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
 // halo (rad past the content) — see the assembleStop def note.
 let WELCOME_SIZE=0.80, WELCOME_HALO=0.05;
+// welcome contribution-calendar version (dev panel > Welcome Stop > GitHub calendar):
+//  'blocks' — in-scene glyph grid, uniform solid '#' per day + Less→More legend (GitHub-like, default)
+//  'classic' — the original in-scene grid (per-level ASCII char)
+//  'html' — a faithful HTML/SVG recreation of react-github-calendar, overlaid while docked;
+//           in this mode buildWelcomeLayout omits the glyph calendar (title/figure/banner stay).
+let welcomeCal=localStorage.getItem('pf_welcome_cal')||'blocks';
 function reassembleWelcome(){ // live-rebuild the welcome facet if currently docked there
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
@@ -1947,22 +2008,36 @@ function buildWelcomeLayout(){
     for(const d of cal){ (cols[c]||(cols[c]=[])).push({r:d.weekday,level:CAL_LEVELS[d.level]||0,date:d.date,count:d.count}); if(d.weekday===6) c++; }
   } else { for(let c=0;c<53;c++){ cols[c]=[]; for(let r=0;r<7;r++) cols[c].push({r,level:0,date:null,count:0}); } }
   const ncol=cols.length;
+  // 'html' overlays a real GitHub calendar (buildGhCal) instead of glyphs, so this layout
+  // omits the calendar cells/labels/legend — title, figure and banner still assemble as glyphs.
+  const isHtmlCal=(welcomeCal==='html'), blockCal=(welcomeCal==='blocks');
+  const cellS=blockCal?0.42:WCAL_S; // blocks: one uniform solid '#' per day (colour carries intensity, like the real thing)
   // grid: column 0 centre at x=0, Sun row at y=0 (top), rows descend
-  for(let c=0;c<ncol;c++) for(const cell of cols[c]){
+  if(!isHtmlCal) for(let c=0;c<ncol;c++) for(const cell of cols[c]){
     const x=c*WCAL_CW, y=-cell.r*WCAL_CH;
-    items.push({ch:CAL_CHARS[cell.level], x, y, s:WCAL_S, L:{cal:cell.level}});
+    items.push({ch:blockCal?'#':CAL_CHARS[cell.level], x, y, s:cellS, L:{cal:cell.level}});
     if(cell.date) calCells.push({cx:x, cy:y, date:cell.date, count:cell.count});
   }
   const calW=(ncol-1)*WCAL_CW, calCX=calW/2, calTop=0, calBot=-6*WCAL_CH;
   // month labels above the grid, at each column where the month first changes
   let lastM=-1;
-  for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
+  if(!isHtmlCal) for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
     const m=+first.date.slice(5,7)-1;
     if(m!==lastM&&c<ncol-1){ lastM=m; const t=MONTHS[m], adv=ASM_ADV*WLBL_S;
       for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6, s:WLBL_S, L:null}); } }
   // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
-  [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
+  if(!isHtmlCal) [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
     for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH, s:WLBL_S, L:null}); });
+  // Less → More legend under the grid (blocks mode only — the GitHub footer key)
+  if(blockCal){ const legS=0.36, legPitch=0.5, adv=ASM_ADV*WLBL_S, gap=0.55;
+    const lessW=('Less'.length-1)*adv, moreW=('More'.length-1)*adv, sqSpan=4*legPitch;
+    const totW=lessW+adv+gap+sqSpan+gap+adv+moreW, legY=calBot-1.0;
+    let lx=calCX-totW/2;
+    for(let i=0;i<4;i++) items.push({ch:'Less'[i], x:lx+i*adv, y:legY, s:WLBL_S, L:null});
+    lx+=lessW+adv+gap;
+    for(let k=0;k<5;k++) items.push({ch:'#', x:lx+k*legPitch, y:legY, s:legS, L:{cal:k}});
+    lx+=sqSpan+legPitch+gap;
+    for(let i=0;i<4;i++) items.push({ch:'More'[i], x:lx+i*adv, y:legY, s:WLBL_S, L:null}); }
   // title, centred over the calendar
   const title="Hi, I'm Thomas.", tS=1.35, tAdv=ASM_ADV*tS, tW=(title.length-1)*tAdv;
   const titleY=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+tS*0.5;
@@ -1996,6 +2071,50 @@ function buildWelcomeLayout(){
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
 const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
+/* ── faithful HTML GitHub calendar (welcomeCal==='html') ──────────────────────────────
+   A react-github-calendar recreation (rounded SVG day-squares, exact GitHub greens,
+   month/weekday labels, Less→More legend, native hover tooltips) overlaid while docked at
+   welcome. Built from the same GH_STATS.calendar the glyph version uses; shown/hidden by
+   updateWelcome/releaseWelcome. In this mode buildWelcomeLayout omits the glyph calendar. */
+let ghCalEl=null;
+function ensureGhCal(){
+  if(ghCalEl) return ghCalEl;
+  ghCalEl=document.createElement('div'); ghCalEl.id='gh-cal';
+  ghCalEl.innerHTML='<div class="ghc-head"></div><div class="ghc-scroll"><div class="ghc-body"></div></div><div class="ghc-legend"></div>';
+  ghCalEl.addEventListener('wheel',e=>e.stopPropagation(),{passive:false}); // scrolling the card must not charge a departure
+  ghCalEl.addEventListener('pointerdown',e=>e.stopPropagation());           // nor should a click on it look-around
+  document.body.appendChild(ghCalEl);
+  return ghCalEl;
+}
+function ghCalShow(on){ const el=ensureGhCal(); el.classList.toggle('show',!!on);
+  if(on && el.dataset.stamp!==GH_STAMP) buildGhCal(); } // stamp guard: build once per stats update, not per frame
+function buildGhCal(){
+  const el=ensureGhCal();
+  const head=el.querySelector('.ghc-head'), body=el.querySelector('.ghc-body'), leg=el.querySelector('.ghc-legend');
+  const inv=inverted;
+  const pal=inv?['#ebedf0','#9be9a8','#40c463','#30a14e','#216e39']:['#161b22','#0e4429','#006d32','#26a641','#39d353'];
+  const tcol=inv?'#57606a':'#8b949e';
+  let lh='<span>Less</span>'; for(let k=0;k<5;k++) lh+='<i style="background:'+pal[k]+'"></i>'; lh+='<span>More</span>'; leg.innerHTML=lh;
+  const cal=statsReady()?GH_STATS.calendar:null;
+  if(!cal){ head.textContent=''; body.innerHTML='<div class="ghc-empty">Loading contributions&hellip;</div>'; el.dataset.stamp=''; return; }
+  el.dataset.stamp=GH_STAMP;
+  const cols=[]; let c=0; // group days into week columns exactly like the glyph layout
+  for(const d of cal){ (cols[c]||(cols[c]=[])).push(d); if(d.weekday===6) c++; }
+  const ncol=cols.length, B=11, S=14, padL=28, padT=15, W=padL+ncol*S, H=padT+7*S;
+  let svg='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="GitHub contribution calendar">';
+  let lastM=-1; // month labels along the top
+  for(let ci=0;ci<ncol;ci++){ const f=cols[ci][0]; if(!f||!f.date) continue; const m=+f.date.slice(5,7)-1;
+    if(m!==lastM&&ci<ncol-1){ lastM=m; svg+='<text x="'+(padL+ci*S)+'" y="9" fill="'+tcol+'" font-size="9" font-family="inherit">'+MONTHS[m]+'</text>'; } }
+  [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ svg+='<text x="0" y="'+(padT+a[0]*S+9)+'" fill="'+tcol+'" font-size="9" font-family="inherit">'+a[1]+'</text>'; });
+  let tot=0;
+  for(let ci=0;ci<ncol;ci++) for(const d of cols[ci]){ const lv=CAL_LEVELS[d.level]||0, n=d.count||0; tot+=n;
+    const x=padL+ci*S, y=padT+d.weekday*S, dt=d.date?new Date(d.date+'T00:00:00'):null;
+    const tip=dt?((n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})):'';
+    svg+='<rect x="'+x+'" y="'+y+'" width="'+B+'" height="'+B+'" rx="2" ry="2" fill="'+pal[lv]+'"'+(inv?' stroke="rgba(27,31,36,0.06)"':'')+'>'+(tip?'<title>'+tip+'</title>':'')+'</rect>';
+  }
+  svg+='</svg>'; body.innerHTML=svg;
+  head.textContent=tot.toLocaleString('en-US')+' contribution'+(tot===1?'':'s')+' in the last year';
+}
 function reserveWelcomeBanner(F){
   const c=new THREE.Vector3().copy(F.anchor).addScaledVector(F.up,F.lay.bannerCY*F.f).addScaledVector(F.right,F.lay.bannerCX*F.f);
   const N=textMeshes.length, order=[]; for(let i=0;i<N;i++) order.push(i);
@@ -2091,10 +2210,11 @@ function updateWelcome(now,dt){
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
   if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); }
   else if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; hideCalTip(); }
+  ghCalShow(welcomeCal==='html'&&showing); // the HTML calendar overlay tracks the facet's fade in/out
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
+  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); ghCalShow(false); glyphsDirty=true; }
 function showCalTip(x,y,cc){
   const n=cc.count, d=new Date(cc.date+'T00:00:00');
   calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -3434,38 +3554,41 @@ const welFigSelect=document.getElementById('welFigSelect');
 welFigSelect.value=welcomeFigure;
 welFigSelect.addEventListener('change',()=>{ // swap the welcome figure; live-rebuilds if docked there
   welcomeFigure=welFigSelect.value; localStorage.setItem('pf_welcome_figure',welcomeFigure); reassembleWelcome(); });
+const welCalSelect=document.getElementById('welCalSelect');
+welCalSelect.value=welcomeCal;
+welCalSelect.addEventListener('change',()=>{ // swap the GitHub-calendar version; live-rebuilds if docked there
+  welcomeCal=welCalSelect.value; localStorage.setItem('pf_welcome_cal',welcomeCal); reassembleWelcome(); });
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
 const inspectCheck=document.getElementById('toggleInspect');
 inspectCheck.addEventListener('change',e=>setInspect(e.target.checked));
 bindRange('inspectHard','valInspectHard',v=>{ inspectHard=v; },v=>Math.round(v*100)+'%');
 devPanel.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scrolling the panel must not charge a journey departure
-document.getElementById('devReset').addEventListener('click',()=>{
-  const defaults={bloomStrength:BASE_BLOOM,bloomRadius:0.5,bloomThreshold:0.2,fov:52,fogNear:0.35,fogFar:1.5};
-  baseBloom.strength=defaults.bloomStrength; baseBloom.radius=defaults.bloomRadius; baseBloom.threshold=defaults.bloomThreshold;
-  BASE_FOV=defaults.fov; sceneFog.near=spanY*defaults.fogNear; sceneFog.far=spanY*defaults.fogFar;
-  controls.maxDistance=sceneFog.far*0.97;
-  for(const key of ['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar']){
-    document.getElementById(key).value=defaults[key];
-    document.getElementById('val'+key[0].toUpperCase()+key.slice(1)).textContent=defaults[key].toFixed(2);
-  }
-  document.getElementById('valFov').textContent=String(defaults.fov);
-  document.getElementById('jHeight').value=7; document.getElementById('valJHeight').textContent='7.0';
-  if(JCLEAR!==7){ JCLEAR=7; buildJourney(JCLEAR); }
-  WELCOME_SIZE=0.80; WELCOME_HALO=0.05;
-  document.getElementById('welSize').value=0.80; document.getElementById('valWelSize').textContent='0.80';
-  document.getElementById('welHalo').value=0.05; document.getElementById('valWelHalo').textContent='0.05';
-  welcomeFigure='scene'; localStorage.setItem('pf_welcome_figure','scene'); welFigSelect.value='scene';
-  reassembleWelcome();
-  document.getElementById('toggleRaw').checked=false;
-  document.getElementById('toggleVignette').checked=true;
-  document.getElementById('toggleInvert').checked=false;
-  fullscreenCheck.checked=false; applyFullscreenPref(false,true);
-  if(inspectOn){ inspectCheck.checked=false; setInspect(false); }
-  inspectHard=1; document.getElementById('inspectHard').value=1; document.getElementById('valInspectHard').textContent='100%'; // glyph overrides kept (use the inspector's Reset)
-  inspectRoleFilter='all'; inspectRoleSel.value='all';
-  applyRaw(false); syncVignette(); applyInvert(false);
-  renderDirty=true;
+/* per-section resets (replaces the old single "Reset defaults"). Each section resets ONLY
+   its own controls, behind an inline "Sure?" confirm. Glyph-inspector role overrides are
+   never touched here — they have their own Reset inside the inspector overlay. Each helper
+   drives the real control + fires its existing input/change handler, so value labels, apply
+   logic and localStorage persistence all run exactly as if the user moved it by hand. */
+function fireInput(id,v){ const el=document.getElementById(id); el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); }
+function fireChange(id,v){ const el=document.getElementById(id); el.value=v; el.dispatchEvent(new Event('change',{bubbles:true})); }
+function fireCheck(id,v){ const el=document.getElementById(id); if(el.checked!==v){ el.checked=v; el.dispatchEvent(new Event('change',{bubbles:true})); } }
+const SECT_RESET={
+  render(){ fireInput('bloomStrength',BASE_BLOOM); fireInput('bloomRadius',0.5); fireInput('bloomThreshold',0.2);
+    fireInput('fov',52); fireInput('fogNear',0.35); fireInput('fogFar',1.5);
+    fireCheck('toggleVignette',true); fireCheck('toggleFullscreen',false); fireCheck('toggleInvert',false); fireCheck('toggleRaw',false); },
+  journey(){ fireInput('jHeight',7); fireChange('stopInfoSelect','assemble');
+    fireChange('travelAdjSelect','swoop4'); fireChange('travelFarSelect','swoop5'); introSelect.value='progressive-soft'; },
+  welcome(){ fireChange('welFigSelect','scene'); fireChange('welCalSelect','blocks');
+    fireInput('welSize',0.80); fireInput('welHalo',0.05); }
+};
+devPanel.querySelectorAll('.sect-reset').forEach(box=>{
+  const name=box.dataset.reset;
+  box.querySelector('.sreset-btn').addEventListener('click',()=>{
+    devPanel.querySelectorAll('.sect-reset.arm').forEach(o=>{ if(o!==box) o.classList.remove('arm'); }); // only one armed at a time
+    box.classList.add('arm');
+  });
+  box.querySelector('.no').addEventListener('click',()=>box.classList.remove('arm'));
+  box.querySelector('.yes').addEventListener('click',()=>{ box.classList.remove('arm'); (SECT_RESET[name]||(()=>{}))(); renderDirty=true; });
 });
 
 /* ===== ASCII GENERATOR — faithful in-browser port of grainrad's three.js exporter =====
