@@ -94,23 +94,9 @@
     color:rgba(255,255,255,0.88); font-size:11px; line-height:1.4; letter-spacing:0.04em;
     padding:5px 9px; white-space:nowrap; }
 
-  /* faithful HTML GitHub calendar (welcome stop, 'html' version — a react-github-calendar
-     recreation overlaid while docked; toggled in dev tools > Welcome Stop > GitHub calendar) */
-  #gh-cal { position:fixed; left:50%; top:66px; transform:translateX(-50%) translateY(-8px); z-index:7;
-    max-width:min(92vw,760px); padding:14px 16px 12px;
-    background:rgba(0,0,0,0.82); border:1px solid rgba(255,255,255,0.22); backdrop-filter:blur(6px);
-    opacity:0; pointer-events:none; transition:opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,0.8,0.28,1);
-    font-family:inherit; color:rgba(255,255,255,0.85); }
-  #gh-cal.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
-  #gh-cal .ghc-head { font-size:12px; letter-spacing:0.03em; color:rgba(255,255,255,0.78); margin-bottom:9px; }
-  #gh-cal .ghc-scroll { overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.3) transparent; }
-  #gh-cal .ghc-body svg { display:block; }
-  #gh-cal .ghc-empty { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.5); padding:14px 2px; }
-  #gh-cal .ghc-legend { display:flex; align-items:center; justify-content:flex-end; gap:4px; margin-top:8px;
-    font-size:10px; letter-spacing:0.04em; color:rgba(255,255,255,0.55); }
-  #gh-cal .ghc-legend i { width:11px; height:11px; border-radius:2px; display:inline-block; }
-  #gh-cal .ghc-legend span:first-child { margin-right:2px; }
-  #gh-cal .ghc-legend span:last-child { margin-left:2px; }
+  /* (the 'exact' GitHub calendar is now rendered in-scene — an ASCII grid that assembles and
+     develops into a crisp textured image at the welcome facet, like the case-studies covers —
+     so it has no DOM overlay of its own.) */
 
   /* minimalist ASCII-style fullscreen toggle where the old "ASCII PORTRAIT" label sat:
      solid black fill, thin sleek white border, a bare white X in the mono font */
@@ -204,6 +190,11 @@
   }
   #dev-panel .sreset-confirm button.yes:hover { background:#fff; color:#000; }
   #dev-panel .sreset-confirm button.no:hover { border-color:rgba(255,255,255,0.7); color:#fff; }
+  /* "Set current as default": a broader action than the per-section resets, so it reads more
+     prominently (solid border) while reusing the same inline "are you sure" confirm mechanism */
+  #dev-panel .sect-reset.setdef { margin-top:10px; }
+  #dev-panel .sect-reset.setdef .sreset-btn { border-style:solid; border-color:rgba(255,255,255,0.45); color:rgba(255,255,255,0.85); letter-spacing:0.1em; padding:6px; }
+  #dev-panel .sect-reset.setdef .sreset-btn:hover { background:#fff; color:#000; }
 
   /* Glyph inspector overlay (dev diagnostic — colours each glyph by its role at a stop) */
   #inspect-hud {
@@ -497,7 +488,7 @@
         <label>GitHub calendar
           <select id="welCalSelect">
             <option value="blocks">Blocks (GitHub-style glyphs)</option>
-            <option value="html">HTML overlay (exact)</option>
+            <option value="html">Exact (assembles, develops to image)</option>
             <option value="classic">Classic (original glyphs)</option>
           </select>
         </label>
@@ -534,6 +525,10 @@
         </label>
       </div>
     </section>
+    <div class="sect-reset setdef" data-reset="__setdefault">
+      <button type="button" class="sreset-btn">Set current as default</button>
+      <div class="sreset-confirm"><span>Make all current settings the default?</span><button type="button" class="yes">Set</button><button type="button" class="no">Cancel</button></div>
+    </div>
     <button class="reset" id="musicOrderBtn">Playlist order&hellip;</button>
     <button class="reset" id="introReplay">Replay intro</button>
   </div>
@@ -768,7 +763,7 @@
           ready = true;
           e.target.setVolume(vol); effMute() ? e.target.mute() : e.target.unMute();
           if (wantPlay) e.target.playVideo();
-          if (audibleTry) setTimeout(audibleVerdict, 1800); // v51: resolve the audible gamble
+          if (audibleTry) setTimeout(audibleVerdict, 900); // v51: resolve the audible gamble (shortened from 1800: cut the muted-fallback wait so first-visit/blocked browsers hear the equalizer sooner; PLAYING already flips audibleTry the instant an audible start succeeds)
         },
         onStateChange: e => {
           if (e.data === 0) setTrack(idx + 1, true);            // ended → next
@@ -876,7 +871,7 @@
      always allowed. So on load we now GAMBLE: the embed is created unmuted (autoplay:1,
      mute:0). If the browser permits it, sound starts the instant the page loads (returning
      visitors, localhost dev). If not, the embed just sits UNSTARTED — audibleVerdict()
-     (1.8 s after onReady) detects that nothing is playing and rebuilds the embed muted-at-
+     (0.9 s after onReady) detects that nothing is playing and rebuilds the embed muted-at-
      birth (the only reliable muted autostart, v45), landing us exactly in the pre-v51
      behavior: equalizer runs, track clock ticks, and the first interaction unmutes.
      engage() listens on `mousemove` too, so on this cursor-driven page the music usually
@@ -1030,10 +1025,19 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color('#000000');
-scene.fog=new THREE.Fog(0x000000, spanY*0.35, spanY*1.5);
+
+/* User-saved dev-tools defaults (dev panel > "Set current as default"). A single blob of
+   {controlId:value} that overrides the factory defaults everywhere: consulted at var-init
+   below (so the scene BUILDS with them), re-applied to every control after the bindings are
+   wired, and used as the target of the per-section Reset buttons. Empty/absent => factory
+   behaviour, unchanged. */
+const USER_DEFAULTS=(()=>{ try{ return JSON.parse(localStorage.getItem('pf_user_defaults'))||{}; }catch(e){ return {}; } })();
+const ud=(k,d)=> (USER_DEFAULTS[k]!==undefined ? USER_DEFAULTS[k] : d);
+
+scene.fog=new THREE.Fog(0x000000, spanY*ud('fogNear',0.35), spanY*ud('fogFar',1.5));
 const sceneFog=scene.fog; // stable handle: raw mode sets scene.fog=null; dev sliders keep tuning this object
 
-let BASE_FOV=52;
+let BASE_FOV=ud('fov',52);
 const camera=new THREE.PerspectiveCamera(BASE_FOV, innerWidth/innerHeight, 0.1, 4000);
 
 /* EffectComposer renders into an offscreen target, which silently drops the canvas's MSAA and
@@ -1068,7 +1072,7 @@ bloom.render=function(rnd,writeBuffer,readBuffer,deltaTime,maskActive){
    to JOURNEY_FOV; free roam / exiting restores both. baseBloom holds the overview target (what
    the dev sliders set); the frame loop scales the live pass by (1-journeyT) so the two systems
    never fight over bloom.*. journeyT is eased every frame for a seamless, non-jarring blend. */
-const baseBloom={strength:BASE_BLOOM,radius:0.5,threshold:0.2};
+const baseBloom={strength:ud('bloomStrength',BASE_BLOOM),radius:ud('bloomRadius',0.5),threshold:ud('bloomThreshold',0.2)};
 /* journeyT (0=free roam … 1=at a stop) is driven off the SAME eased progress as the enter/exit
    camera move, so FOV + bloom track the dolly exactly — no independent smoother running ahead of
    it (that made the FOV widen before the camera started, reading as a zoom-out-then-in). journeyFrom
@@ -1093,7 +1097,7 @@ function applyInvert(on){
   sceneFog.color.set(bg);
   // glyphs currently serving as assembled stop content re-derive their palette-aware tint
   for(const m of textMeshes){ if(m.userData.asm) setImgColor(m.material.color,m.userData.asmL); else m.material.color.set(glyph); }
-  if(ghCalEl&&ghCalEl.classList.contains('show')) buildGhCal(); // repaint the HTML calendar in the new theme
+  reassembleWelcome(); // the exact-calendar develop image is theme-coloured — rebuild it if docked at welcome
 }
 /* raw mode: bypass every processing layer added on top of the grainrad export — bloom (the whole
    composer), ACES tone mapping, distance fog, the vignette overlay, and the off-white glyph tint —
@@ -1109,7 +1113,7 @@ function applyRaw(on){
   applyInvert(inverted); // re-tints every existing glyph with the raw-aware palette
 }
 let FONT=null;
-let introMode='progressive-soft'; // which load animation plays: 'progressive-soft' (resolution ramp, per-glyph dissolve at the end) | 'progressive' (resolution ramp, hard final cut) | 'surface' (embers)
+let introMode=ud('introSelect','progressive-soft'); // which load animation plays: 'progressive-soft' (resolution ramp, per-glyph dissolve at the end) | 'progressive' (resolution ramp, hard final cut) | 'surface' (embers)
 /* geometry cache: one TextGeometry per unique glyph, shared across every instance. Essential with
    ~13k glyphs, and reused by the progressive frames. Glyphs the font lacks fall back to a small dash
    so a missing symbol can never produce NaN geometry. */
@@ -1455,7 +1459,7 @@ const JOURNEY=[
 const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.stop); } });
 
 /* --- path build: xy spline through the waypoints, altitude hugging the relief --- */
-let JCLEAR=7; // flight height above the local glyph tops (dev-tunable)
+let JCLEAR=ud('jHeight',7); // flight height above the local glyph tops (dev-tunable)
 let pathPts=[], pathLen=[], pathTotal=1, stopS=[];
 function buildJourney(clearance){
   const ctrl=JOURNEY.map(w=>new THREE.Vector3(centerX+w.xf*spanX*0.5, centerY+w.yf*spanY*0.5, 0));
@@ -1846,11 +1850,11 @@ async function loadStats(){
   if(changed&&uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
 loadStats(); setInterval(loadStats,60000);
-let stopInfoMode='assemble'; // 'assemble' | 'panel'
+let stopInfoMode=ud('stopInfoSelect','assemble'); // 'assemble' | 'panel'
 // welcome-stop framing (dev panel > Welcome Stop): WELCOME_SIZE scales the panorama
 // below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
 // halo (rad past the content) — see the assembleStop def note.
-let WELCOME_SIZE=0.80, WELCOME_HALO=0.05;
+let WELCOME_SIZE=ud('welSize',0.80), WELCOME_HALO=ud('welHalo',0.05);
 // welcome contribution-calendar version (dev panel > Welcome Stop > GitHub calendar):
 //  'blocks' — in-scene glyph grid, uniform solid '#' per day + Less→More legend (GitHub-like, default)
 //  'classic' — the original in-scene grid (per-level ASCII char)
@@ -1864,7 +1868,7 @@ function reassembleWelcome(){ // live-rebuild the welcome facet if currently doc
 // (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'|'swoop5'.
 // Adjacent default moved off the rail (cruise → swoop4): the rail is terrain-following by
 // design, so riding it bobs over every ridge between stops — the swoop family flies over.
-let travelAdjacent='swoop4', travelFar='swoop5';
+let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect','swoop5');
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
 const ASM_ADV=0.78;                                  // per-unit-scale character advance
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
@@ -1958,7 +1962,7 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
   for(let r=0;r<A.rows;r++)for(let c=0;c<A.cols;c++){
     const a=A.g[r][c];
     if(a===' ') continue;
-    items.push({ch:a, x:(c+0.5)*A.cw-iw/2, y:imgTop-(r+0.5)*A.ch, s:A.ch*1.05, L:COVER_RAMP.indexOf(a)/9});
+    items.push({ch:a, x:(c+0.5)*A.cw-iw/2, y:imgTop-(r+0.5)*A.ch, s:A.ch*1.05, L:COVER_RAMP.indexOf(a)/9, dev:true}); // dev: dissolves into the developing photo
   }
   const imgCY0=imgTop-ih/2; y=imgTop-ih-0.9;
   if(g.blurb) for(const line of wrapText(asciiSafe(g.blurb),48)) addLine(line,0.55,0.30);
@@ -2008,28 +2012,31 @@ function buildWelcomeLayout(){
     for(const d of cal){ (cols[c]||(cols[c]=[])).push({r:d.weekday,level:CAL_LEVELS[d.level]||0,date:d.date,count:d.count}); if(d.weekday===6) c++; }
   } else { for(let c=0;c<53;c++){ cols[c]=[]; for(let r=0;r<7;r++) cols[c].push({r,level:0,date:null,count:0}); } }
   const ncol=cols.length;
-  // 'html' overlays a real GitHub calendar (buildGhCal) instead of glyphs, so this layout
-  // omits the calendar cells/labels/legend — title, figure and banner still assemble as glyphs.
-  const isHtmlCal=(welcomeCal==='html'), blockCal=(welcomeCal==='blocks');
-  const cellS=blockCal?0.42:WCAL_S; // blocks: one uniform solid '#' per day (colour carries intensity, like the real thing)
+  // 'blocks' & 'html' (exact) both lay one solid '#' per day (colour carries the level, like
+  // the real thing); 'glyph' uses the density ramp char. In 'html' mode the day cells are
+  // flagged dev:true — once they assemble they dissolve into a crisp textured IMAGE of the
+  // calendar (the develop, just like the case-studies covers turning into a photo); the labels
+  // and legend stay as glyphs around it, and calCells still drive the hover tooltip.
+  const isHtmlCal=(welcomeCal==='html'), blockCal=(welcomeCal==='blocks'), solidCal=(blockCal||isHtmlCal);
+  const cellS=solidCal?0.42:WCAL_S;
   // grid: column 0 centre at x=0, Sun row at y=0 (top), rows descend
-  if(!isHtmlCal) for(let c=0;c<ncol;c++) for(const cell of cols[c]){
+  for(let c=0;c<ncol;c++) for(const cell of cols[c]){
     const x=c*WCAL_CW, y=-cell.r*WCAL_CH;
-    items.push({ch:blockCal?'#':CAL_CHARS[cell.level], x, y, s:cellS, L:{cal:cell.level}});
+    items.push({ch:solidCal?'#':CAL_CHARS[cell.level], x, y, s:cellS, L:{cal:cell.level}, dev:isHtmlCal||undefined});
     if(cell.date) calCells.push({cx:x, cy:y, date:cell.date, count:cell.count});
   }
   const calW=(ncol-1)*WCAL_CW, calCX=calW/2, calTop=0, calBot=-6*WCAL_CH;
   // month labels above the grid, at each column where the month first changes
   let lastM=-1;
-  if(!isHtmlCal) for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
+  for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
     const m=+first.date.slice(5,7)-1;
     if(m!==lastM&&c<ncol-1){ lastM=m; const t=MONTHS[m], adv=ASM_ADV*WLBL_S;
       for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6, s:WLBL_S, L:null}); } }
   // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
-  if(!isHtmlCal) [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
+  [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
     for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH, s:WLBL_S, L:null}); });
-  // Less → More legend under the grid (blocks mode only — the GitHub footer key)
-  if(blockCal){ const legS=0.36, legPitch=0.5, adv=ASM_ADV*WLBL_S, gap=0.55;
+  // Less → More legend under the grid (solid modes — the GitHub footer key)
+  if(solidCal){ const legS=0.36, legPitch=0.5, adv=ASM_ADV*WLBL_S, gap=0.55;
     const lessW=('Less'.length-1)*adv, moreW=('More'.length-1)*adv, sqSpan=4*legPitch;
     const totW=lessW+adv+gap+sqSpan+gap+adv+moreW, legY=calBot-1.0;
     let lx=calCX-totW/2;
@@ -2062,58 +2069,49 @@ function buildWelcomeLayout(){
   for(const it of items){ it.x-=cx; it.y-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
   if(wavePivot){ wavePivot.x-=cx; wavePivot.y-=cy; }
-  return {items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
+  const ret={items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
           bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns:[],
           wavePivot, waveBase};
+  if(isHtmlCal){ // the develop image covers exactly the grid glyph cells (full-cell extent, recentred)
+    ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=calCX-cx; ret.imgCY=(calTop+calBot)/2-cy;
+  }
+  return ret;
 }
 /* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
    scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
 const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
-/* ── faithful HTML GitHub calendar (welcomeCal==='html') ──────────────────────────────
-   A react-github-calendar recreation (rounded SVG day-squares, exact GitHub greens,
-   month/weekday labels, Less→More legend, native hover tooltips) overlaid while docked at
-   welcome. Built from the same GH_STATS.calendar the glyph version uses; shown/hidden by
-   updateWelcome/releaseWelcome. In this mode buildWelcomeLayout omits the glyph calendar. */
-let ghCalEl=null;
-function ensureGhCal(){
-  if(ghCalEl) return ghCalEl;
-  ghCalEl=document.createElement('div'); ghCalEl.id='gh-cal';
-  ghCalEl.innerHTML='<div class="ghc-head"></div><div class="ghc-scroll"><div class="ghc-body"></div></div><div class="ghc-legend"></div>';
-  ghCalEl.addEventListener('wheel',e=>e.stopPropagation(),{passive:false}); // scrolling the card must not charge a departure
-  ghCalEl.addEventListener('pointerdown',e=>e.stopPropagation());           // nor should a click on it look-around
-  document.body.appendChild(ghCalEl);
-  return ghCalEl;
-}
-function ghCalShow(on){ const el=ensureGhCal(); el.classList.toggle('show',!!on);
-  if(on && el.dataset.stamp!==GH_STAMP) buildGhCal(); } // stamp guard: build once per stats update, not per frame
-function buildGhCal(){
-  const el=ensureGhCal();
-  const head=el.querySelector('.ghc-head'), body=el.querySelector('.ghc-body'), leg=el.querySelector('.ghc-legend');
-  const inv=inverted;
-  const pal=inv?['#ebedf0','#9be9a8','#40c463','#30a14e','#216e39']:['#161b22','#0e4429','#006d32','#26a641','#39d353'];
-  const tcol=inv?'#57606a':'#8b949e';
-  let lh='<span>Less</span>'; for(let k=0;k<5;k++) lh+='<i style="background:'+pal[k]+'"></i>'; lh+='<span>More</span>'; leg.innerHTML=lh;
+/* ── exact GitHub calendar as an in-scene image (welcomeCal==='html') ──────────────────
+   Rendered to a canvas → CanvasTexture (no DOM overlay), so the develop machinery can fade
+   it in over the assembled ASCII grid like the case-studies covers develop into a photo.
+   One rounded square per day in the exact GitHub greens (invert-aware), matched pixel-region
+   to the glyph grid (imgW/imgH/imgCX/imgCY from buildWelcomeLayout). Cached per stats stamp +
+   theme; drawing is pure Canvas2D so the texture never taints WebGL (works under file:// too). */
+let _ghTex=null, _ghTexKey='';
+function ghRoundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r);
+  g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+function ghCalTexture(){
   const cal=statsReady()?GH_STATS.calendar:null;
-  if(!cal){ head.textContent=''; body.innerHTML='<div class="ghc-empty">Loading contributions&hellip;</div>'; el.dataset.stamp=''; return; }
-  el.dataset.stamp=GH_STAMP;
-  const cols=[]; let c=0; // group days into week columns exactly like the glyph layout
-  for(const d of cal){ (cols[c]||(cols[c]=[])).push(d); if(d.weekday===6) c++; }
-  const ncol=cols.length, B=11, S=14, padL=28, padT=15, W=padL+ncol*S, H=padT+7*S;
-  let svg='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="GitHub contribution calendar">';
-  let lastM=-1; // month labels along the top
-  for(let ci=0;ci<ncol;ci++){ const f=cols[ci][0]; if(!f||!f.date) continue; const m=+f.date.slice(5,7)-1;
-    if(m!==lastM&&ci<ncol-1){ lastM=m; svg+='<text x="'+(padL+ci*S)+'" y="9" fill="'+tcol+'" font-size="9" font-family="inherit">'+MONTHS[m]+'</text>'; } }
-  [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ svg+='<text x="0" y="'+(padT+a[0]*S+9)+'" fill="'+tcol+'" font-size="9" font-family="inherit">'+a[1]+'</text>'; });
-  let tot=0;
-  for(let ci=0;ci<ncol;ci++) for(const d of cols[ci]){ const lv=CAL_LEVELS[d.level]||0, n=d.count||0; tot+=n;
-    const x=padL+ci*S, y=padT+d.weekday*S, dt=d.date?new Date(d.date+'T00:00:00'):null;
-    const tip=dt?((n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})):'';
-    svg+='<rect x="'+x+'" y="'+y+'" width="'+B+'" height="'+B+'" rx="2" ry="2" fill="'+pal[lv]+'"'+(inv?' stroke="rgba(27,31,36,0.06)"':'')+'>'+(tip?'<title>'+tip+'</title>':'')+'</rect>';
+  const key=(cal?GH_STAMP:'none')+'|'+(inverted?'L':'D');
+  if(_ghTex&&_ghTexKey===key) return _ghTex; // rebuilt only when the stats stamp or theme changes
+  const cols=[]; // group days into week columns (rows 0=Sun … 6=Sat), exactly like the glyph layout
+  if(cal){ let c=0; for(const d of cal){ (cols[c]||(cols[c]=[])).push(d); if(d.weekday===6) c++; } }
+  else { for(let c=0;c<53;c++){ cols[c]=[]; for(let r=0;r<7;r++) cols[c].push({weekday:r,level:'NONE'}); } }
+  // cell pitch = the world grid pitch ×100, so the canvas aspect (ncol*cw : 7*ch) matches the
+  // world image region (ncol*WCAL_CW : 7*WCAL_CH) exactly and the developed squares never stretch
+  const ncol=cols.length, cw=Math.round(WCAL_CW*100), ch=Math.round(WCAL_CH*100), gap=Math.round(cw*0.16), rad=Math.max(2,Math.round((cw-gap)*0.2));
+  const cvs=document.createElement('canvas'); cvs.width=ncol*cw; cvs.height=7*ch;
+  const g=cvs.getContext('2d'), pal=inverted?CAL_LIGHT:CAL_DARK;
+  for(let ci=0;ci<ncol;ci++) for(const d of cols[ci]){
+    const lv=CAL_LEVELS[d.level]||0, x=ci*cw+gap*0.5, y=d.weekday*ch+gap*0.5;
+    g.fillStyle=pal[lv]; ghRoundRect(g,x,y,cw-gap,ch-gap,rad); g.fill();
+    if(inverted){ g.strokeStyle='rgba(27,31,36,0.06)'; g.lineWidth=1; g.stroke(); }
   }
-  svg+='</svg>'; body.innerHTML=svg;
-  head.textContent=tot.toLocaleString('en-US')+' contribution'+(tot===1?'':'s')+' in the last year';
+  const t=new THREE.CanvasTexture(cvs);
+  t.colorSpace=THREE.SRGBColorSpace; t.minFilter=THREE.LinearFilter; t.magFilter=THREE.LinearFilter; t.generateMipmaps=false;
+  if(_ghTex) _ghTex.dispose();
+  _ghTex=t; _ghTexKey=key; return t;
 }
 function reserveWelcomeBanner(F){
   const c=new THREE.Vector3().copy(F.anchor).addScaledVector(F.up,F.lay.bannerCY*F.f).addScaledVector(F.right,F.lay.bannerCX*F.f);
@@ -2210,11 +2208,10 @@ function updateWelcome(now,dt){
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
   if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); }
   else if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; hideCalTip(); }
-  ghCalShow(welcomeCal==='html'&&showing); // the HTML calendar overlay tracks the facet's fade in/out
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); ghCalShow(false); glyphsDirty=true; }
+  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
   const n=cc.count, d=new Date(cc.date+'T00:00:00');
   calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -2249,7 +2246,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   // the felt imbalance). 0.80 pulls the block in to ~29° so ~8° of real scene frames it
   // on BOTH flanks; combined with the tighter clearM the terrain comes right up to the
   // content (fine here — nothing sits in front of the POV at the welcome stop).
-  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:null, pdf:null, g:null}];
+  const isWelcomeImg=isWelcome&&welcomeCal==='html'; // exact mode: the calendar day-cells develop into a crisp image
+  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:isWelcomeImg?'ghcal':null, pdf:null, g:null}];
   if(st.gallery){ // covers ring the visitor at even 360/7 spacing (intro holds the 0° slot)
     const step=360/7;
     const SPREAD=[-step,step,-2*step,2*step,-3*step,3*step];
@@ -2308,7 +2306,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       owner[mi]=fi;
       const rec={m, ri:i, home:m.position.clone(), geo0:m.geometry,
         to:new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f),
-        s1:li.s*F.f, geoA:glyphGeo(li.ch), L:li.L!==undefined?li.L:null,
+        s1:li.s*F.f, geoA:glyphGeo(li.ch), L:li.L!==undefined?li.L:null, dev:li.dev||undefined,
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
         wave:li.wave, lx:li.x, ly:li.y};
       F.items.push(rec);
@@ -2654,8 +2652,8 @@ function updateFacet(F,now,dt){
             if(p>0){ tl.visible=true; tl.material.opacity=p; const s=0.7+0.3*easeOutCubic(p); tl.scale.set(s,s,1); }
             if(p<1) all=false;
           }
-          for(const it of F.items){ // image cells hand over to the photo; titles (L=null) stay
-            if(it.L==null||!it.done) continue;
+          for(const it of F.items){ // image/day cells hand over to the developed picture; text (no dev) stays
+            if(!it.dev||!it.done) continue;
             const p=Math.min(1,Math.max(0,(now-F.pStart-it.pD)/PHOTO_TILE_MS));
             it.m.material.opacity=1-p; it.m.visible=p<1;
             if(p<1) all=false;
@@ -2681,13 +2679,13 @@ function getPhotoTex(key){ // data-URI thumbnails decode once, GL texture shared
   }
   return _photoTex[key];
 }
-function buildPhotoTiles(F){ // a grid of textured tiles over the cover's image area, each with its own reveal delay
+function buildPhotoTiles(F){ // a grid of textured tiles over the image area, each with its own reveal delay
   if(F.tiles) return;
-  const tex=getPhotoTex(F.photoKey), lay=F.lay;
+  const tex=F.photoKey==='ghcal'?ghCalTexture():getPhotoTex(F.photoKey), lay=F.lay; // 'ghcal': the exact-calendar canvas texture
   const CO=8, RO=Math.max(6,Math.round(CO*lay.imgH/lay.imgW));
   const tw=lay.imgW*F.f/CO, th=lay.imgH*F.f/RO;
   const rot=new THREE.Matrix4().makeBasis(F.right,F.up,new THREE.Vector3().copy(F.dir).negate());
-  const base=new THREE.Vector3().copy(F.anchor).addScaledVector(F.up,lay.imgCY*F.f).addScaledVector(F.dir,0.35); // a hair behind the glyphs
+  const base=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,(lay.imgCX||0)*F.f).addScaledVector(F.up,lay.imgCY*F.f).addScaledVector(F.dir,0.35); // imgCX: covers centre on the anchor (0); the welcome calendar is offset right
   F.tiles=[];
   for(let r=0;r<RO;r++)for(let c=0;c<CO;c++){
     const g=new THREE.PlaneGeometry(tw,th), uv=g.attributes.uv;
@@ -3536,6 +3534,7 @@ document.getElementById('introReplay').addEventListener('click',()=>{
   uiState='overview'; hidePanel(); hideHint(); railSet(-1); syncButtons();
   beginIntro(introSelect.value); // replay the chosen load animation from the overview
 });
+introSelect.addEventListener('change',()=>{ introMode=introSelect.value; }); // keep the load-animation default in sync (drives the next page load's intro, saved via "Set as default")
 const stopInfoSelect=document.getElementById('stopInfoSelect');
 stopInfoSelect.value=stopInfoMode;
 stopInfoSelect.addEventListener('change',()=>{ // live-swaps the presentation if currently docked
@@ -3572,15 +3571,39 @@ devPanel.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scr
 function fireInput(id,v){ const el=document.getElementById(id); el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); }
 function fireChange(id,v){ const el=document.getElementById(id); el.value=v; el.dispatchEvent(new Event('change',{bubbles:true})); }
 function fireCheck(id,v){ const el=document.getElementById(id); if(el.checked!==v){ el.checked=v; el.dispatchEvent(new Event('change',{bubbles:true})); } }
-const SECT_RESET={
-  render(){ fireInput('bloomStrength',BASE_BLOOM); fireInput('bloomRadius',0.5); fireInput('bloomThreshold',0.2);
-    fireInput('fov',52); fireInput('fogNear',0.35); fireInput('fogFar',1.5);
-    fireCheck('toggleVignette',true); fireCheck('toggleFullscreen',false); fireCheck('toggleInvert',false); fireCheck('toggleRaw',false); },
-  journey(){ fireInput('jHeight',7); fireChange('stopInfoSelect','assemble');
-    fireChange('travelAdjSelect','swoop4'); fireChange('travelFarSelect','swoop5'); introSelect.value='progressive-soft'; },
-  welcome(){ fireChange('welFigSelect','scene'); fireChange('welCalSelect','blocks');
-    fireInput('welSize',0.80); fireInput('welHalo',0.05); }
+/* Every dev-tools control that participates in "Set current as default" / Reset, keyed by id:
+   [kind, factoryDefault]. Setting a value goes through the real control's input/change event
+   (fireInput/Change/Check), so labels, apply logic and any per-control localStorage all run
+   exactly as if the user moved it by hand. */
+const CTRL_DEF={
+  bloomStrength:['range',BASE_BLOOM], bloomRadius:['range',0.5], bloomThreshold:['range',0.2],
+  fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
+  toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
+  jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
+  travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
+  welFigSelect:['select','scene'], welCalSelect:['select','blocks'], welSize:['range',0.80], welHalo:['range',0.05]
 };
+const SECT_CTRLS={
+  render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw'],
+  journey:['jHeight','introSelect','stopInfoSelect','travelAdjSelect','travelFarSelect'],
+  welcome:['welFigSelect','welCalSelect','welSize','welHalo']
+};
+const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.welcome);
+function ctrlGet(id){ const el=document.getElementById(id), k=CTRL_DEF[id][0]; return k==='check'?el.checked : k==='range'?parseFloat(el.value) : el.value; }
+function ctrlSet(id,v){ const k=CTRL_DEF[id][0]; if(k==='check') fireCheck(id,!!v); else if(k==='range') fireInput(id,v); else fireChange(id,v); }
+const defaultOf=id=> ud(id, CTRL_DEF[id][1]); // user default if saved, else the factory default
+/* Reset one section to its current default (the user's saved default when present, else factory). */
+function resetSection(name){ for(const id of SECT_CTRLS[name]) ctrlSet(id, defaultOf(id)); }
+/* Apply saved user defaults to every control once at startup, after the bindings are wired.
+   Value settings already BUILT with these (var-init via ud() above); firing here syncs the
+   control UI + any side-effectful applies (invert/raw/vignette/fullscreen). No-op when nothing
+   was ever saved, so default behaviour is byte-identical. */
+function applyUserDefaults(){ for(const id of ALL_CTRLS){ if(USER_DEFAULTS[id]!==undefined) ctrlSet(id, USER_DEFAULTS[id]); } }
+/* "Set current as default": snapshot every control's live value into USER_DEFAULTS + localStorage.
+   Reset buttons and the next page load then honour these instead of the factory values. */
+function captureDefaults(){ const o={}; for(const id of ALL_CTRLS) o[id]=ctrlGet(id);
+  Object.assign(USER_DEFAULTS,o); try{ localStorage.setItem('pf_user_defaults',JSON.stringify(USER_DEFAULTS)); }catch(e){} }
+applyUserDefaults();
 devPanel.querySelectorAll('.sect-reset').forEach(box=>{
   const name=box.dataset.reset;
   box.querySelector('.sreset-btn').addEventListener('click',()=>{
@@ -3588,7 +3611,9 @@ devPanel.querySelectorAll('.sect-reset').forEach(box=>{
     box.classList.add('arm');
   });
   box.querySelector('.no').addEventListener('click',()=>box.classList.remove('arm'));
-  box.querySelector('.yes').addEventListener('click',()=>{ box.classList.remove('arm'); (SECT_RESET[name]||(()=>{}))(); renderDirty=true; });
+  box.querySelector('.yes').addEventListener('click',()=>{ box.classList.remove('arm');
+    if(name==='__setdefault') captureDefaults(); else resetSection(name);
+    renderDirty=true; });
 });
 
 /* ===== ASCII GENERATOR — faithful in-browser port of grainrad's three.js exporter =====
