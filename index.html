@@ -485,6 +485,16 @@
             <option value="classic">Classic portrait</option>
           </select>
         </label>
+        <label>Wave
+          <select id="welWaveSelect">
+            <option value="friendly">Friendly (hand)</option>
+            <option value="gentle">Gentle (subtle)</option>
+            <option value="eager">Eager (lively)</option>
+            <option value="arm">Arm (big swing)</option>
+            <option value="flap">Flap (brisk arm)</option>
+            <option value="off">Off (static)</option>
+          </select>
+        </label>
         <label>GitHub calendar
           <select id="welCalSelect">
             <option value="blocks">Blocks (GitHub-style glyphs)</option>
@@ -1828,6 +1838,20 @@ const WFIG={
   classic:{grid:MINIME, cw:0.165, ch:0.185, s:0.16, wave:null}
 };
 let welcomeFigure=localStorage.getItem('pf_welcome_figure')||'scene';
+/* Greeting-wave styles (dev panel > Welcome Stop > Wave). Each is a motion profile the
+   flagged hand cluster follows as it rotates rigidly about the shoulder pivot:
+   rise → (preHold at the top) → side-to-side wiggle → fall → rest, looped. Fields (ms
+   except angles): baseK scales the figure's raised angle (WFIG…wave.base); back = a small
+   overshoot as the arm snaps up; amp/freq (rad / Hz) set the wave size + speed; decay calms
+   later swings. 'hand' styles are quick small oscillations, 'arm' styles bigger slow swings. */
+const WAVE_STYLES={
+  friendly:{rise:340,preHold:90, wig:1500,fall:380,rest:2600, amp:0.26,freq:2.7,baseK:1.00,back:1,decay:0.5},  // warm hand wave (default)
+  gentle:  {rise:520,preHold:140,wig:1200,fall:520,rest:3400, amp:0.15,freq:1.9,baseK:0.85,back:0,decay:0.3},  // subtle, understated
+  eager:   {rise:260,preHold:40, wig:1700,fall:320,rest:1500, amp:0.30,freq:3.2,baseK:1.06,back:1,decay:0.4},  // lively — waves sooner and more
+  arm:     {rise:440,preHold:160,wig:1700,fall:480,rest:2800, amp:0.40,freq:1.3,baseK:1.06,back:1,decay:0.0},  // big slow whole-arm swing
+  flap:    {rise:300,preHold:80, wig:1200,fall:340,rest:2200, amp:0.34,freq:2.0,baseK:1.04,back:1,decay:0.25}  // brisk arm flap
+};
+let welcomeWave=localStorage.getItem('pf_welcome_wave')||'friendly'; // 'off' = static (not in WAVE_STYLES)
 /* Live stats: fetched from data/stats.json (written ahead of time by the Actions
    workflow — the browser never touches the GitHub API or a token). Cache-busted,
    polled every 60 s, degrades gracefully when the file is missing. On localhost
@@ -2035,16 +2059,6 @@ function buildWelcomeLayout(){
   // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
   [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
     for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH, s:WLBL_S, L:null}); });
-  // Less → More legend under the grid (solid modes — the GitHub footer key)
-  if(solidCal){ const legS=0.36, legPitch=0.5, adv=ASM_ADV*WLBL_S, gap=0.55;
-    const lessW=('Less'.length-1)*adv, moreW=('More'.length-1)*adv, sqSpan=4*legPitch;
-    const totW=lessW+adv+gap+sqSpan+gap+adv+moreW, legY=calBot-1.0;
-    let lx=calCX-totW/2;
-    for(let i=0;i<4;i++) items.push({ch:'Less'[i], x:lx+i*adv, y:legY, s:WLBL_S, L:null});
-    lx+=lessW+adv+gap;
-    for(let k=0;k<5;k++) items.push({ch:'#', x:lx+k*legPitch, y:legY, s:legS, L:{cal:k}});
-    lx+=sqSpan+legPitch+gap;
-    for(let i=0;i<4;i++) items.push({ch:'More'[i], x:lx+i*adv, y:legY, s:WLBL_S, L:null}); }
   // title, centred over the calendar
   const title="Hi, I'm Thomas.", tS=1.35, tAdv=ASM_ADV*tS, tW=(title.length-1)*tAdv;
   const titleY=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+tS*0.5;
@@ -2179,15 +2193,20 @@ function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m
    then a lower, then a few seconds at rest, on repeat. Rotation happens in layout space
    (lx,ly about the pivot) and is remapped to the facet plane, so at angle 0 every glyph
    sits exactly on its settled position (it.to). Only the settled hand cells move. */
-const WAVE_PERIOD=5200, WAVE_RAISE=360, WAVE_WIG=1150, WAVE_LOWER=380, WAVE_AMP=0.26, WAVE_W=0.0185;
-function welcomeWaveAngle(tp,base){
-  const c=tp%WAVE_PERIOD;
-  if(c<WAVE_RAISE) return base*easeInOut(c/WAVE_RAISE);          // lift the hand up
-  const c2=c-WAVE_RAISE;
-  if(c2<WAVE_WIG) return base+WAVE_AMP*Math.sin(c2*WAVE_W);      // wave it side to side
-  const c3=c2-WAVE_WIG;
-  if(c3<WAVE_LOWER) return base*(1-easeInOut(c3/WAVE_LOWER));    // lower it back down
-  return 0;                                                     // rest until the next cycle
+function waveBack(t){ const s=1.35; return 1+(s+1)*Math.pow(t-1,3)+s*Math.pow(t-1,2); } // slight overshoot as the arm snaps up (own gentler curve — easeOutBack is already taken)
+function waveWin(t){ const e=0.14; return t<e?easeInOut(t/e) : t>1-e?easeInOut((1-t)/e) : 1; } // near-flat amplitude, smooth 0 at both ends → continuous into rise/fall
+function welcomeWaveAngle(tp,base,W){
+  const period=W.rise+(W.preHold||0)+W.wig+W.fall+W.rest, c=tp%period, A=base*(W.baseK||1);
+  if(c<W.rise) return A*(W.back?waveBack(c/W.rise):easeInOut(c/W.rise));   // raise the arm
+  let c2=c-W.rise; const ph=W.preHold||0;
+  if(c2<ph) return A;                                                          // hold up a beat before waving
+  c2-=ph;
+  if(c2<W.wig){ const t=c2/W.wig;                                              // wave side to side
+    const amp=W.amp*waveWin(t)*(W.decay?Math.exp(-W.decay*t):1);
+    return A+amp*Math.sin(2*Math.PI*W.freq*c2/1000); }
+  const c3=c2-W.wig;
+  if(c3<W.fall) return A*(1-easeInOut(c3/W.fall));                             // lower the arm
+  return 0;                                                                    // rest until the next cycle
 }
 function updateWelcomeWave(now){
   const F=welcome.F;
@@ -2195,7 +2214,8 @@ function updateWelcomeWave(now){
   if(welcome.waveItems==null) welcome.waveItems=F.items.filter(it=>it.wave);
   if(!welcome.waveItems.length) return;
   if(welcome.waveT0==null) welcome.waveT0=now+900; // a beat to settle before the first wave
-  const piv=F.lay.wavePivot, a=welcomeWaveAngle(Math.max(0,now-welcome.waveT0),F.lay.waveBase);
+  const W=WAVE_STYLES[welcomeWave]; // 'off' (or unknown) → a=0, cluster pinned at its settled home
+  const piv=F.lay.wavePivot, a=W?welcomeWaveAngle(Math.max(0,now-welcome.waveT0),F.lay.waveBase,W):0;
   const ca=Math.cos(a), sa=Math.sin(a), f=F.f;
   for(const it of welcome.waveItems){
     if(!it.done) continue; // not landed yet — leave the flight in charge
@@ -3557,6 +3577,10 @@ const welCalSelect=document.getElementById('welCalSelect');
 welCalSelect.value=welcomeCal;
 welCalSelect.addEventListener('change',()=>{ // swap the GitHub-calendar version; live-rebuilds if docked there
   welcomeCal=welCalSelect.value; localStorage.setItem('pf_welcome_cal',welcomeCal); reassembleWelcome(); });
+const welWaveSelect=document.getElementById('welWaveSelect');
+welWaveSelect.value=welcomeWave;
+welWaveSelect.addEventListener('change',()=>{ // swap the greeting-wave style; read live each frame by updateWelcomeWave
+  welcomeWave=welWaveSelect.value; localStorage.setItem('pf_welcome_wave',welcomeWave); welcome.waveT0=null; }); // reset the clock so the new style starts clean
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
 const inspectCheck=document.getElementById('toggleInspect');
@@ -3581,12 +3605,12 @@ const CTRL_DEF={
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
-  welFigSelect:['select','scene'], welCalSelect:['select','blocks'], welSize:['range',0.80], welHalo:['range',0.05]
+  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.80], welHalo:['range',0.05]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw'],
   journey:['jHeight','introSelect','stopInfoSelect','travelAdjSelect','travelFarSelect'],
-  welcome:['welFigSelect','welCalSelect','welSize','welHalo']
+  welcome:['welFigSelect','welWaveSelect','welCalSelect','welSize','welHalo']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.welcome);
 function ctrlGet(id){ const el=document.getElementById(id), k=CTRL_DEF[id][0]; return k==='check'?el.checked : k==='range'?parseFloat(el.value) : el.value; }
