@@ -821,7 +821,7 @@
       events: {
         onReady: e => {
           ready = true;
-          e.target.setVolume(vol); effMute() ? e.target.mute() : e.target.unMute();
+          e.target.setVolume(Math.round(vol * fadeP)); effMute() ? e.target.mute() : e.target.unMute(); // vol*fadeP: never louder than the fade ramp — full vol before PLAYING fired was the start-blip
           if (wantPlay) e.target.playVideo();
           if (audibleTry) setTimeout(audibleVerdict, 900); // v51: resolve the audible gamble (shortened from 1800: cut the muted-fallback wait so first-visit/blocked browsers hear the equalizer sooner; PLAYING already flips audibleTry the instant an audible start succeeds)
         },
@@ -867,22 +867,27 @@
     setTrack(idx - 1, playing || wantPlay);
   });
 
-  /* 3-second fade-in whenever the audio first becomes audible (audible autostart, the
-     first-gesture unmute, and manual play/resume all land on the inaudible→audible edge via
-     refreshFade()). Track-to-track auto-advance keeps `playing` true throughout, so it never
-     re-fades; a manual volume change cancels the ramp and snaps to the chosen level. */
-  let fadeRAF = 0, audible = false;
+  /* 3-second fade-in the first time the audio becomes audible (audible autostart or the
+     first-gesture unmute). fadeP is the ramp's progress and PERSISTS: a pause freezes it, a
+     resume CONTINUES it from where it froze, and once it reaches 1 later resumes play at the
+     set level with no re-fade at all. (It used to restart from 0 on every audible edge —
+     but the player keeps the OLD volume until the PLAYING event arrives, so a quick
+     pause/resume or a fresh start blipped loud for a beat, then dropped to the restarted
+     ramp. Every setVolume below now rides vol*fadeP, so no path ever outruns the ramp.)
+     A manual volume change still cancels the ramp and snaps to the chosen level. */
+  let fadeRAF = 0, audible = false, fadeP = 0; // fadeP: 0 = not yet audible ever, 1 = ramp done
   const FADE_MS = 3000;
   function stopFade() { if (fadeRAF) { cancelAnimationFrame(fadeRAF); fadeRAF = 0; } }
   function fadeInVolume() {
     if (!player || !ready) return;
     stopFade();
-    const t0 = performance.now();
-    try { player.setVolume(0); } catch (e) {}
+    if (fadeP >= 1) { try { player.setVolume(vol); } catch (e) {} return; } // ramp long done — straight to level
+    const t0 = performance.now() - fadeP * FADE_MS; // continue where a pause froze it
+    try { player.setVolume(Math.round(vol * fadeP)); } catch (e) {}
     const step = now => {
-      const p = Math.min(1, (now - t0) / FADE_MS);
-      try { player.setVolume(Math.round(vol * p)); } catch (e) {} // vol read live: default may change
-      if (p < 1) fadeRAF = requestAnimationFrame(step);
+      fadeP = Math.min(1, (now - t0) / FADE_MS);
+      try { player.setVolume(Math.round(vol * fadeP)); } catch (e) {} // vol read live: default may change
+      if (fadeP < 1) fadeRAF = requestAnimationFrame(step);
       else { fadeRAF = 0; try { player.setVolume(vol); } catch (e) {} }
     };
     fadeRAF = requestAnimationFrame(step);
@@ -897,7 +902,7 @@
   function applyVolume() {
     try { localStorage.setItem('pf_music_vol', String(vol)); } catch (e) {}
     if (player && ready) {
-      stopFade();                 // a manual volume change takes over any in-progress fade
+      stopFade(); fadeP = 1;      // a manual volume change takes over any in-progress fade
       player.setVolume(vol);
       effMute() ? player.mute() : player.unMute();
       audible = playing && !effMute();
@@ -966,7 +971,7 @@
     engaged = true;                 // effMute() now honours the user's own mute pref only
     if (!player) { autostart(); return; }
     if (!ready) { wantPlay = true; return; }
-    if (!muted) { player.unMute(); if (!fadeRAF) player.setVolume(vol); } // don't clobber a live ramp
+    if (!muted) { player.unMute(); if (!fadeRAF) player.setVolume(Math.round(vol * fadeP)); } // never clobber or outrun the ramp (a frozen ramp has fadeRAF 0 but fadeP<1)
     if (!playing) { wantPlay = true; player.playVideo(); }
     refreshFade();
     syncUI();
@@ -1188,10 +1193,27 @@ function glyphGeo(ch){
     g=new THREE.ShapeGeometry(FONT.generateShapes(ch,1.0),2);
     g.computeBoundingBox();
     if(!g.boundingBox || !isFinite(g.boundingBox.min.x) || g.boundingBox.min.x===g.boundingBox.max.x) throw 0;
+    g.userData.cy=(g.boundingBox.min.y+g.boundingBox.max.y)/2; // pre-center bbox midpoint in the font's BASELINE coords — chBase() uses it to baseline-align assembled text
     g.center(); g.scale(0.6,1,1);
   }catch(e){ g=new THREE.PlaneGeometry(0.42,0.07); } // dash stand-in for unavailable symbols
   g.userData.glyphChar=ch;
   _geoCache.set(ch,g); return g;
+}
+/* per-character baseline correction (v59): glyphGeo centers every glyph on its own
+   bounding box (right for the portrait's symbol field), which left assembled TEXT with
+   no common baseline — '.' floated at mid-line height, descenders rode up, every word
+   wobbled vertically. chBase(ch) is the y-offset (font units — multiply by the glyph
+   scale) that restores the typeface's own baseline: capitals stay exactly where they
+   were ('H' is the reference), everything else drops/rises to its designed position.
+   Applied at text PLACEMENT only — image grids, calendar day cells and the '#' stencil
+   buttons keep the centered look, and the portrait terrain shares the same geometry
+   cache so it is untouched by construction. */
+let _chRef=null;
+function chBase(ch){
+  const cy=glyphGeo(ch).userData.cy;
+  if(cy===undefined) return 0; // font-fallback dash: keep it centered
+  if(_chRef===null) _chRef=glyphGeo('H').userData.cy||0;
+  return cy-_chRef;
 }
 
 /* ===== instanced glyph pools (v29) =====
@@ -1573,17 +1595,15 @@ const JOURNEY=[
   {xf: 0.08, yf:-0.42},
   {xf:-0.28, yf:-0.44},
   {xf:-0.14, yf:-0.64},
-  /* Contact: the GitHub / LinkedIn marks are ASCII facets that are themselves the
-     hyperlink (`href` — the whole mark is the hit rect, the caption pulses); the
-     Write-me facet's MESSAGE button opens the HTML contact form (Formspree). */
-  {xf: 0.00, yf:-0.82, stop:{id:'contact', label:'Contact', title:'Say hello', body:'The journey ends at the chin.\nI am always open to job opportunities, research collaborations, or new projects — drag to look around and pick a channel.', media:[], links:[{href:'mailto:T.Julsgaard@proton.me',label:'Email'},{href:'https://github.com/T-Julsgaard',label:'GitHub'},{href:'https://www.linkedin.com/in/thomasjulsgaard/',label:'LinkedIn'},{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'CV'}],
-    gallery:[
-      {img:'gh', title:'GitHub', href:'https://github.com/T-Julsgaard', cap:'github.com/T-Julsgaard'},
-      {img:'li', title:'LinkedIn', href:'https://www.linkedin.com/in/thomasjulsgaard/', cap:'linkedin.com/in/thomasjulsgaard'},
-      {title:'Write me', sub:'T.Julsgaard@proton.me',
-        blurb:'A message here lands straight in my inbox — or use plain email if you prefer.',
-        btns:[{t:'MESSAGE',kind:'form'},{t:'EMAIL',kind:'link',data:'mailto:T.Julsgaard@proton.me'}]}
-    ]}},
+  /* Contact (v59): ONE facet, hung FLIPPED (`flip` — 180° off the travel direction), so the
+     docked camera pans around and the content reads against the face the journey just crossed
+     instead of the void past the chin. `contact` holds the social marks (each whole mark IS
+     its hyperlink — no captions, buildContactLayout shrinks them to share the single view)
+     and the stencil buttons; MESSAGE opens the HTML contact form (Formspree). */
+  {xf: 0.00, yf:-0.82, stop:{id:'contact', label:'Contact', title:'Say hello', flip:true, body:'The journey ends at the chin.\nI am always open to job opportunities, research collaborations, or new projects.', media:[], links:[{href:'mailto:T.Julsgaard@proton.me',label:'Email'},{href:'https://github.com/T-Julsgaard',label:'GitHub'},{href:'https://www.linkedin.com/in/thomasjulsgaard/',label:'LinkedIn'},{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'CV'}],
+    contact:{marks:[{img:'gh', href:'https://github.com/T-Julsgaard'},
+                    {img:'li', href:'https://www.linkedin.com/in/thomasjulsgaard/'}],
+             btns:[{t:'MESSAGE',kind:'form'},{t:'EMAIL',kind:'link',data:'mailto:T.Julsgaard@proton.me'}]}}},
   {xf: 0.04, yf:-1.02},
 ];
 const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.stop); } });
@@ -1819,13 +1839,12 @@ function showStop(k){
     const a=document.createElement('a'); a.href=lk.href; a.textContent=lk.label;
     a.target='_blank'; a.rel='noopener'; pLinks.appendChild(a);
   }
-  /* in assemble mode the text lives in the scene as glyphs; the panel shrinks to a
-     bottom dock holding only what glyphs can't be — images and clickable links —
-     and stays hidden entirely at stops that have neither */
+  /* in assemble mode the text lives in the scene as glyphs and NO HTML dock shows at
+     all (the bottom-left mini dock with thumbnails/links was removed by request — the
+     assembled facets carry their own buttons/links); panel mode keeps the full overlay */
   const mini=(stopInfoMode==='assemble');
   panel.classList.toggle('mini',mini);
-  const hasExtras=(st.media&&st.media.length)||(st.links&&st.links.length);
-  panel.classList.toggle('in',!mini||!!hasExtras);
+  panel.classList.toggle('in',!mini);
   railSet(k);
   const look=(stopInfoMode==='assemble')?'Drag to look around · ':'';
   setHint(k===STOPS.length-1 ? look+'End of the journey — scroll up to revisit, or press Free roam' : look+'Scroll to continue');
@@ -2091,7 +2110,7 @@ function buildStopLayout(k){ // -> {items:[{ch,x,y,s}], w, h}: text-plane coords
   for(const r of rows){
     const adv=ASM_ADV*r.s, w=(r.t.length-1)*adv;
     if(w+r.s*0.6>maxW) maxW=w+r.s*0.6;
-    for(let i=0;i<r.t.length;i++){ const ch=r.t[i]; if(ch!==' ') items.push({ch, x:-w/2+i*adv, y, s:r.s}); }
+    for(let i=0;i<r.t.length;i++){ const ch=r.t[i]; if(ch!==' ') items.push({ch, x:-w/2+i*adv, y:y+chBase(ch)*r.s, s:r.s}); }
     y-=r.s+r.gap;
   }
   const last=rows[rows.length-1];
@@ -2119,7 +2138,7 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
   let y=0, maxW=iw;
   const addLine=(t,s,gap,btn)=>{ const adv=ASM_ADV*s, lw=(t.length-1)*adv;
     if(lw+1>maxW) maxW=lw+1;
-    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y, s, L:null, btn:btn||undefined}); }
+    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y:y+chBase(ch)*s, s, L:null, btn:btn||undefined}); }
     y-=s+gap; };
   const title=asciiSafe(g.title); // ONE line, always: long titles shrink instead of wrapping
   const tCap=A?0.95:1.30, tFitW=A?23:20; // text-only facets carry the header alone — let it read bigger
@@ -2147,29 +2166,72 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
   for(const bd of (g.btns||[])) bdefs.push({t:bd.t,kind:bd.kind,data:bd.data});
   if(bdefs.length){
     y-=0.55;
-    const cell=BTN_CELL, H=9, GAPB=1.6; // 7 font rows + 1 row pad top/bottom
-    const wOf=t=>{ let w=0; for(const ch of t) w+=BTN_FONT[ch][0].length+1; return w-1+2; }; // +1 col pad each side
-    const wids=bdefs.map(d=>wOf(d.t)*cell);
-    const tot=wids.reduce((a,b)=>a+b,0)+GAPB*(bdefs.length-1);
-    if(tot+2>maxW) maxW=tot+2;
-    let x0=-tot/2;
-    bdefs.forEach((d,di)=>{
-      const W=Math.round(wids[di]/cell);
-      const hole=Array.from({length:H},()=>new Array(W).fill(false));
-      let cx=1; // punch the label out of the fill
-      for(const ch of d.t){ const gph=BTN_FONT[ch];
-        for(let r=0;r<7;r++)for(let c=0;c<gph[r].length;c++) if(gph[r][c]==='#') hole[r+1][cx+c]=true;
-        cx+=gph[0].length+1; }
-      for(let r=0;r<H;r++)for(let c=0;c<W;c++) if(!hole[r][c])
-        items.push({ch:'#', x:x0+(c+0.5)*cell, y:y-(r+0.5)*cell, s:cell*1.15, L:null, btn:d.kind}); // 1.15: glyphs must not bleed into the 1-cell hole strokes
-      btns.push({kind:d.kind, data:d.data, cx:x0+wids[di]/2, cy:y-H*cell/2, hw:wids[di]/2+0.4, hh:H*cell/2+0.35});
-      x0+=wids[di]+GAPB; });
-    y-=H*cell+0.4;
+    const r=layBtnRow(items,btns,bdefs,y,maxW); y=r.y; maxW=r.maxW;
   }
   const top=0.6, bot=y, cy2=(top+bot)/2;
   for(const it of items) it.y-=cy2;
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-bot, imgW:iw, imgH:ih, imgCY:imgCY0-cy2, btns}; // img* = where the photo plane develops
+}
+function layBtnRow(items,btns,bdefs,y,maxW){ // one stencil-button row (v59: extracted byte-identical
+  // from buildCoverLayout so buildContactLayout shares it): solid '#' blocks, label punched out
+  const cell=BTN_CELL, H=9, GAPB=1.6; // 7 font rows + 1 row pad top/bottom
+  const wOf=t=>{ let w=0; for(const ch of t) w+=BTN_FONT[ch][0].length+1; return w-1+2; }; // +1 col pad each side
+  const wids=bdefs.map(d=>wOf(d.t)*cell);
+  const tot=wids.reduce((a,b)=>a+b,0)+GAPB*(bdefs.length-1);
+  if(tot+2>maxW) maxW=tot+2;
+  let x0=-tot/2;
+  bdefs.forEach((d,di)=>{
+    const W=Math.round(wids[di]/cell);
+    const hole=Array.from({length:H},()=>new Array(W).fill(false));
+    let cx=1; // punch the label out of the fill
+    for(const ch of d.t){ const gph=BTN_FONT[ch];
+      for(let r=0;r<7;r++)for(let c=0;c<gph[r].length;c++) if(gph[r][c]==='#') hole[r+1][cx+c]=true;
+      cx+=gph[0].length+1; }
+    for(let r=0;r<H;r++)for(let c=0;c<W;c++) if(!hole[r][c])
+      items.push({ch:'#', x:x0+(c+0.5)*cell, y:y-(r+0.5)*cell, s:cell*1.15, L:null, btn:d.kind}); // 1.15: glyphs must not bleed into the 1-cell hole strokes
+    btns.push({kind:d.kind, data:d.data, cx:x0+wids[di]/2, cy:y-H*cell/2, hw:wids[di]/2+0.4, hh:H*cell/2+0.35});
+    x0+=wids[di]+GAPB; });
+  return {y:y-H*cell-0.4, maxW};
+}
+/* ---- contact layout (v59): the whole stop on ONE facet — title + body, the social marks
+   side by side (each whole mark IS its hyperlink: no captions, one 'link' hit rect over the
+   grid; CONTACT_MARK_S shrinks them well below gallery-cover size so both share the view
+   with the text), and the MESSAGE / EMAIL stencil buttons beneath. Assembled facing the
+   scene (the stop is flip:true), so the marks hang over the face, not the void. */
+const CONTACT_MARK_S=0.55, CONTACT_MARK_GAP=2.5;
+function buildContactLayout(k){
+  const st=STOPS[k], items=[], btns=[];
+  let y=0, maxW=0;
+  const addLine=(t,s,gap)=>{ const adv=ASM_ADV*s, lw=(t.length-1)*adv;
+    if(lw+1>maxW) maxW=lw+1;
+    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y, s, L:null}); }
+    y-=s+gap; };
+  const title=asciiSafe(st.title), tS=Math.min(1.30, 20/Math.max(1,(title.length-1)*ASM_ADV));
+  addLine(title, tS, 0.55);
+  for(const l of wrapText(asciiSafe(st.body),46)) addLine(l,0.6,0.32);
+  y-=0.7;
+  const marks=st.contact.marks.map(mk=>({A:ASCII_COVERS[mk.img], href:mk.href}));
+  const rowW=marks.reduce((a,m)=>a+m.A.cols*m.A.cw*CONTACT_MARK_S,0)+CONTACT_MARK_GAP*(marks.length-1);
+  const rowH=Math.max(...marks.map(m=>m.A.rows*m.A.ch*CONTACT_MARK_S));
+  if(rowW+1>maxW) maxW=rowW+1;
+  let x0=-rowW/2; const rowTop=y;
+  for(const m of marks){
+    const A=m.A, cw=A.cw*CONTACT_MARK_S, ch=A.ch*CONTACT_MARK_S, mw=A.cols*cw, mh=A.rows*ch;
+    for(let r=0;r<A.rows;r++)for(let c=0;c<A.cols;c++){ const a=A.g[r][c];
+      if(a===' ') continue;
+      items.push({ch:a, x:x0+(c+0.5)*cw, y:rowTop-(r+0.5)*ch, s:ch*1.05, L:COVER_RAMP.indexOf(a)/9});
+    }
+    btns.push({kind:'link', data:m.href, cx:x0+mw/2, cy:rowTop-mh/2, hw:mw/2+0.3, hh:mh/2+0.3});
+    x0+=mw+CONTACT_MARK_GAP;
+  }
+  y=rowTop-rowH-1.1;
+  const bdefs=(st.contact.btns||[]).map(b=>({t:b.t,kind:b.kind,data:b.data}));
+  if(bdefs.length){ const r=layBtnRow(items,btns,bdefs,y,maxW); y=r.y; maxW=r.maxW; }
+  const top=tS/2+0.1, cy2=(top+y)/2;
+  for(const it of items) it.y-=cy2;
+  for(const b of btns) b.cy-=cy2;
+  return {items, w:maxW, h:top-y, btns};
 }
 /* ---- welcome layout: title + 1:1 contribution calendar + mini-me. Same
    {items,w,h} shape as the other layouts (so the facet machinery assembles it
@@ -2206,14 +2268,14 @@ function buildWelcomeLayout(){
   for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
     const m=+first.date.slice(5,7)-1;
     if(m!==lastM&&c<ncol-1){ lastM=m; const t=MONTHS[m], adv=ASM_ADV*WLBL_S;
-      for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6, s:WLBL_S, L:null}); } }
+      for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6+chBase(t[i])*WLBL_S, s:WLBL_S, L:null}); } }
   // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
   [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
-    for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH, s:WLBL_S, L:null}); });
+    for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH+chBase(t[i])*WLBL_S, s:WLBL_S, L:null}); });
   // title, centred over the calendar
   const title="Hi, I'm Thomas.", tS=1.35, tAdv=ASM_ADV*tS, tW=(title.length-1)*tAdv;
   const titleY=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+tS*0.5;
-  for(let i=0;i<title.length;i++){ const ch=title[i]; if(ch===' ') continue; items.push({ch, x:calCX-tW/2+i*tAdv, y:titleY, s:tS, L:null}); }
+  for(let i=0;i<title.length;i++){ const ch=title[i]; if(ch===' ') continue; items.push({ch, x:calCX-tW/2+i*tAdv, y:titleY+chBase(ch)*tS, s:tS, L:null}); }
   const bannerCY=calBot-WCAL_CH*0.5-1.5;
   // the figure (mini-me) to the LEFT of the whole right-hand stack, vertically centred on it.
   // Grid + pitch come from the selected WFIG entry; wave-region cells are flagged for updateWelcomeWave.
@@ -2298,7 +2360,7 @@ function startBannerWrite(now){
   const b=welcome.banner, F=welcome.F, lay=F.lay, msg=b.msgs[b.mi%b.msgs.length];
   const adv=ASM_ADV*lay.bannerS, w=(msg.length-1)*adv, letters=[];
   for(let i=0;i<msg.length;i++){ const ch=msg[i]; if(ch===' ') continue;
-    const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,(lay.bannerCX-w/2+i*adv)*F.f).addScaledVector(F.up,lay.bannerCY*F.f);
+    const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,(lay.bannerCX-w/2+i*adv)*F.f).addScaledVector(F.up,(lay.bannerCY+chBase(ch)*lay.bannerS)*F.f);
     letters.push({ch, to, rec:null}); }
   hideBannerGlyphs();
   letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=glyphGeo(L.ch); L.delay=i*WB_STAG; L.swapped=false;
@@ -2404,9 +2466,12 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   disassemble(true);
   poseAt(stopS[k],_aP,_aQ);
   _aF.set(0,0,-1).applyQuaternion(_aQ);
-  const yaw0=Math.atan2(_aF.y,_aF.x), pitch0=Math.asin(Math.max(-1,Math.min(1,_aF.z)));
   const st=STOPS[k];
-  const isWelcome=!!st.github;
+  // flip (v59, contact): the whole panorama hangs 180° off the travel direction, so the
+  // docked view reads against the scene the journey just crossed instead of the void ahead
+  const yaw0=wrapAng(Math.atan2(_aF.y,_aF.x)+(st.flip?Math.PI:0));
+  const pitch0=Math.asin(Math.max(-1,Math.min(1,_aF.z)));
+  const isWelcome=!!st.github, isContact=!!st.contact;
   // clearM: how far past the content the terrain is absorbed (the halo beyond the sight
   // cone). Welcome uses a tight halo so the scene stays visible right up to the block on
   // both sides — the wide title+calendar+mini-me otherwise eats too much of the flanks.
@@ -2418,7 +2483,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   // on BOTH flanks; combined with the tighter clearM the terrain comes right up to the
   // content (fine here — nothing sits in front of the POV at the welcome stop).
   const isWelcomeImg=isWelcome&&welcomeCal==='html'; // exact mode: the calendar day-cells develop into a crisp image
-  const defs=[{lay:isWelcome?buildWelcomeLayout():buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:isWelcomeImg?'ghcal':null, pdf:null, g:null}];
+  const defs=[{lay:isWelcome?buildWelcomeLayout():isContact?buildContactLayout(k):buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:isContact?0.80:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:isWelcomeImg?'ghcal':null, pdf:null, g:null}];
   if(st.gallery){ // facets ring the visitor at even 360/(n+1) spacing (intro holds the 0° slot)
     // spacing must exceed 2×F_GAZE_IN (~46°) so fire windows never overlap → max 6 gallery facets
     const step=360/(st.gallery.length+1);
@@ -3201,6 +3266,11 @@ function dock(k){
   syncInspectScene(); // the glyph inspector auto-follows the stop you land on
   showStop(k);
   if(stopInfoMode==='assemble') assembleStop(k);
+  // flipped stop (v59, contact): still touch down facing down-path — seamless like every
+  // landing — then the docked yaw smoothing pans the camera one half-turn around to the
+  // content, which assembleStop hung at yaw0+π, back over the scene. Only real arrivals
+  // pan (a dev re-assemble while docked calls assembleStop directly and just snaps).
+  if(stopInfoMode==='assemble'&&stopFacets&&STOPS[k].flip) freeYaw=-Math.PI;
 }
 function departTo(k){
   if(uiState!=='journey'||jMode!=='docked') return;
