@@ -507,6 +507,7 @@
           </select>
         </label>
         <div class="row"><span>Auto tour (scroll-only)</span><input type="checkbox" id="toggleAutoTour"></div>
+        <div class="row"><span>Cursor sway (docked)</span><input type="checkbox" id="toggleCursorSway"></div>
         <label>Rotation arrows
           <select id="arrowSelect">
             <option value="stream">Stream (triple chevron)</option>
@@ -2071,6 +2072,12 @@ const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge
    back to free roam, where the sweep re-arms: the whole site becomes one loop driven by
    a single wheel. Persisted like the fullscreen pref (localStorage pf_auto_tour). */
 let autoTour=false; try{ autoTour=localStorage.getItem('pf_auto_tour')==='1'; }catch(e){}
+/* ===== CURSOR SWAY (v62, dev panel > Journey > "Cursor sway (docked)", default OFF) =====
+   Whether the docked camera follows the bare (undragged) mouse: the subtle ±~3° gaze sway
+   in assemble mode and the classic ±30°/±17° mouse-look in panel mode. Off by default —
+   the passive drift reads as unwanted movement to some visitors; the checkbox brings the
+   old behaviour back. Persisted like the auto tour (localStorage pf_cursor_sway). */
+let cursorSway=false; try{ cursorSway=localStorage.getItem('pf_cursor_sway')==='1'; }catch(e){}
 const tour={p:0, pT:0, hint:false, k:-1, armed:false, step:0, holdUntil:0};
 const TOUR_WHEEL=0.00055; // wheel delta -> sweep progress (a ~18-notch scroll spans the arc)
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
@@ -2193,6 +2200,30 @@ const ROT_ARROWS={
     ':=++%%#####@',
     '..........#.',
     '.........#..'],
+};
+/* ROT_ARROWS_SM (v62): compact variants of the same three designs, used ONLY on the
+   case-studies covers. That stop runs ~12.9k of the 13,268-glyph pool, so the full pairs
+   on all six covers would overflow it (stream: 12,965 + 6×54 = 13,289 — validated in
+   Python against the real data; worst case with these compact pairs is 13,145, ~123
+   spare). Same ramp chars (all left-right symmetric, so mirroring stays a column
+   reverse), roughly half the cells. */
+const ROT_ARROWS_SM={
+  stream:[ // the three fading chevron strokes, miniature
+    ':..+..#..',
+    '.:..+..#.',
+    '..:..+..#',
+    '.:..+..#.',
+    ':..+..#..'],
+  wedge:[ // the shaded triangle, miniature
+    '+...',
+    '+%+.',
+    '+%%#',
+    '+%+.',
+    '+...'],
+  dart:[ // shaft and head, miniature
+    '.....#.',
+    ':=+%###',
+    '.....#.'],
 };
 const VNEXT_ART=[
   '+..#..',
@@ -2739,14 +2770,16 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       defs.push({lay:buildCoverLayout(g, st.id==='cases'), dy:dy*Math.PI/180,
         dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:1.25, photoKey, pdf:g.pdf||null, g, vids:g.vids||null}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40)
   }
-  /* rotation-hint arrows (v61): every facet of a multi-facet stop gets a flanking pair —
-     welcome and contact are single-facet (nothing to rotate to) so they skip by the same
-     rule. The case-studies COVERS skip too: that stop already uses ~12.8k of the 13,268
-     glyphs, so only its intro facet carries the hint (validated in Python, see §4 of the
-     facet manual). */
+  /* rotation-hint arrows (v61, covers-everywhere v62): every facet of a multi-facet stop
+     gets a flanking pair — welcome and contact are single-facet (nothing to rotate to) so
+     they skip by the same rule. The case-studies COVERS carry the COMPACT pair
+     (ROT_ARROWS_SM): that stop runs ~12.9k of the 13,268 glyphs, and six full pairs would
+     overflow the pool and silently short the last cover (validated in Python, see §4 of
+     the facet manual — worst case with the compact pairs is 13,145, ~123 spare). */
   if(defs.length>1&&ARROW_STYLE!=='off'){
     const art=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
-    for(const d of defs){ if(st.id==='cases'&&d.g) continue; addFlankArrows(d.lay,art); }
+    const artSm=ROT_ARROWS_SM[ARROW_STYLE]||ROT_ARROWS_SM.stream;
+    for(const d of defs) addFlankArrows(d.lay,(st.id==='cases'&&d.g)?artSm:art);
   }
   /* every facet hangs at EYE LEVEL (v37): anchor z = the camera's own z, pitch 0, so
      content sits where the scene is and the visitor never cranes up or down. The old
@@ -4387,8 +4420,8 @@ function frame(){
         // free 360° look: drag steers yaw/pitch (smoothed), bare mouse adds a subtle sway
         freeYaw+=(freeYawT-freeYaw)*Math.min(1,dt*6);
         freePitch+=(freePitchT-freePitch)*Math.min(1,dt*6);
-        const cy=stopFacets.yaw0+freeYaw-lookTX*0.05;
-        const cp=Math.max(-1.25,Math.min(1.25,stopFacets.pitch0+freePitch-lookTY*0.04));
+        const cy=stopFacets.yaw0+freeYaw-(cursorSway?lookTX*0.05:0);
+        const cp=Math.max(-1.25,Math.min(1.25,stopFacets.pitch0+freePitch-(cursorSway?lookTY*0.04:0)));
         const ccp=Math.cos(cp);
         _fwd.set(ccp*Math.cos(cy),ccp*Math.sin(cy),Math.sin(cp));
         _pd.position.copy(camera.position); _pd.up.set(0,0,1);
@@ -4396,8 +4429,8 @@ function frame(){
         camera.quaternion.slerpQuaternions(dockQuat,_pd.quaternion,dr);
         facetGaze(cy,cp,dt); // facets fire as they enter the gaze, release as it leaves
       } else {
-        lookX+=(-lookTX*LOOK_YAW-lookX)*Math.min(1,dt*3.4); // classic clamped mouse-look
-        lookY+=(-lookTY*LOOK_PITCH-lookY)*Math.min(1,dt*3.4);
+        lookX+=((cursorSway?-lookTX*LOOK_YAW:0)-lookX)*Math.min(1,dt*3.4); // classic clamped mouse-look (eases to centre when sway is off)
+        lookY+=((cursorSway?-lookTY*LOOK_PITCH:0)-lookY)*Math.min(1,dt*3.4);
         _jOff.setFromEuler(_jEuler.set(lookY,lookX,0,'YXZ'));
         _lq.copy(_jQuat).multiply(_jOff);
         camera.quaternion.slerpQuaternions(dockQuat,_lq,dr);
@@ -4515,6 +4548,13 @@ function applyAutoTour(on){
 }
 autoTourCheck.checked=autoTour;
 autoTourCheck.addEventListener('change',e=>applyAutoTour(e.target.checked));
+/* cursor sway: read live each frame by the docked-camera math; when turned off mid-dock
+   the panel-mode look eases back to centre by itself (the target lerps to 0) */
+const cursorSwayCheck=document.getElementById('toggleCursorSway');
+cursorSwayCheck.checked=cursorSway;
+cursorSwayCheck.addEventListener('change',e=>{
+  cursorSway=e.target.checked; try{ localStorage.setItem('pf_cursor_sway',cursorSway?'1':'0'); }catch(err){}
+  renderDirty=true; });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -4559,14 +4599,14 @@ const CTRL_DEF={
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
-  toggleAutoTour:['check',false], arrowSelect:['select','stream'],
+  toggleAutoTour:['check',false], toggleCursorSway:['check',false], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
   welNavDelay:['range',2.5], welNavStep:['range',0.9]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw'],
-  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','arrowSelect','travelAdjSelect','travelFarSelect'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welSize','welHalo','welNavDelay','welNavStep']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.welcome);
