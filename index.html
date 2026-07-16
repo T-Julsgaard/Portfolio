@@ -2205,7 +2205,7 @@ function buildContactLayout(k){
   let y=0, maxW=0;
   const addLine=(t,s,gap)=>{ const adv=ASM_ADV*s, lw=(t.length-1)*adv;
     if(lw+1>maxW) maxW=lw+1;
-    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y, s, L:null}); }
+    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y:y+chBase(ch)*s, s, L:null}); }
     y-=s+gap; };
   const title=asciiSafe(st.title), tS=Math.min(1.30, 20/Math.max(1,(title.length-1)*ASM_ADV));
   addLine(title, tS, 0.55);
