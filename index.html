@@ -508,6 +508,7 @@
             <option value="swoop5">Swoop V5 (high arch)</option>
           </select>
         </label>
+        <div class="row"><span>Auto tour (scroll-only)</span><input type="checkbox" id="toggleAutoTour"></div>
         <label>Travel — Far stops
           <select id="travelFarSelect">
             <option value="classic">Classic (eased rail)</option>
@@ -2012,6 +2013,18 @@ function reassembleWelcome(){ // live-rebuild the welcome facet if currently doc
 // Adjacent default moved off the rail (cruise → swoop4): the rail is terrain-following by
 // design, so riding it bobs over every ridge between stops — the swoop family flies over.
 let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect','swoop5');
+/* ===== AUTO TOUR (v57, dev panel > Journey > "Auto tour", default OFF) =====
+   A scroll-only guided mode. In free roam the tour owns the camera: scrolling sweeps a
+   scenic arc around (and close over) the portrait — forward to advance, back to rewind —
+   and at the end of the sweep the journey begins by itself at stop 01. At a docked stop
+   the look-around is automated: the gaze rotates facet to facet around the full panorama
+   (dwelling long enough for each to assemble and develop) while scroll — the only input —
+   still departs forward/backward as usual. Scrolling past the last stop (contact) exits
+   back to free roam, where the sweep re-arms: the whole site becomes one loop driven by
+   a single wheel. Persisted like the fullscreen pref (localStorage pf_auto_tour). */
+let autoTour=false; try{ autoTour=localStorage.getItem('pf_auto_tour')==='1'; }catch(e){}
+const tour={p:0, pT:0, hint:false, k:-1, armed:false, step:0, holdUntil:0};
+const TOUR_WHEEL=0.00055; // wheel delta -> sweep progress (a ~18-notch scroll spans the arc)
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
 const ASM_ADV=0.78;                                  // per-unit-scale character advance
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
@@ -3124,8 +3137,50 @@ const exitFromPos=new THREE.Vector3(), exitFromQuat=new THREE.Quaternion();
 const _jPos=new THREE.Vector3(), _jQuat=new THREE.Quaternion(), _jOff=new THREE.Quaternion(), _jEuler=new THREE.Euler(), _fwd=new THREE.Vector3();
 function easeInOut(t){ return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2; }
 
+/* ---- auto tour (v57). tourPose maps sweep progress 0..1 to a camera orbit around the
+   face: swing out to one flank, come back through the middle on a CLOSE low pass, swing
+   to the other flank, and settle exactly back on the overview framing (p=0 and p=1 are
+   both the frontPos2 pose, so arming/finishing never snaps). The gaze stays on the face
+   the whole way — the parallax of the relief is the show. */
+function tourPose(p,outPos){
+  const az=0.38*Math.PI*Math.sin(2*Math.PI*p);                       // right flank → centre → left flank → home
+  const el=-0.10*Math.PI*Math.sin(2*Math.PI*p)*Math.sin(Math.PI*p);  // gentle dip below, rise above, 0 at both ends
+  const R=INTRO_OVER_D*(1-0.5*Math.sin(Math.PI*p));                  // closest mid-sweep — the "through the scene" pass
+  const ce=Math.cos(el);
+  return outPos.set(faceCenter.x+R*Math.sin(az)*ce,
+                    faceCenter.y+R*Math.sin(el),
+                    faceCenter.z+R*Math.cos(az)*ce);
+}
+function tourUpdate(dt){ // overview branch, autoTour on: the tour owns the camera
+  controls.enabled=false;
+  if(!tour.hint){ setHint('Auto tour — scroll to travel'); showHint(); tour.hint=true; }
+  tour.p+=(tour.pT-tour.p)*Math.min(1,dt*2.0);
+  camera.position.copy(tourPose(tour.p,_jPos));
+  camera.up.set(0,1,0); camera.lookAt(faceCenter);
+  if(tour.pT>=1&&tour.p>0.985){ tourReset(); beginEnter(0); } // sweep complete → the journey begins itself
+}
+function tourReset(){ tour.p=tour.pT=0; tour.hint=false; tour.k=-1; }
+function tourDwell(yawOff){ // how long to hold on whatever hangs at this gaze offset
+  if(!stopFacets) return 4000;
+  for(const F of stopFacets.facets)
+    if(Math.abs(wrapAng((stopFacets.yaw0+yawOff)-F.yaw))<0.05) return F.photoKey?6200:5000; // covers need their develop beat
+  return 4000;
+}
+function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet around the panorama
+  if(!stopFacets||stopInfoMode!=='assemble') return;
+  const n=stopFacets.facets.length;
+  if(n<2) return; // single-facet stop (welcome): nothing to sweep
+  if(tour.k!==stopFacets.k){ tour.k=stopFacets.k; tour.step=2*Math.PI/n; tour.holdUntil=now+tourDwell(0)+800; }
+  if(now>=tour.holdUntil){
+    freeYawT-=tour.step; // one direction, evenly through every facet, looping forever
+    if(freeYawT<-2*Math.PI){ freeYawT+=2*Math.PI; freeYaw+=2*Math.PI; } // keep both wrapped (shift preserves the smoothing delta)
+    tour.holdUntil=now+900+tourDwell(wrapAng(freeYawT));
+  }
+}
+
 function beginEnter(toIdx){
   if(!FONT) return; // portrait not built yet — nothing to land on
+  tourReset(); // a manual Enter mid-sweep must not leave stale tour progress behind
   uiState='entering'; enterT0=performance.now(); enterToIdx=toIdx; journeyFrom=journeyT;
   enterFromPos.copy(camera.position); enterFromQuat.copy(camera.quaternion);
   poseAt(stopS[toIdx],_jPos,_jQuat);
@@ -3149,6 +3204,7 @@ function dock(k){
 }
 function departTo(k){
   if(uiState!=='journey'||jMode!=='docked') return;
+  if(autoTour&&k>=STOPS.length){ beginExit(); return; } // guided loop: past contact circles back to free roam
   if(k<0||k>=STOPS.length){ // soft rebuff at either end of the path
     bounceT=performance.now(); bounceDir=k<0?-1:1; depart=0;
     setHint(k<0?'This is the start of the journey':'End of the journey — press Free roam to orbit the whole portrait');
@@ -3355,6 +3411,7 @@ function buildFlight(s0,s1,toIdx,mode){
 function beginExit(){
   if(uiState==='overview'||uiState==='exiting') return;
   uiState='exiting'; exitT0=performance.now(); flight=null; jMode='docked'; journeyFrom=journeyT;
+  tourReset(); // the guided sweep re-arms at the overview framing (exact pose the exit lands on)
   exitFromPos.copy(camera.position); exitFromQuat.copy(camera.quaternion);
   hidePanel(); hideHint(); disassemble(false); syncButtons();
 }
@@ -3599,6 +3656,10 @@ function setInspect(on){
 addEventListener('wheel',e=>{
   if(moreOpen||ovlOpen()) return; // reading a card / stepping a game shouldn't charge a departure
   if(inspectActive()) return; // inspector: freeze the view so the x-ray can be studied
+  if(autoTour&&uiState==='overview'&&!introActive&&!introCamActive&&!progActive){
+    tour.pT=Math.max(0,Math.min(1.001,tour.pT+e.deltaY*TOUR_WHEEL)); // scroll drives the sweep, both directions
+    return;
+  }
   if(uiState!=='journey'||jMode!=='docked'||performance.now()<dockCool) return;
   depart=Math.max(-1.001,Math.min(1.001,depart+e.deltaY*0.0021));
   if(depart>=1) departTo(dockIdx+1);
@@ -3691,6 +3752,8 @@ function frame(){
       camera.position.copy(introCamPose(ek));
       camera.up.set(0,1,0); camera.lookAt(faceCenter);
       if(done){ introCamActive=false; controls.enabled=true; controls.target.copy(faceCenter); controls.update(); }
+    } else if(autoTour&&FONT){
+      tourUpdate(dt); // scroll-only guided sweep; ends in beginEnter(0)
     } else {
       controls.update();
     }
@@ -3848,6 +3911,7 @@ function frame(){
       // in — nothing cuts over at flight end
       const dr=easeInOut(Math.min(1,(now-dockT0)/1600));
       camera.position.lerpVectors(dockPos,_jPos,dr);
+      if(autoTour) tourLook(now); // guided mode: the gaze tours the facets by itself
       if(stopInfoMode==='assemble'&&stopFacets){
         // free 360° look: drag steers yaw/pitch (smoothed), bare mouse adds a subtle sway
         freeYaw+=(freeYawT-freeYaw)*Math.min(1,dt*6);
@@ -3966,6 +4030,20 @@ travelAdjSelect.value=travelAdjacent; travelFarSelect.value=travelFar;
 // next departure flies the new style; a flight in progress keeps its own
 travelAdjSelect.addEventListener('change',()=>{ travelAdjacent=travelAdjSelect.value; });
 travelFarSelect.addEventListener('change',()=>{ travelFar=travelFarSelect.value; });
+/* auto tour: persisted directly (like the fullscreen pref) so it survives reloads;
+   turning it off in free roam hands the camera straight back to OrbitControls */
+const autoTourCheck=document.getElementById('toggleAutoTour');
+function applyAutoTour(on){
+  autoTour=on; try{ localStorage.setItem('pf_auto_tour',on?'1':'0'); }catch(e){}
+  tourReset();
+  if(!on&&uiState==='overview'&&!introCamActive&&!progActive){
+    hideHint();
+    controls.enabled=true; controls.target.copy(faceCenter); controls.update();
+  }
+  renderDirty=true;
+}
+autoTourCheck.checked=autoTour;
+autoTourCheck.addEventListener('change',e=>applyAutoTour(e.target.checked));
 const welFigSelect=document.getElementById('welFigSelect');
 welFigSelect.value=welcomeFigure;
 welFigSelect.addEventListener('change',()=>{ // swap the welcome figure; live-rebuilds if docked there
@@ -4001,12 +4079,13 @@ const CTRL_DEF={
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
+  toggleAutoTour:['check',false],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.80], welHalo:['range',0.05]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw'],
-  journey:['jHeight','introSelect','stopInfoSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','travelAdjSelect','travelFarSelect'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welSize','welHalo']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.welcome);
