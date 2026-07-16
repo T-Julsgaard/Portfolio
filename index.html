@@ -119,8 +119,6 @@
     text-align:center; margin-top:9px; min-height:13px; }
   #cv-meta { font-size:10px; letter-spacing:0.06em; color:rgba(255,255,255,0.5); text-align:center; margin-top:3px; }
 
-  #video-card { padding:14px 14px 12px; width:min(760px, 82vw); }
-  #video-card video { display:block; width:100%; max-height:66vh; background:#000; outline:none; }
 
   #contact-card { width:min(400px, 88vw); max-height:82vh; overflow:auto; padding:20px 22px 18px; }
   #contact-card label { display:block; font-size:9px; letter-spacing:0.22em; text-transform:uppercase;
@@ -509,6 +507,14 @@
           </select>
         </label>
         <div class="row"><span>Auto tour (scroll-only)</span><input type="checkbox" id="toggleAutoTour"></div>
+        <label>Rotation arrows
+          <select id="arrowSelect">
+            <option value="stream">Stream (triple chevron)</option>
+            <option value="wedge">Wedge (shaded triangle)</option>
+            <option value="dart">Dart (shaft &amp; head)</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
         <label>Travel — Far stops
           <select id="travelFarSelect">
             <option value="classic">Classic (eased rail)</option>
@@ -552,8 +558,14 @@
             <option value="classic">Classic (original glyphs)</option>
           </select>
         </label>
-        <label>Panorama Size <span id="valWelSize">0.80</span>
-          <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.80">
+        <label>Panorama Size <span id="valWelSize">0.90</span>
+          <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.90">
+        </label>
+        <label>Section list delay <span id="valWelNavDelay">2.5s</span>
+          <input type="range" id="welNavDelay" min="0" max="8" step="0.5" value="2.5">
+        </label>
+        <label>Section list pace <span id="valWelNavStep">0.9s</span>
+          <input type="range" id="welNavStep" min="0.2" max="2.5" step="0.1" value="0.9">
         </label>
         <label>Clearing Halo <span id="valWelHalo">0.05</span>
           <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
@@ -1575,20 +1587,20 @@ const JOURNEY=[
     ]}},
   {xf:-0.50, yf: 0.06},
   {xf:-0.24, yf:-0.02},
-  /* Interests: chess (VIEW GAMES opens the in-page PGN board) and two piano recordings
-     (PLAY opens the video overlay; covers are ASCII-fied stills that develop into the
-     real frame). `btns` adds custom stencil buttons: {t:label, kind, data}. */
+  /* Interests: chess (VIEW GAMES opens the in-page PGN board) and ONE piano facet holding
+     both recordings (v61): PLAY develops the ASCII still into an in-scene video plane that
+     starts immediately; the stencil next-arrow beside the still re-assembles it into the
+     other recording. `vids` lists the recordings, `imgScale` renders the still (and thus
+     the video) bigger than a standard cover. */
   {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Beyond the work', body:'What I do when the methods are put away: chess, and the piano.\nDrag to look around — step through some of my games move by move, or listen to me play.', media:[],
     gallery:[
       {img:'chessboard', title:'Chess', sub:'Step through my games',
         blurb:'A long-running obsession with the 64 squares. VIEW GAMES opens a board you can step through move by move, game by game.',
         btns:[{t:'VIEW GAMES',kind:'chess'}]},
-      {img:'piano1', title:'Piano — I', sub:'An upright, opened up',
-        blurb:'Recorded at an upright with the front panel off — watching the hammers work is half the performance.',
-        btns:[{t:'PLAY',kind:'video',data:'videos/piano-1.mp4'}]},
-      {img:'piano2', title:'Piano — II', sub:'Second take',
-        blurb:'Another evening at the same open upright.',
-        btns:[{t:'PLAY',kind:'video',data:'videos/piano-2.mp4'}]}
+      {img:'piano1', title:'Piano', sub:'An upright, opened up', imgScale:1.6,
+        blurb:'Recorded at an upright with the front panel off — watching the hammers work is half the performance. PLAY brings the still to life; the arrow assembles the next recording.',
+        vids:[{src:'videos/piano-1.mp4', ascii:'piano1'},{src:'videos/piano-2.mp4', ascii:'piano2'}],
+        btns:[{t:'PLAY',kind:'vplay'}]}
     ]}},
   {xf: 0.32, yf:-0.14},
   {xf: 0.34, yf:-0.30},
@@ -2017,7 +2029,19 @@ let stopInfoMode=ud('stopInfoSelect','assemble'); // 'assemble' | 'panel'
 // welcome-stop framing (dev panel > Welcome Stop): WELCOME_SIZE scales the panorama
 // below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
 // halo (rad past the content) — see the assembleStop def note.
-let WELCOME_SIZE=ud('welSize',0.80), WELCOME_HALO=ud('welHalo',0.05);
+let WELCOME_SIZE=ud('welSize',0.90), WELCOME_HALO=ud('welHalo',0.05);
+/* welcome section list (v60): stencil-bitmap labels of the OTHER stops, hung left of the
+   figure. They assemble invisibly with the facet (so nothing sits still in the corridor),
+   then WRITE themselves in banner-style — glyphs stream from their terrain homes into the
+   letters — one section after another, WNAV_DELAY ms after the facet settles and WNAV_STEP
+   apart (dev panel > Welcome Stop). Each label is a click target (departTo its stop) and
+   swells slightly on hover. Factory WELCOME_SIZE moved 0.80→0.90 with the list's ~11u of
+   extra width, so the pre-existing content keeps (within ~9%) its old on-screen size. */
+let WNAV_DELAY=ud('welNavDelay',2.5)*1000, WNAV_STEP=ud('welNavStep',0.9)*1000;
+const WNAV_CELL=0.15, WNAV_MAXW=9.0;   // stencil cell size / max label width (long labels shrink to fit)
+const WNAV_GAP=2.0, WNAV_ROWGAP=0.55;  // column gap to the figure / vertical gap between labels
+const WNAV_FLY=520, WNAV_SWEEP=420;    // one glyph's write flight / L→R sweep across a label
+const WNAV_POP=1.13;                   // hover: the label swells to this factor about its centre
 // welcome contribution-calendar version (dev panel > Welcome Stop > GitHub calendar):
 //  'blocks' — in-scene glyph grid, uniform solid '#' per day + Less→More legend (GitHub-like, default)
 //  'classic' — the original in-scene grid (per-level ASCII char)
@@ -2032,6 +2056,11 @@ function reassembleWelcome(){ // live-rebuild the welcome facet if currently doc
 // Adjacent default moved off the rail (cruise → swoop4): the rail is terrain-following by
 // design, so riding it bobs over every ridge between stops — the swoop family flies over.
 let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect','swoop5');
+/* rotation-hint arrows (v61, dev panel > Journey > Rotation arrows): a mirrored pair of
+   shaded ASCII arrows flanks every facet on multi-facet stops — the "there's more around
+   you" affordance — and clicking one turns the view a whole facet step. Three designs. */
+let ARROW_STYLE=ud('arrowSelect','stream');
+const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge and arrow
 /* ===== AUTO TOUR (v57, dev panel > Journey > "Auto tour", default OFF) =====
    A scroll-only guided mode. In free roam the tour owns the camera: scrolling sweeps a
    scenic arc around (and close over) the portrait — forward to advance, back to rewind —
@@ -2045,7 +2074,7 @@ let autoTour=false; try{ autoTour=localStorage.getItem('pf_auto_tour')==='1'; }c
 const tour={p:0, pT:0, hint:false, k:-1, armed:false, step:0, holdUntil:0};
 const TOUR_WHEEL=0.00055; // wheel delta -> sweep progress (a ~18-notch scroll spans the arc)
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
-const ASM_ADV=0.78;                                  // per-unit-scale character advance
+const ASM_ADV=0.68;                                  // per-unit-scale character advance (v61: 0.78→0.68, tighter body text)
 const F_IN_MS=1500, F_FLY_MS=850;                    // facet build time / one glyph's flight
 const F_OUT_MS=900, F_OUT_FLY_MS=620;                // scatter home
 const F_FADE_MS=260;                                 // nominal fade for the cleared background patch (v39: was 420 — read as lingering)
@@ -2063,22 +2092,134 @@ const COVER_RAMP=' .:-=+*#%@';                       // luminance ramp used by t
    smaller cell), assembled from terrain glyphs like all text. */
 const BTN_FONT={
   A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
+  B:['####.','#...#','#...#','####.','#...#','#...#','####.'],
+  C:['.###.','#...#','#....','#....','#....','#...#','.###.'],
   D:['####.','#...#','#...#','#...#','#...#','#...#','####.'],
   E:['#####','#....','#....','####.','#....','#....','#####'],
+  F:['#####','#....','#....','####.','#....','#....','#....'],
   G:['.###.','#...#','#....','#.###','#...#','#...#','.###.'],
+  H:['#...#','#...#','#...#','#####','#...#','#...#','#...#'],
   I:['###','.#.','.#.','.#.','.#.','.#.','###'],
+  J:['..###','...#.','...#.','...#.','...#.','#..#.','.##..'],
+  K:['#...#','#..#.','#.#..','##...','#.#..','#..#.','#...#'],
   L:['#....','#....','#....','#....','#....','#....','#####'],
   M:['#...#','##.##','#.#.#','#...#','#...#','#...#','#...#'],
   N:['#...#','##..#','#.#.#','#..##','#...#','#...#','#...#'],
   O:['.###.','#...#','#...#','#...#','#...#','#...#','.###.'],
   P:['####.','#...#','#...#','####.','#....','#....','#....'],
+  Q:['.###.','#...#','#...#','#...#','#.#.#','#..#.','.##.#'],
   R:['####.','#...#','#...#','####.','#.#..','#..#.','#...#'],
   S:['.####','#....','#....','.###.','....#','....#','####.'],
+  T:['#####','..#..','..#..','..#..','..#..','..#..','..#..'],
+  U:['#...#','#...#','#...#','#...#','#...#','#...#','.###.'],
   V:['#...#','#...#','#...#','#...#','#...#','.#.#.','..#..'],
   W:['#...#','#...#','#...#','#.#.#','#.#.#','##.##','#...#'],
+  X:['#...#','#...#','.#.#.','..#..','.#.#.','#...#','#...#'],
   Y:['#...#','#...#','.#.#.','..#..','..#..','..#..','..#..'],
+  Z:['#####','....#','...#.','..#..','.#...','#....','#####'],
+  '0':['.###.','#...#','#..##','#.#.#','##..#','#...#','.###.'],
+  '1':['.#.','##.','.#.','.#.','.#.','.#.','###'],
+  '2':['.###.','#...#','....#','..##.','.#...','#....','#####'],
+  '3':['.###.','#...#','....#','..##.','....#','#...#','.###.'],
+  '4':['...#.','..##.','.#.#.','#..#.','#####','...#.','...#.'],
+  '5':['#####','#....','####.','....#','....#','#...#','.###.'],
+  '6':['.###.','#....','#....','####.','#...#','#...#','.###.'],
+  '7':['#####','....#','...#.','..#..','..#..','.#...','.#...'],
+  '8':['.###.','#...#','#...#','.###.','#...#','#...#','.###.'],
+  '9':['.###.','#...#','#...#','.####','....#','....#','.###.'],
+  '.':['..','..','..','..','..','##','##'],
+  ',':['..','..','..','..','##','.#','#.'],
+  "'":['#','#','.','.','.','.','.'],
+  '-':['....','....','....','####','....','....','....'],
+  '&':['.##..','#..#.','#..#.','.##..','#.#.#','#..#.','.##.#'],
+  '?':['.###.','#...#','....#','..##.','..#..','.....','..#..'],
+  '!':['#','#','#','#','#','.','#'],
+  ':':['..','##','##','..','##','##','..'],
+  '(':['..#','.#.','#..','#..','#..','.#.','..#'],
+  ')':['#..','.#.','..#','..#','..#','.#.','#..'],
+  '/':['....#','....#','...#.','..#..','.#...','#....','#....'],
   ' ':['...','...','...','...','...','...','...'],
 };
+/* stencil-text helpers (v61): titles/banner rendered as POSITIVE stencil letters — the
+   section-list look — instead of helvetiker glyph text. Each letter is a bitmap of '#'
+   cells (BTN_FONT) on a `cell` grid; unknown characters fall back to space. */
+function stGlyph(ch){ return BTN_FONT[ch]||BTN_FONT[' ']; }
+function stCols(t){ let w=0; for(const ch of t) w+=stGlyph(ch)[0].length+1; return Math.max(1,w-1); }
+function stFill(t){ let n=0; for(const ch of t){ const g=stGlyph(ch); for(const r of g) for(const c of r) if(c==='#') n++; } return n; }
+/* lay one stencil line into items: x0 = LEFT edge, yTop = top of the 7-row band.
+   extra(props) is merged into every cell item (btn/nav/wd metadata). Returns width. */
+function layStencilLine(items,t,cell,x0,yTop,extra){
+  let cx0=0; const cols=stCols(t);
+  for(const ch of t){ const g=stGlyph(ch);
+    for(let r=0;r<7;r++)for(let c=0;c<g[r].length;c++) if(g[r][c]==='#'){
+      const it={ch:'#', x:x0+(cx0+c+0.5)*cell, y:yTop-(r+0.5)*cell, s:cell*1.15, L:null};
+      if(extra){ if(extra.btn!==undefined) it.btn=extra.btn; if(extra.nav!==undefined) it.nav=extra.nav;
+                 if(extra.wd) it.wd=((cx0+c)/cols)*extra.wd; }
+      items.push(it);
+    }
+    cx0+=g[0].length+1; }
+  return cols*cell;
+}
+/* ===== ASCII arrow art (v61) ==================================================
+   Shaded with ramp characters exactly like the gh/li marks (char → luminance gray via
+   setImgColor). All art points RIGHT; mirror=true flips it per row (every char used is
+   left-right symmetric, so mirroring is a pure column reverse). '.' = empty.
+   ROT_ARROWS are the three selectable rotation-hint designs flanking each facet on
+   multi-facet stops; VNEXT_ART is the compact next-video chevron. */
+const ROT_ARROWS={
+  stream:[ // three chevron strokes fading behind the head — reads as motion
+    ':..+..#.....',
+    '.:..+..#....',
+    '..:..+..#...',
+    '...:..+..#..',
+    '....:..+..#.',
+    '...:..+..#..',
+    '..:..+..#...',
+    '.:..+..#....',
+    ':..+..#.....'],
+  wedge:[ // solid shaded triangle, brightest at the tip
+    '+.....',
+    '++....',
+    '+%+...',
+    '+%%+..',
+    '+%%%#.',
+    '+%%+..',
+    '+%+...',
+    '++....',
+    '+.....'],
+  dart:[ // long shaft brightening into the head
+    '.........#..',
+    '..........#.',
+    ':=++%%#####@',
+    '..........#.',
+    '.........#..'],
+};
+const VNEXT_ART=[
+  '+..#..',
+  '.+..#.',
+  '..+..#',
+  '.+..#.',
+  '+..#..'];
+function layArrowArt(items,art,cell,x0,yTop,mirror,extra){ // -> {w,h}; x0 = LEFT edge, yTop = top edge
+  const rows=art.length, cols=art[0].length;
+  for(let r=0;r<rows;r++){ const line=art[r];
+    for(let c=0;c<cols;c++){ const ch=line[mirror?cols-1-c:c];
+      if(ch==='.'||ch===' ') continue;
+      const it={ch, x:x0+(c+0.5)*cell, y:yTop-(r+0.5)*cell, s:cell*1.05, L:COVER_RAMP.indexOf(ch)/9};
+      if(extra&&extra.btn!==undefined) it.btn=extra.btn;
+      items.push(it);
+    } }
+  return {w:cols*cell, h:rows*cell};
+}
+function addFlankArrows(lay,art){ // a mirrored arrow pair flanking a finished (recentred) layout
+  const cell=ROT_CELL, w=art[0].length*cell, h=art.length*cell, halfW=lay.w/2;
+  layArrowArt(lay.items,art,cell,-halfW-ROT_GAP-w,h/2,true ,{btn:'rotl'}); // mirrored → points left
+  layArrowArt(lay.items,art,cell, halfW+ROT_GAP  ,h/2,false,{btn:'rotr'});
+  lay.btns=lay.btns||[];
+  lay.btns.push({kind:'rotl', data:+1, cx:-halfW-ROT_GAP-w/2, cy:0, hw:w/2+0.5, hh:h/2+0.8}); // +yaw = turn left
+  lay.btns.push({kind:'rotr', data:-1, cx: halfW+ROT_GAP+w/2, cy:0, hw:w/2+0.5, hh:h/2+0.8});
+  lay.w+=2*(ROT_GAP+w); // widen the block so the clearing ellipse / sight cone cover the arrows
+}
 const BTN_CELL=0.19;                                 // stencil cell size (layout units; v41: 0.26→0.19, slightly smaller buttons)
 const BTN_DIM=new THREE.Color('#a8a8a8'), BTN_HOT=new THREE.Color('#ffffff'); // idle pulse range; hover pins to HOT
 const BTN_POP_DELAY=1500, BTN_POP_MS=450;            // the download button's attention "pop" after the facet settles
@@ -2102,19 +2243,20 @@ function wrapText(s,cols){
 }
 function buildStopLayout(k){ // -> {items:[{ch,x,y,s}], w, h}: text-plane coords, block centered on (0,0)
   const st=STOPS[k];
-  const rows=[{t:'STOP '+String(k+1).padStart(2,'0')+' / '+String(STOPS.length).padStart(2,'0'), s:0.6, gap:1.0}];
-  for(const l of wrapText(asciiSafe(st.title),20)) rows.push({t:l, s:1.9, gap:0.35});
-  rows[rows.length-1].gap=0.9; // breathe before the body
-  for(const l of wrapText(asciiSafe(st.body),46)) rows.push({t:l, s:0.95, gap:0.42});
   const items=[]; let y=0, maxW=0;
-  for(const r of rows){
-    const adv=ASM_ADV*r.s, w=(r.t.length-1)*adv;
-    if(w+r.s*0.6>maxW) maxW=w+r.s*0.6;
-    for(let i=0;i<r.t.length;i++){ const ch=r.t[i]; if(ch!==' ') items.push({ch, x:-w/2+i*adv, y:y+chBase(ch)*r.s, s:r.s}); }
-    y-=r.s+r.gap;
+  const addLine=(t,s,gap)=>{ const adv=ASM_ADV*s, w=(t.length-1)*adv;
+    if(w+s*0.6>maxW) maxW=w+s*0.6;
+    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-w/2+i*adv, y:y+chBase(ch)*s, s}); }
+    y-=s+gap; };
+  addLine('STOP '+String(k+1).padStart(2,'0')+' / '+String(STOPS.length).padStart(2,'0'), 0.6, 1.0);
+  { // the title in the stencil face (v61) — one line, cell shrinks to fit
+    const t=asciiSafe(st.title).toUpperCase(), cell=Math.min(0.27, 21/stCols(t)), tw=stCols(t)*cell;
+    if(tw+0.6>maxW) maxW=tw+0.6;
+    layStencilLine(items,t,cell,-tw/2,y);
+    y-=7*cell+0.9; // breathe before the body
   }
-  const last=rows[rows.length-1];
-  const top=rows[0].s/2, bot=y+last.gap+last.s/2; // undo the final advance to find the block's true bottom edge
+  for(const l of wrapText(asciiSafe(st.body),46)) addLine(l, 0.95, 0.42);
+  const top=0.3, bot=y+0.42+0.95/2; // undo the final advance to find the block's true bottom edge
   const h=top-bot, cy=(top+bot)/2;
   for(const it of items) it.y-=cy;
   return {items, w:maxW, h};
@@ -2128,32 +2270,47 @@ function setImgColor(c,L){ // L=null -> text (a notch brighter than the terrain)
   else { const g=inverted?(0.72-0.58*L):(0.30+0.70*L); c.setRGB(g,g,g); }
   return c;
 }
-function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid, blurb, stencil buttons
+function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top, cover grid, blurb, stencil buttons
   // v57: `img` is optional (imageless entries — education, the contact form facet — lay
   // out as pure text blocks: bigger title, no grid, no develop); `btns:[{t,kind,data}]`
   // adds custom stencil buttons next to DOWNLOAD/READ MORE; `href` makes the whole mark
   // a hyperlink (one big 'link' hit rect over grid + caption, `cap` pulsing beneath it).
   const A=g.img?ASCII_COVERS[g.ascii||g.img]:null; // `ascii` shows a variant (the bus's ascii-art) as the assembled form
-  const items=[], iw=A?A.cols*A.cw:0, ih=A?A.rows*A.ch:0;
+  const isc=g.imgScale||1, Acw=A?A.cw*isc:0, Ach=A?A.ch*isc:0; // imgScale (v61): the piano video cover renders bigger
+  const items=[], iw=A?A.cols*Acw:0, ih=A?A.rows*Ach:0;
   let y=0, maxW=iw;
   const addLine=(t,s,gap,btn)=>{ const adv=ASM_ADV*s, lw=(t.length-1)*adv;
     if(lw+1>maxW) maxW=lw+1;
     for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y:y+chBase(ch)*s, s, L:null, btn:btn||undefined}); }
     y-=s+gap; };
   const title=asciiSafe(g.title); // ONE line, always: long titles shrink instead of wrapping
-  const tCap=A?0.95:1.30, tFitW=A?23:20; // text-only facets carry the header alone — let it read bigger
-  addLine(title, Math.min(tCap, tFitW/Math.max(1,(title.length-1)*ASM_ADV)), 0.35);
+  const tFitW=A?23:20; let topY=0.6; // topY: the block's true top edge (recentre below)
+  if(plainTitle){ // long paper titles (case studies): stencil cells would be unreadably tiny AND
+    // ~16 glyphs/char would blow the 13,268 pool at that stop — keep the classic one-liner
+    addLine(title, Math.min(A?0.95:1.30, tFitW/Math.max(1,(title.length-1)*ASM_ADV)), 0.35);
+  } else { // v61: the title in the stencil face (the section-list look)
+    const t=title.toUpperCase(), cell=Math.min(A?0.16:0.20, tFitW/stCols(t)), tw=stCols(t)*cell;
+    if(tw+1>maxW) maxW=tw+1;
+    layStencilLine(items,t,cell,-tw/2,y);
+    y-=7*cell+0.45; topY=0.05;
+  }
   if(g.sub) addLine(asciiSafe(g.sub),0.55,0.35);
   y-=0.5; const imgTop=y; // the cover grid hangs below the header block
   if(A){
     for(let r=0;r<A.rows;r++)for(let c=0;c<A.cols;c++){
       const a=A.g[r][c];
       if(a===' ') continue;
-      items.push({ch:a, x:(c+0.5)*A.cw-iw/2, y:imgTop-(r+0.5)*A.ch, s:A.ch*1.05, L:COVER_RAMP.indexOf(a)/9, dev:g.href?undefined:true}); // dev: dissolves into the developing photo (hyperlink marks never develop)
+      items.push({ch:a, x:(c+0.5)*Acw-iw/2, y:imgTop-(r+0.5)*Ach, s:Ach*1.05, L:COVER_RAMP.indexOf(a)/9, gr:r*A.cols+c, dev:g.href?undefined:true}); // dev: dissolves into the developing photo (hyperlink marks never develop); gr: grid index (video cover swap)
     }
   }
   const imgCY0=imgTop-ih/2; y=imgTop-ih-(A?0.9:0.1);
   const btns=[];
+  if(g.vids&&g.vids.length>1){ // v61: the next-recording chevron, hung right of the still
+    const cell=0.30, ax0=iw/2+0.8;
+    const a=layArrowArt(items,VNEXT_ART,cell,ax0,imgCY0+2.5*cell,false,{btn:'vnext'});
+    btns.push({kind:'vnext', cx:ax0+a.w/2, cy:imgCY0, hw:a.w/2+0.45, hh:a.h/2+0.55});
+    if((ax0+a.w)*2>maxW) maxW=(ax0+a.w)*2;
+  }
   if(g.href){ // the mark IS the link: caption pulses, the whole grid+caption is the hit rect
     if(g.cap) addLine(asciiSafe(g.cap),0.5,0.35,'link');
     btns.push({kind:'link', data:g.href, cx:0, cy:(imgTop+y)/2, hw:Math.max(iw/2,((g.cap||'').length*ASM_ADV*0.5)/2)+0.4, hh:(imgTop-y)/2+0.2});
@@ -2168,7 +2325,7 @@ function buildCoverLayout(g){ // v40: one-line title/subtitle on top, cover grid
     y-=0.55;
     const r=layBtnRow(items,btns,bdefs,y,maxW); y=r.y; maxW=r.maxW;
   }
-  const top=0.6, bot=y, cy2=(top+bot)/2;
+  const top=topY, bot=y, cy2=(top+bot)/2;
   for(const it of items) it.y-=cy2;
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-bot, imgW:iw, imgH:ih, imgCY:imgCY0-cy2, btns}; // img* = where the photo plane develops
@@ -2207,8 +2364,10 @@ function buildContactLayout(k){
     if(lw+1>maxW) maxW=lw+1;
     for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+i*adv, y:y+chBase(ch)*s, s, L:null}); }
     y-=s+gap; };
-  const title=asciiSafe(st.title), tS=Math.min(1.30, 20/Math.max(1,(title.length-1)*ASM_ADV));
-  addLine(title, tS, 0.55);
+  { const t=asciiSafe(st.title).toUpperCase(), cell=Math.min(0.20, 20/stCols(t)), tw=stCols(t)*cell; // stencil title (v61)
+    if(tw+1>maxW) maxW=tw+1;
+    layStencilLine(items,t,cell,-tw/2,y);
+    y-=7*cell+0.55; }
   for(const l of wrapText(asciiSafe(st.body),46)) addLine(l,0.6,0.32);
   y-=0.7;
   const marks=st.contact.marks.map(mk=>({A:ASCII_COVERS[mk.img], href:mk.href}));
@@ -2228,7 +2387,7 @@ function buildContactLayout(k){
   y=rowTop-rowH-1.1;
   const bdefs=(st.contact.btns||[]).map(b=>({t:b.t,kind:b.kind,data:b.data}));
   if(bdefs.length){ const r=layBtnRow(items,btns,bdefs,y,maxW); y=r.y; maxW=r.maxW; }
-  const top=tS/2+0.1, cy2=(top+y)/2;
+  const top=0.05, cy2=(top+y)/2;
   for(const it of items) it.y-=cy2;
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-y, btns};
@@ -2239,7 +2398,7 @@ function buildContactLayout(k){
    banner itself is NOT layout items — reserved glyphs animate it (updateWelcome). */
 const WCAL_CW=0.40, WCAL_CH=0.44, WCAL_S=0.34;      // calendar column/row pitch, glyph scale (leaves a GitHub-style gap)
 const WLBL_S=0.30;                                  // month / weekday label scale
-const WBANNER_S=0.6;                                // commit-banner glyph scale (mini-me pitch now lives per-figure in WFIG)
+const WBANNER_S=0.6;                                // commit-banner half-extent for the layout bounds (the stream sizes its own stencil cells)
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function buildWelcomeLayout(){
   const items=[], calCells=[];
@@ -2272,22 +2431,44 @@ function buildWelcomeLayout(){
   // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
   [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
     for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH+chBase(t[i])*WLBL_S, s:WLBL_S, L:null}); });
-  // title, centred over the calendar
-  const title="Hi, I'm Thomas.", tS=1.35, tAdv=ASM_ADV*tS, tW=(title.length-1)*tAdv;
-  const titleY=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+tS*0.5;
-  for(let i=0;i<title.length;i++){ const ch=title[i]; if(ch===' ') continue; items.push({ch, x:calCX-tW/2+i*tAdv, y:titleY+chBase(ch)*tS, s:tS, L:null}); }
-  const bannerCY=calBot-WCAL_CH*0.5-1.5;
+  // title, centred over the calendar — stencil face (v61)
+  const title="HI, I'M THOMAS.", tCell=0.20, tW=stCols(title)*tCell;
+  const titleTop=calTop+WCAL_CH*0.5+WLBL_S*1.6+1.4+7*tCell;
+  layStencilLine(items,title,tCell,calCX-tW/2,titleTop);
+  const bannerCY=calBot-WCAL_CH*0.5-1.9; // a touch more air under the calendar for the taller stencil banner
   // the figure (mini-me) to the LEFT of the whole right-hand stack, vertically centred on it.
   // Grid + pitch come from the selected WFIG entry; wave-region cells are flagged for updateWelcomeWave.
   const fig=WFIG[welcomeFigure]||WFIG.scene, G=fig.grid, cwP=fig.cw, chP=fig.ch, sP=fig.s, wv=fig.wave;
   const miW=(G.cols-1)*cwP, miH=(G.rows-1)*chP;
-  const miTop=(titleY+tS*0.5+bannerCY)/2+miH/2, miX0=-3.4-miW;
+  const miTop=(titleTop+bannerCY)/2+miH/2, miX0=-3.4-miW;
   let wavePivot=null, waveBase=0;
   if(wv){ wavePivot={x:miX0+wv.pc*cwP, y:miTop-wv.pr*chP}; waveBase=wv.base; }
   for(let r=0;r<G.rows;r++){ const row=G.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
     const it={ch, x:miX0+c*cwP, y:miTop-r*chP, s:sP, L:COVER_RAMP.indexOf(ch)/9};
     if(wv&&c>=wv.c0&&c<=wv.c1&&r>=wv.r0&&r<=wv.r1) it.wave=true;
     items.push(it); } }
+  /* the section list (v60): the other stops as stencil-bitmap labels (letters MADE of
+     '#' glyphs, like the marks — the positive of the punched-out buttons), left-aligned
+     in a column left of the figure, vertically centred on it. Each item carries nav:k
+     (write-wave index; 0 = the plain-text header) and wd (its L→R sweep delay within the
+     label); each label registers a padded 'nav' hit rect (data = its STOPS index) that
+     departTo flies on click. updateWelcomeNav stages the writes after the facet settles. */
+  const btns=[];
+  {
+    const navStops=[]; STOPS.forEach((s,i)=>{ if(!s.github) navStops.push({t:s.label.toUpperCase(),i}); });
+    const navX0=miX0-WNAV_GAP-WNAV_MAXW;
+    const listH=navStops.length*(7*WNAV_CELL+WNAV_ROWGAP)-WNAV_ROWGAP;
+    // v61: no SECTIONS header (the stencil labels ARE the affordance) — the list rides a
+    // touch above centre on the figure
+    let ny=(miTop-miH/2)+listH/2+0.5;
+    navStops.forEach((ns,k)=>{
+      const cols=stCols(ns.t);
+      const cell=Math.min(WNAV_CELL, WNAV_MAXW/cols), lw=cols*cell, kind='nav'+k;
+      layStencilLine(items,ns.t,cell,navX0,ny,{btn:kind, nav:k, wd:WNAV_SWEEP});
+      btns.push({kind, nav:k, data:ns.i, cx:navX0+lw/2, cy:ny-7*cell/2, hw:lw/2+0.45, hh:7*cell/2+0.30});
+      ny-=7*cell+WNAV_ROWGAP;
+    });
+  }
   // recentre the whole block on (0,0), banner line included in the vertical extent
   let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
   for(const it of items){ const h=it.s*0.5; minX=Math.min(minX,it.x-h); maxX=Math.max(maxX,it.x+h); minY=Math.min(minY,it.y-h); maxY=Math.max(maxY,it.y+h); }
@@ -2295,9 +2476,10 @@ function buildWelcomeLayout(){
   const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
   for(const it of items){ it.x-=cx; it.y-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
+  for(const b of btns){ b.cx-=cx; b.cy-=cy; }
   if(wavePivot){ wavePivot.x-=cx; wavePivot.y-=cy; }
   const ret={items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
-          bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns:[],
+          bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns,
           wavePivot, waveBase};
   if(isHtmlCal){ // the develop image covers exactly the grid glyph cells (full-cell extent, recentred)
     ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=calCX-cx; ret.imgCY=(calTop+calBot)/2-cy;
@@ -2307,7 +2489,7 @@ function buildWelcomeLayout(){
 /* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
    scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
-const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null};
+const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, navT0:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
 /* ── exact GitHub calendar as an in-scene image (welcomeCal==='html') ──────────────────
    Rendered to a canvas → CanvasTexture (no DOM overlay), so the develop machinery can fade
@@ -2344,12 +2526,19 @@ function reserveWelcomeBanner(F){
   const c=new THREE.Vector3().copy(F.anchor).addScaledVector(F.up,F.lay.bannerCY*F.f).addScaledVector(F.right,F.lay.bannerCX*F.f);
   const N=textMeshes.length, order=[]; for(let i=0;i<N;i++) order.push(i);
   order.sort((a,b)=>textMeshes[a].position.distanceToSquared(c)-textMeshes[b].position.distanceToSquared(c));
-  const want=Math.min(30,N), reserved=new Set(), pool=[];
+  // v61 stencil banner: a message is ~16 glyphs per character now, so the reserve is sized
+  // from the actual messages (worst case + a hair) instead of the old fixed 30
+  const want=Math.min(Math.max(...welcomeMessages().map(stFill))+8, N), reserved=new Set(), pool=[];
   for(let k=0;k<want;k++){ const i=order[k]; reserved.add(i); const m=textMeshes[i];
     pool.push({m, home:m.position.clone(), geo0:m.geometry}); }
   return {reserved, pool};
 }
-const WB_FLY=560, WB_STAG=46, WB_HOLD=2200, WB_GAP=520;
+/* v61 stream banner: the message is written in the stencil face and flows — column c of the
+   stencil assembles at c·WB_COL ms, stays WB_LINGER, then streams home, so the HEAD of a long
+   message is already dissolving while its TAIL is still arriving: a continuous character
+   stream rather than the old write→hold→clear block. */
+const WB_FLY=560, WB_COL=22, WB_LINGER=3400, WB_GAP=700; // LINGER > the longest message's sweep, so every stat is briefly readable whole
+const WBAN_CELL=0.15; // nominal stencil cell (matches the section list; long messages shrink to the calendar width)
 function welcomeMessages(){
   if(!statsReady()||!GH_STATS.commits) return ['LOADING COMMITS'];
   const c=GH_STATS.commits;
@@ -2358,21 +2547,24 @@ function welcomeMessages(){
 function hideBannerGlyphs(){ for(const rec of welcome.pool){ rec.m.visible=false; rec.m.material.opacity=0; rec.m.position.copy(rec.home); } }
 function startBannerWrite(now){
   const b=welcome.banner, F=welcome.F, lay=F.lay, msg=b.msgs[b.mi%b.msgs.length];
-  const adv=ASM_ADV*lay.bannerS, w=(msg.length-1)*adv, letters=[];
-  for(let i=0;i<msg.length;i++){ const ch=msg[i]; if(ch===' ') continue;
-    const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,(lay.bannerCX-w/2+i*adv)*F.f).addScaledVector(F.up,(lay.bannerCY+chBase(ch)*lay.bannerS)*F.f);
-    letters.push({ch, to, rec:null}); }
+  const cols=stCols(msg), cell=Math.min(WBAN_CELL,(lay.bannerHalfW*2)/cols), w=cols*cell;
+  const x0=lay.bannerCX-w/2, yTop=lay.bannerCY+3.5*cell, letters=[], geoT=glyphGeo('#');
+  let cx0=0;
+  for(const ch of msg){ const g=stGlyph(ch);
+    for(let r=0;r<7;r++)for(let c=0;c<g[r].length;c++) if(g[r][c]==='#'){
+      const to=new THREE.Vector3().copy(F.anchor)
+        .addScaledVector(F.right,(x0+(cx0+c+0.5)*cell)*F.f)
+        .addScaledVector(F.up,(yTop-(r+0.5)*cell)*F.f);
+      letters.push({to, col:cx0+c});
+    }
+    cx0+=g[0].length+1; }
   hideBannerGlyphs();
-  letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=glyphGeo(L.ch); L.delay=i*WB_STAG; L.swapped=false;
+  if(letters.length>b.pool.length) letters.length=b.pool.length; // never in practice — the reserve is sized from the messages
+  letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=geoT; L.swapped=false; L.held=false; L.out=false; L.done=false;
     L.from=rec.home.clone();
-    L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.5).addScaledVector(F.right,2.2+Math.random()*1.6).addScaledVector(F.up,0.5+Math.random()*0.8); });
-  b.letters=letters; b.phase='write'; b.t0=now;
-}
-function startBannerClear(now){
-  const b=welcome.banner, F=welcome.F;
-  b.letters.forEach(L=>{ L.swapped=false;
-    L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.rec.home,0.5).addScaledVector(F.right,-(1.6+Math.random()*1.6)).addScaledVector(F.up,0.4+Math.random()*0.7); });
-  b.phase='clear'; b.t0=now;
+    L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.5).addScaledVector(F.right,2.2+Math.random()*1.6).addScaledVector(F.up,0.5+Math.random()*0.8);
+    L.cctrl=new THREE.Vector3().lerpVectors(L.to,rec.home,0.5).addScaledVector(F.right,-(1.6+Math.random()*1.6)).addScaledVector(F.up,0.4+Math.random()*0.7); });
+  b.letters=letters; b.s=cell*1.15; b.phase='stream'; b.t0=now;
 }
 function animateBanner(L,p,writing){
   const b=welcome.banner, F=welcome.F, rec=L.rec, m=rec.m, sc=b.s*F.f;
@@ -2391,15 +2583,24 @@ function animateBanner(L,p,writing){
 function updateWelcomeBanner(now){
   const b=welcome.banner;
   if(b.phase==='wait'){ if(now-b.t0>=WB_GAP) startBannerWrite(now); return; }
-  if(b.phase==='write'){ let done=true;
-    for(const L of b.letters){ const lt=now-b.t0-L.delay; if(lt<=0){ done=false; continue; } let p=lt/WB_FLY; if(p<1) done=false; else p=1; animateBanner(L,p,true); }
-    if(done){ b.phase='hold'; b.t0=now; } }
-  else if(b.phase==='hold'){ if(now-b.t0>=WB_HOLD) startBannerClear(now); }
-  else if(b.phase==='clear'){ let done=true;
-    for(let i=0;i<b.letters.length;i++){ const L=b.letters[i], lt=now-b.t0-i*WB_STAG; if(lt<=0){ done=false; continue; } let p=lt/WB_FLY; if(p<1) done=false; else p=1; animateBanner(L,p,false); }
-    if(done){ b.mi=(b.mi+1)%b.msgs.length; b.phase='wait'; b.t0=now; } }
+  // 'stream': every stencil cell is self-clocked off its column — assemble, linger, stream home
+  let done=true;
+  for(const L of b.letters){
+    if(L.done) continue;
+    const lt=now-b.t0-L.col*WB_COL;
+    if(lt<=0){ done=false; continue; }
+    if(lt<WB_FLY){ done=false; animateBanner(L,lt/WB_FLY,true); continue; }
+    if(!L.held){ L.held=true; animateBanner(L,1,true); } // settle byte-exact once
+    const ot=lt-WB_FLY-WB_LINGER;
+    if(ot<=0){ done=false; continue; }
+    if(!L.out){ L.out=true; L.swapped=false; } // the same cell now streams home
+    const p=ot/WB_FLY;
+    if(p<1){ done=false; animateBanner(L,p,false); }
+    else { animateBanner(L,1,false); L.done=true; }
+  }
+  if(done){ b.mi=(b.mi+1)%b.msgs.length; b.phase='wait'; b.t0=now; }
 }
-function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', t0:now-WB_GAP+700, letters:[], s:welcome.F.lay.bannerS}; hideBannerGlyphs(); }
+function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', t0:now-WB_GAP+700, letters:[], s:WBAN_CELL*1.15}; hideBannerGlyphs(); }
 function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor()); m.userData.asm=false; } }
 /* the greeting wave: once the figure has settled (facet 'hold'), his flagged hand glyphs
    rotate as a rigid cluster about the shoulder pivot — a raise (ease up), a ~1 s wiggle,
@@ -2436,15 +2637,57 @@ function updateWelcomeWave(now){
     it.m.position.copy(F.anchor).addScaledVector(F.right,(piv.x+dx*ca-dy*sa)*f).addScaledVector(F.up,(piv.y+dx*sa+dy*ca)*f);
   }
 }
+/* the section list writes (v60): once the facet settles ('hold'), the nav labels — whose
+   glyphs landed INVISIBLE at their letters during the assembly — write themselves in one
+   wave at a time: wave k (v61: 0 = the first label, the header is gone) launches WNAV_DELAY + k·WNAV_STEP ms
+   after holdT0, each glyph flying banner-style from its terrain home into its letter,
+   swept L→R across the label (it.wd). Self-clocked per glyph, so it survives held frames;
+   a fresh facetIn (look-away/back, re-dock) is detected by F.t0 changing, which resets
+   every shown/write flag — the whole sequence replays on the new schedule. Delay/pace are
+   the dev sliders (WNAV_DELAY/WNAV_STEP), read live, so pending waves follow a tweak. */
+function updateWelcomeNav(now){
+  const F=welcome.F;
+  if(welcome.navT0!==F.t0){ welcome.navT0=F.t0;
+    for(const b of F.btns){ if(b.nav===undefined) continue; b.shown=false; b.sc=1;
+      for(const it of b.items){ it.shown=false; it.wOn=false; it.wSw=false; } } }
+  if(F.state!=='hold') return; // writes only stage once the assembly has settled
+  for(const b of F.btns){
+    if(b.nav===undefined) continue;
+    const t0=F.holdT0+WNAV_DELAY+b.nav*WNAV_STEP;
+    if(now<t0) continue;
+    b.shown=true;
+    for(const it of b.items){
+      if(it.shown) continue;
+      const lt=now-t0-(it.wd||0); if(lt<=0) continue;
+      const m=it.m;
+      if(!it.wOn){ it.wOn=true; it.wSw=false; // launch: back to its terrain-home form, then fly in
+        it.wCtrl=new THREE.Vector3().lerpVectors(it.home,it.to,0.5)
+          .addScaledVector(F.right,(Math.random()-0.5)*3).addScaledVector(F.up,0.8+Math.random()*1.2);
+        m.geometry=it.geo0; m.material.color.set(asmRestColor()); m.userData.asm=false; m.userData.asmL=null; }
+      let p=lt/WNAV_FLY; if(p>1) p=1;
+      if(!it.wSw&&p>=0.5){ m.geometry=it.geoA; setImgColor(m.material.color,it.L); m.userData.asm=true; m.userData.asmL=it.L; it.wSw=true; }
+      if(p===1){ m.geometry=it.geoA; m.position.copy(it.to); m.scale.setScalar(it.s1);
+        m.material.opacity=1; m.visible=true; setImgColor(m.material.color,it.L);
+        m.userData.asm=true; m.userData.asmL=it.L; it.shown=true; continue; }
+      const e=easeInOut(p), ie=1-e;
+      m.visible=true;
+      m.position.set(ie*ie*it.home.x+2*ie*e*it.wCtrl.x+e*e*it.to.x,
+                     ie*ie*it.home.y+2*ie*e*it.wCtrl.y+e*e*it.to.y,
+                     ie*ie*it.home.z+2*ie*e*it.wCtrl.z+e*e*it.to.z);
+      m.scale.setScalar(1+(it.s1-1)*e);
+      m.material.opacity=Math.min(1,p*2);
+    }
+  }
+}
 function updateWelcome(now,dt){
   if(!welcome.active||!welcome.F) return;
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
-  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); }
+  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now); }
   else if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; hideCalTip(); }
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
+  welcome.waveItems=null; welcome.waveT0=null; welcome.navT0=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
   const n=cc.count, d=new Date(cc.date+'T00:00:00');
   calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -2488,11 +2731,22 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     // spacing must exceed 2×F_GAZE_IN (~46°) so fire windows never overlap → max 6 gallery facets
     const step=360/(st.gallery.length+1);
     st.gallery.forEach((g,i)=>{
-      const photoKey=(g.img&&COVER_PHOTOS[g.img])?g.img:null; // hyperlink marks / text-only entries never develop
+      // hyperlink marks / text-only entries never develop; video facets (v61) hold their
+      // ASCII still until PLAY develops it into the in-scene video plane
+      const photoKey=(!g.vids&&g.img&&COVER_PHOTOS[g.img])?g.img:null;
       if(photoKey) getPhotoTex(photoKey); // warm the texture decode before the first develop
       const dy=((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step; // alternate sides: -1,+1,-2,+2,…
-      defs.push({lay:buildCoverLayout(g), dy:dy*Math.PI/180,
-        dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:1.25, photoKey, pdf:g.pdf||null, g}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40)
+      defs.push({lay:buildCoverLayout(g, st.id==='cases'), dy:dy*Math.PI/180,
+        dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:1.25, photoKey, pdf:g.pdf||null, g, vids:g.vids||null}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40)
+  }
+  /* rotation-hint arrows (v61): every facet of a multi-facet stop gets a flanking pair —
+     welcome and contact are single-facet (nothing to rotate to) so they skip by the same
+     rule. The case-studies COVERS skip too: that stop already uses ~12.8k of the 13,268
+     glyphs, so only its intro facet carries the hint (validated in Python, see §4 of the
+     facet manual). */
+  if(defs.length>1&&ARROW_STYLE!=='off'){
+    const art=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
+    for(const d of defs){ if(st.id==='cases'&&d.g) continue; addFlankArrows(d.lay,art); }
   }
   /* every facet hangs at EYE LEVEL (v37): anchor z = the camera's own z, pitch 0, so
      content sits where the scene is and the visitor never cranes up or down. The old
@@ -2514,6 +2768,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  coneY:Math.atan((d.lay.w*f/2)/dist)+0.06, // the sight cone: the content block's exact angular
                  coneP:Math.atan((d.lay.h*f/2)/dist)+0.06, // footprint (+ a hair), used with a depth test in pass 3
                  photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pStart:0,
+                 vids:d.vids||null, vIdx:0, vPlane:null, vEl:null, vSrc:null, vOn:false, vT0:0, vEnded:false, vSwap:null,
                  pdf:d.pdf, g:d.g, holdT0:0,
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
                  state:'home', items:[], extras:[], fades:[], t0:0});
@@ -2522,7 +2777,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      facet partition, so pass 2/3 leave them alone (the banner animates them itself) */
   let reserved=null;
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null;
+  welcome.waveItems=null; welcome.waveT0=null; welcome.navT0=null;
   if(isWelcome){ const F0=facets[0]; const rb=reserveWelcomeBanner(F0);
     reserved=rb.reserved; welcome.pool=rb.pool; welcome.active=true; welcome.F=F0;
     welcome.calCells=F0.lay.calCells; welcome.calHW=F0.lay.calHW; welcome.calHH=F0.lay.calHH; }
@@ -2547,7 +2802,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         to:new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f),
         s1:li.s*F.f, geoA:glyphGeo(li.ch), L:li.L!==undefined?li.L:null, dev:li.dev||undefined,
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
-        wave:li.wave, lx:li.x, ly:li.y};
+        wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, gr:li.gr};
       F.items.push(rec);
       if(li.btn){ const b=F.btns.find(bb=>bb.kind===li.btn); if(b) b.items.push(rec); } // button glyphs: pulsed/hover-lit each frame while assembled
     }
@@ -2647,6 +2902,7 @@ function facetIn(F,now){
 function facetOut(F,now,noHand){ // noHand: departure — everything goes home, no facet-to-facet handoffs
   if(F.state!=='in'&&F.state!=='hold') return;
   if(F.g) hideMore(); // a cover leaving the gaze takes its read-more card with it
+  if(F.vids) stopFacetVideo(F); // a playing video pauses + folds when its facet leaves the gaze
   F.state='out'; F.t0=now; F.pT0=0; F.pOn=false; F.pDone=false;
   const n=F.items.length, stag=F_OUT_MS-F_OUT_FLY_MS;
   for(const it of F.items){ const m=it.m;
@@ -2688,10 +2944,15 @@ function restoreFacet(F){ // exact snap home: geometry, position, palette, flags
     const h=fd.m.userData.hold; if(h&&h.state!=='home') continue; // some facet is flying/holding it
     fd.m.material.opacity=1; fd.m.visible=true; }
   if(F.tiles) for(const t of F.tiles){ t.material.opacity=0; t.visible=false; }
+  if(F.vids){ stopFacetVideo(F,true); F.vSwap=null; for(const it of F.items) it.vsOn=false; }
   F.state='home'; F.pT0=0; F.pOn=false; F.pDone=false;
   for(const b of F.btns) b.hover=false;
 }
-function disposeFacetTiles(F){ // tiles are real scene meshes — free them when the facet is discarded
+function disposeFacetTiles(F){ // tiles + video plane are real scene meshes — free them when the facet is discarded
+  if(F.vPlane){ stopFacetVideo(F,true);
+    scene.remove(F.vPlane); F.vPlane.geometry.dispose();
+    if(F.vPlane.material.map) F.vPlane.material.map.dispose();
+    F.vPlane.material.dispose(); F.vPlane=null; F.vEl=null; F.vSrc=null; }
   if(!F.tiles) return;
   for(const t of F.tiles){ scene.remove(t); t.geometry.dispose(); t.material.dispose(); }
   F.tiles=null;
@@ -2722,7 +2983,7 @@ function facetGaze(cy,cp,dt){ // fire/release facets by YAW ONLY — each facet 
     else if(d>F_GAZE_OUT&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
   }
 }
-const _hRay=new THREE.Vector3(), _hP=new THREE.Vector3();
+const _hRay=new THREE.Vector3(), _hP=new THREE.Vector3(), _nC=new THREE.Vector3();
 function facetButtonHit(clientX,clientY){ // pointer ray vs. facet plane, tested against each button's layout rect
   if(!stopFacets||uiState!=='journey'||jMode!=='docked') return null;
   _hRay.set((clientX/innerWidth)*2-1,-(clientY/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
@@ -2733,13 +2994,22 @@ function facetButtonHit(clientX,clientY){ // pointer ray vs. facet plane, tested
     if(t<=0) continue;
     _hP.copy(camera.position).addScaledVector(_hRay,t).sub(F.anchor);
     const u=_hP.dot(F.right)/F.f, v=_hP.dot(F.up)/F.f; // back to layout units
-    for(const b of F.btns)
+    for(const b of F.btns){
+      if(b.noHit||(b.nav!==undefined&&!b.shown)) continue; // nav header / a label not yet written in
       if(Math.abs(u-b.cx)<=b.hw&&Math.abs(v-b.cy)<=b.hh) return {F,b};
+    }
   }
   return null;
 }
 function downloadPDF(href){ // open the report in its own tab — the site keeps running in this one
   window.open(href,'_blank','noopener');
+}
+function rotateDock(dir){ // rotation-hint arrows: turn the docked view one facet step (+1 = left)
+  if(!stopFacets) return;
+  const n=stopFacets.facets.length; if(n<2) return;
+  freeYawT+=dir*2*Math.PI/n;
+  while(freeYawT> 2*Math.PI){ freeYawT-=2*Math.PI; freeYaw-=2*Math.PI; } // keep both wrapped
+  while(freeYawT<-2*Math.PI){ freeYawT+=2*Math.PI; freeYaw+=2*Math.PI; } // (shift preserves the smoothing delta)
 }
 /* READ MORE: an HTML side card with the project's context / methods / outcomes
    (glyphs would blow the budget at ~450 chars per project). Closes on ×, Esc,
@@ -2767,10 +3037,11 @@ function showMore(g){
 }
 function hideMore(){ if(!moreOpen) return; moreCard.classList.remove('open'); moreOpen=false; }
 
-/* ===== v57 overlay cards: chess viewer / piano video / contact form ======================
-   Opened by assembled stencil buttons (facetButtonHit kinds 'chess' | 'video' | 'form'),
-   closed by ×, Esc, or leaving the stop (disassemble). They deliberately DON'T close on
-   look-away like the read-more card — mid-game or mid-video that would be hostile. */
+/* ===== v57 overlay cards: chess viewer / contact form (v61: the piano video card is
+   gone — recordings play in-scene on the facet's video plane). Opened by assembled
+   stencil buttons (facetButtonHit kinds 'chess' | 'form'), closed by ×, Esc, or leaving
+   the stop (disassemble). They deliberately DON'T close on look-away like the read-more
+   card — mid-game that would be hostile. */
 
 /* ---- chess: a PGN replayer with a real legality engine (SAN needs legal-move
    disambiguation — pins and checks decide which knight "Nd2" means). Board index:
@@ -2942,30 +3213,8 @@ function showChess(){ if(cv.gi<0) cvLoad(0); chessCard.classList.add('open'); ch
 function hideChess(){ if(!chessOpen) return; chessCard.classList.remove('open'); chessOpen=false; }
 chessCard.querySelector('.ovl-close').addEventListener('click',hideChess);
 
-/* ---- piano video overlay. Opening pauses the music bar through its own play button
-   (so its state machine stays truthful); closing resumes it only if we paused it. */
-const videoCard=document.createElement('div'); videoCard.id='video-card'; videoCard.className='ovl-card';
-videoCard.innerHTML='<button class="ovl-close" title="Close">×</button><div class="ovl-title" id="vc-title">Video</div>'+
-  '<video controls playsinline preload="metadata"></video>';
-document.body.appendChild(videoCard);
-const vcEl=videoCard.querySelector('video'), vcTitle=videoCard.querySelector('#vc-title');
-let videoOpen=false, vcPausedMusic=false;
-function showVideo(src,title){
-  vcTitle.textContent=title||'Video';
-  if(vcEl.getAttribute('src')!==src){ vcEl.setAttribute('src',src); vcEl.load(); }
-  videoCard.classList.add('open'); videoOpen=true;
-  const mb=document.getElementById('music'), mp=document.getElementById('m-play');
-  vcPausedMusic=false;
-  if(mb&&mp&&mb.classList.contains('playing')){ mp.click(); vcPausedMusic=true; }
-  vcEl.play().catch(()=>{});
-}
-function hideVideo(){ if(!videoOpen) return;
-  vcEl.pause(); videoCard.classList.remove('open'); videoOpen=false;
-  if(vcPausedMusic){ const mp=document.getElementById('m-play'); if(mp) mp.click(); }
-  vcPausedMusic=false;
-}
-videoCard.querySelector('.ovl-close').addEventListener('click',hideVideo);
-videoCard.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+/* (v61: the piano video overlay is gone — the recordings play INSIDE the scene on the
+   facet's own video plane; see the in-scene video block near buildPhotoTiles.) */
 
 /* ---- contact form (Formspree — same endpoint as the old site's form). Submits via
    fetch so the page never navigates; failures point at plain email instead. */
@@ -2998,8 +3247,8 @@ function hideContact(){ if(!contactOpen) return; contactCard.classList.remove('o
 contactCard.querySelector('.ovl-close').addEventListener('click',hideContact);
 contactCard.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
 
-function ovlOpen(){ return chessOpen||videoOpen||contactOpen; }
-function hideOverlays(){ hideChess(); hideVideo(); hideContact(); }
+function ovlOpen(){ return chessOpen||contactOpen; }
+function hideOverlays(){ hideChess(); hideContact(); }
 
 function updateFacet(F,now,dt){
   if(F.state==='home') return;
@@ -3058,8 +3307,12 @@ function updateFacet(F,now,dt){
       if(p===1){ // settle exactly (covers skipped frames)
         if(dirIn){
           m.geometry=it.geoA; m.position.copy(it.to); m.scale.setScalar(it.s1);
-          m.material.opacity=1; setImgColor(m.material.color,it.L);
+          setImgColor(m.material.color,it.L);
           m.userData.asm=true; m.userData.asmL=it.L;
+          // nav labels (welcome section list) land INVISIBLE, like extras — they only
+          // appear later when updateWelcomeNav writes them in banner-style
+          if(it.nav!==undefined){ m.material.opacity=0; m.visible=false; }
+          else m.material.opacity=1;
         } else {
           m.geometry=it.geo0; m.position.copy(it.home); m.scale.setScalar(1);
           m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor());
@@ -3074,8 +3327,11 @@ function updateFacet(F,now,dt){
         ie*ie*it.from.z+2*ie*e*it.ctrl.z+e*e*to.z);
       m.scale.setScalar(Math.max(0.05,it.s0+((dirIn?it.s1:1)-it.s0)*(dirIn?easeOutBack(p):e)));
       if(dirIn){
-        m.material.opacity=Math.min(1,Math.max(m.material.opacity,p*2));
-        if(it.swapped&&!inverted) m.material.color.copy(INTRO_FLASH).lerp(setImgColor(_cc,it.L),(p-0.5)*2);
+        if(it.nav!==undefined) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
+        else{
+          m.material.opacity=Math.min(1,Math.max(m.material.opacity,p*2));
+          if(it.swapped&&!inverted) m.material.color.copy(INTRO_FLASH).lerp(setImgColor(_cc,it.L),(p-0.5)*2);
+        }
       } else m.material.opacity=Math.min(1,Math.max(m.material.opacity,p/0.3));
     }
     if(!busy&&!(dirOut&&exBusy)){ if(dirOut){ restoreFacet(F); return; } F.state='hold'; F.holdT0=now; }
@@ -3086,16 +3342,37 @@ function updateFacet(F,now,dt){
   // that it's clickable. Scale writes only happen in 'hold' (the flights own it before).
   if(F.btns.length&&(F.state==='in'||F.state==='hold')){
     for(const b of F.btns){
-      const w=b.hover?1:0.45+0.4*(0.5+0.5*Math.sin(now*0.0045));
+      const isNav=b.nav!==undefined;
+      // arrow art (rotation hints / next-video chevron) is luminance-SHADED like the marks —
+      // the stencil-button gray→white pulse would flatten it, so it gets its own treatment:
+      // base shade with a gentle glow, hover lifts it well toward white
+      const isArt=b.kind==='rotl'||b.kind==='rotr'||b.kind==='vnext';
+      // nav labels sit at a steady near-white (5 labels throbbing in sync would be noisy);
+      // hover pins full bright — plus the swell below — as the click affordance
+      const w=b.hover?1:(isNav?0.78:0.45+0.4*(0.5+0.5*Math.sin(now*0.0045)));
       let pf=1;
       if(b.kind==='pdf'&&F.state==='hold'){
         const pt=(now-F.holdT0-BTN_POP_DELAY)/BTN_POP_MS;
         if(pt>0&&pt<1) pf=1+0.3*Math.sin(Math.PI*pt); // solid block: a subtler pop reads as a bold flash
       }
+      if(isNav) b.sc=(b.sc||1)+(((b.hover&&F.state==='hold')?WNAV_POP:1)-(b.sc||1))*Math.min(1,dt*10); // hover swell, smoothed
+      const swell=isNav&&Math.abs(b.sc-1)>0.002;
+      if(swell) _nC.copy(F.anchor).addScaledVector(F.right,b.cx*F.f).addScaledVector(F.up,b.cy*F.f); // label centre, world
       for(const it of b.items){
+        if(isNav&&!it.shown) continue; // not written in yet (or mid-write — the write owns it)
         if(!(it.swapped||it.done)) continue;
-        if(!inverted) it.m.material.color.copy(BTN_DIM).lerp(BTN_HOT,w);
-        if(F.state==='hold') it.m.scale.setScalar(it.s1*pf);
+        if(it.vsOn) continue; // mid next-video morph — the swap flight owns the glyph
+        if(!inverted){
+          if(isArt) it.m.material.color.copy(setImgColor(_cc,it.L)).lerp(BTN_HOT, b.hover?0.6:0.18+0.14*(0.5+0.5*Math.sin(now*0.0045)));
+          else it.m.material.color.copy(BTN_DIM).lerp(BTN_HOT,w);
+        }
+        if(F.state==='hold'){
+          if(isNav){ // the swell scales the whole label about its centre; settled = byte-exact home state
+            it.m.scale.setScalar(it.s1*b.sc);
+            if(swell) it.m.position.copy(it.to).sub(_nC).multiplyScalar(b.sc).add(_nC);
+            else it.m.position.copy(it.to);
+          } else it.m.scale.setScalar(it.s1*pf);
+        }
       }
     }
   }
@@ -3146,6 +3423,7 @@ function updateFacet(F,now,dt){
       }
     }
   }
+  updateFacetVideo(F,now,dt); // in-scene video (v61): develop/fold the plane, animate the next-still swap
 }
 const _photoTex={};
 function getPhotoTex(key){ // data-URI thumbnails decode once, GL texture shared by all that cover's tiles
@@ -3176,6 +3454,126 @@ function buildPhotoTiles(F){ // a grid of textured tiles over the image area, ea
     m.setRotationFromMatrix(rot);
     m.visible=false; m.userData.d=Math.random()*PHOTO_STAGGER;
     scene.add(m); F.tiles.push(m);
+  }
+}
+/* ===== in-scene video (v61) ==================================================
+   A facet with `vids` plays its recordings INSIDE the scene: PLAY develops the ASCII
+   still into a real video plane — world-anchored like the photo tiles (stationary),
+   0.35 behind the glyph plane, exactly the (imgScale-enlarged) grid area — and starts
+   it immediately, pausing the music bar. PLAY again pauses/resumes; looking away folds
+   the plane and pauses; the stencil next-arrow (facetNextVideo) folds the video and
+   re-assembles the still into the NEXT recording's characters. No overlay, no new tab. */
+const _vidEls={};
+function getVideoEl(src){
+  let v=_vidEls[src];
+  if(!v){ v=document.createElement('video'); v.src=src; v.playsInline=true; v.preload='metadata'; _vidEls[src]=v; }
+  return v;
+}
+let vidPausedMusic=false; // pause the music bar through its own button (its state machine stays truthful)
+function musicHold(){ const mb=document.getElementById('music'), mp=document.getElementById('m-play');
+  if(!vidPausedMusic&&mb&&mp&&mb.classList.contains('playing')){ mp.click(); vidPausedMusic=true; } }
+function musicRelease(){ if(vidPausedMusic){ const mp=document.getElementById('m-play'); if(mp) mp.click(); } vidPausedMusic=false; }
+function bindVideoTex(F){ // (re)point the plane at the current recording
+  const src=F.vids[F.vIdx].src, vEl=getVideoEl(src);
+  const tex=new THREE.VideoTexture(vEl); tex.colorSpace=THREE.SRGBColorSpace;
+  if(F.vPlane.material.map) F.vPlane.material.map.dispose();
+  F.vPlane.material.map=tex; F.vPlane.material.needsUpdate=true;
+  F.vEl=vEl; F.vSrc=src;
+}
+function buildVideoPlane(F){
+  const lay=F.lay;
+  const g=new THREE.PlaneGeometry(lay.imgW*F.f, lay.imgH*F.f);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+  m.renderOrder=-1; // like the photo tiles: glyphs blend OVER the video
+  m.position.copy(F.anchor).addScaledVector(F.right,(lay.imgCX||0)*F.f).addScaledVector(F.up,lay.imgCY*F.f).addScaledVector(F.dir,0.35);
+  m.setRotationFromMatrix(new THREE.Matrix4().makeBasis(F.right,F.up,new THREE.Vector3().copy(F.dir).negate()));
+  m.visible=false;
+  scene.add(m); F.vPlane=m;
+  bindVideoTex(F);
+}
+function facetPlayVideo(F){ // PLAY: starts the current recording (or toggles pause)
+  if(!F.vids) return;
+  if(F.vOn&&F.vEl&&!F.vEl.paused){ F.vEl.pause(); musicRelease(); return; }
+  if(location.protocol==='file:'){ window.open(F.vids[F.vIdx].src,'_blank','noopener'); return; } // file:// would taint WebGL — open the raw file instead
+  if(!F.vPlane) buildVideoPlane(F);
+  else if(F.vSrc!==F.vids[F.vIdx].src) bindVideoTex(F);
+  if(F.vEl.ended) F.vEl.currentTime=0;
+  F.vOn=true; F.vEnded=false; F.vT0=performance.now();
+  for(const it of F.items) if(it.dev) it.pD=Math.random()*PHOTO_STAGGER*0.5; // the still dissolves under the developing video
+  musicHold();
+  F.vEl.play().catch(()=>{});
+}
+function stopFacetVideo(F,instant){ // pause + fold the plane (the update loop animates the fold unless instant)
+  if(!F.vids) return;
+  if(F.vEl) F.vEl.pause();
+  F.vOn=false;
+  if(instant&&F.vPlane){ F.vPlane.material.opacity=0; F.vPlane.visible=false; }
+  musicRelease();
+}
+const VSW_COL=20, VSW_FLY=620; // next-video swap: per-column L→R sweep / one cell's morph flight
+function facetNextVideo(F){
+  if(!F.vids||F.vids.length<2) return;
+  stopFacetVideo(F); // fold the plane; the update loop fades it out
+  F.vIdx=(F.vIdx+1)%F.vids.length;
+  const A=ASCII_COVERS[F.vids[F.vIdx].ascii], now=performance.now();
+  F.vSwap={t0:now};
+  for(const it of F.items){
+    if(!it.dev||it.gr===undefined) continue; // only the still's grid cells morph
+    const c=it.gr%A.cols, ch=A.g[(it.gr/A.cols)|0][c];
+    it.geoA=glyphGeo(ch); it.L=COVER_RAMP.indexOf(ch)/9; // permanent: a later re-assembly builds the new still
+    it.vsOn=true; it.vsSw=false; it.vsD=c*VSW_COL+Math.random()*40;
+    if(!it.m.visible||it.m.material.opacity<0.5){ // developed away → the cell WRITES itself in from its terrain home
+      it.vsMode='write';
+      it.vsCtrl=new THREE.Vector3().lerpVectors(it.home,it.to,0.5)
+        .addScaledVector(F.right,(Math.random()-0.5)*3).addScaledVector(F.up,0.8+Math.random()*1.2);
+    } else { // visible ASCII → a little out-and-back arc, morphing to the new character at the apex
+      it.vsMode='boil';
+      it.vsCtrl=new THREE.Vector3().copy(it.to)
+        .addScaledVector(F.up,1.0+Math.random()*1.4).addScaledVector(F.right,(Math.random()-0.5)*2.2);
+    }
+  }
+}
+function updateFacetVideo(F,now,dt){ // per-frame: develop-in, fold-out, end-of-video, the next-swap flights
+  if(!F.vids) return;
+  const holding=(F.state==='hold');
+  if(F.vOn&&F.vEl&&F.vEl.ended&&!F.vEnded){ F.vEnded=true; musicRelease(); } // rest on the last frame
+  if(F.vPlane){
+    if(holding&&F.vOn){
+      renderDirty=true; // a playing video animates every frame — never hold the last render
+      const p=Math.min(1,(now-F.vT0)/380);
+      F.vPlane.visible=true; F.vPlane.material.opacity=Math.max(F.vPlane.material.opacity,p);
+      if(!F.vSwap) for(const it of F.items){ // the still's cells dissolve under the video
+        if(!it.dev||!it.done) continue;
+        const q=Math.min(1,Math.max(0,(now-F.vT0-it.pD)/PHOTO_TILE_MS));
+        it.m.material.opacity=Math.min(it.m.material.opacity,1-q); it.m.visible=q<1;
+      }
+    } else if(F.vPlane.visible){ // paused-and-released / folding after next/look-away
+      renderDirty=true;
+      F.vPlane.material.opacity-=dt*4;
+      if(F.vPlane.material.opacity<=0){ F.vPlane.material.opacity=0; F.vPlane.visible=false; }
+    }
+  }
+  if(F.vSwap){
+    if(!holding){ F.vSwap=null; for(const it of F.items) it.vsOn=false; return; } // look-away mid-swap: the normal flights own everything again
+    let busy=false;
+    for(const it of F.items){
+      if(!it.vsOn) continue;
+      const lt=now-F.vSwap.t0-it.vsD;
+      if(lt<=0){ busy=true; continue; }
+      let p=lt/VSW_FLY; if(p>=1) p=1; else busy=true;
+      const m=it.m, wr=it.vsMode==='write';
+      if(!it.vsSw&&p>=0.5){ m.geometry=it.geoA; setImgColor(m.material.color,it.L); m.userData.asm=true; m.userData.asmL=it.L; it.vsSw=true; }
+      if(p===1){ m.geometry=it.geoA; m.position.copy(it.to); m.scale.setScalar(it.s1);
+        m.material.opacity=1; m.visible=true; setImgColor(m.material.color,it.L);
+        m.userData.asm=true; m.userData.asmL=it.L; it.vsOn=false; continue; }
+      const e=easeInOut(p), ie=1-e, fr=wr?it.home:it.to;
+      m.visible=true;
+      m.position.set(ie*ie*fr.x+2*ie*e*it.vsCtrl.x+e*e*it.to.x,
+                     ie*ie*fr.y+2*ie*e*it.vsCtrl.y+e*e*it.to.y,
+                     ie*ie*fr.z+2*ie*e*it.vsCtrl.z+e*e*it.to.z);
+      if(wr){ m.scale.setScalar(1+(it.s1-1)*e); m.material.opacity=Math.min(1,p*2); }
+    }
+    if(!busy) F.vSwap=null;
   }
 }
 function updateAssembly(now,dt){
@@ -3750,12 +4148,15 @@ addEventListener('pointerup',e=>{
       if(hit.b.kind==='pdf') downloadPDF(hit.F.pdf);
       else if(hit.b.kind==='more') showMore(hit.F.g);
       else if(hit.b.kind==='chess') showChess();
-      else if(hit.b.kind==='video') showVideo(hit.b.data, hit.F.g?hit.F.g.title:'Video');
+      else if(hit.b.kind==='vplay') facetPlayVideo(hit.F); // in-scene video (v61): starts right away
+      else if(hit.b.kind==='vnext') facetNextVideo(hit.F); // the still re-assembles into the next recording
+      else if(hit.b.kind==='rotl'||hit.b.kind==='rotr') rotateDock(hit.b.data); // rotation-hint arrows: turn one facet step
       else if(hit.b.kind==='form') showContact();
       else if(hit.b.kind==='link'){ // ASCII marks / EMAIL: hyperlinks assembled from glyphs
         if(/^mailto:/.test(hit.b.data)) location.href=hit.b.data;
         else window.open(hit.b.data,'_blank','noopener');
       }
+      else if(hit.b.nav!==undefined) departTo(hit.b.data); // welcome section list: fly to that stop
     }
   }
   dragging=false;
@@ -4114,6 +4515,11 @@ function applyAutoTour(on){
 }
 autoTourCheck.checked=autoTour;
 autoTourCheck.addEventListener('change',e=>applyAutoTour(e.target.checked));
+const arrowSelect=document.getElementById('arrowSelect');
+arrowSelect.value=ARROW_STYLE;
+arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
+  ARROW_STYLE=arrowSelect.value;
+  if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&dockIdx>=0) assembleStop(dockIdx); });
 const welFigSelect=document.getElementById('welFigSelect');
 welFigSelect.value=welcomeFigure;
 welFigSelect.addEventListener('change',()=>{ // swap the welcome figure; live-rebuilds if docked there
@@ -4128,6 +4534,10 @@ welWaveSelect.addEventListener('change',()=>{ // swap the greeting-wave style; r
   welcomeWave=welWaveSelect.value; localStorage.setItem('pf_welcome_wave',welcomeWave); welcome.waveT0=null; }); // reset the clock so the new style starts clean
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
+// section-list timing: read live at wave-launch time, so no reassemble — pending waves
+// (and the next look-back replay) just follow the new values
+bindRange('welNavDelay','valWelNavDelay',v=>{ WNAV_DELAY=v*1000; },v=>v.toFixed(1)+'s');
+bindRange('welNavStep','valWelNavStep',v=>{ WNAV_STEP=v*1000; },v=>v.toFixed(1)+'s');
 const inspectCheck=document.getElementById('toggleInspect');
 inspectCheck.addEventListener('change',e=>setInspect(e.target.checked));
 bindRange('inspectHard','valInspectHard',v=>{ inspectHard=v; },v=>Math.round(v*100)+'%');
@@ -4149,14 +4559,15 @@ const CTRL_DEF={
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
-  toggleAutoTour:['check',false],
+  toggleAutoTour:['check',false], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
-  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.80], welHalo:['range',0.05]
+  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
+  welNavDelay:['range',2.5], welNavStep:['range',0.9]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw'],
-  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','travelAdjSelect','travelFarSelect'],
-  welcome:['welFigSelect','welWaveSelect','welCalSelect','welSize','welHalo']
+  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','arrowSelect','travelAdjSelect','travelFarSelect'],
+  welcome:['welFigSelect','welWaveSelect','welCalSelect','welSize','welHalo','welNavDelay','welNavStep']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.welcome);
 function ctrlGet(id){ const el=document.getElementById(id), k=CTRL_DEF[id][0]; return k==='check'?el.checked : k==='range'?parseFloat(el.value) : el.value; }
