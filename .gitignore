@@ -3,7 +3,5 @@
 Thumbs.db
 *.swp
 
-# Personal documents not used by the site — excluded from upload by default.
-# Delete these lines if you want them in the repo.
-pdfs/Thomas Julsgaard*.pdf
-pdfs/Tutor certificate*.pdf
+# (v57: the BSc diploma [redacted CPR] and tutor certificate are now served by the
+# Education stop's DOWNLOAD buttons, so they ship with the site.)
