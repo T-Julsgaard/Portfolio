@@ -87,17 +87,47 @@
     border:none; color:rgba(255,255,255,0.6); font-family:inherit; font-size:16px; line-height:1; cursor:pointer; }
   #more-close:hover { color:#fff; }
 
-  /* the in-scene chess board (v65 — replaces the #chess-card overlay + home-grown PGN
-     engine): chess.com's own embed iframe (their green board, pieces and step controls),
-     projected onto the chess facet's cover area every frame like the contact inputs —
-     it rides the breathing drift and drag-look exactly like the glyphs. The wrap crops
-     the embed below its step-control bar (the move list + footer would double its
-     height); each game keeps its own lazily-created iframe so switching is instant. */
-  #cboard { position:fixed; left:0; top:0; z-index:4; overflow:hidden; pointer-events:none;
-    visibility:hidden; opacity:0; transition:opacity 0.45s; }
+  /* the in-scene chess board (v66 — the site's own chess.com-style viewer; the v65
+     emboard iframe could show neither ratings nor clocks and couldn't be driven from
+     outside, so it's gone). Fixed internal px on a 360-wide stack — name+rating bars,
+     the board, a step-control row; updateChessBoard() places it with a single
+     composited transform every frame, so it rides the breathing drift and drag-look
+     exactly like the glyphs with zero per-frame layout (the iframe used to shimmer).
+     Board colors + inside coordinates + last-move highlight match chess.com's green
+     theme; only the control buttons take pointer events (drag-look works over the
+     board itself). */
+  #cboard { position:fixed; left:0; top:0; width:360px; z-index:4; pointer-events:none;
+    transform-origin:top left; will-change:transform; visibility:hidden; opacity:0; transition:opacity 0.45s; }
   #cboard.on { visibility:visible; opacity:1; }
-  #cboard iframe { position:absolute; left:0; top:0; border:none; pointer-events:auto;
-    transform-origin:top left; }
+  #cboard .cb-bar { height:34px; display:flex; align-items:center; justify-content:space-between; }
+  #cboard .cb-bar .nm { color:#fff; font-size:15px; letter-spacing:0.04em; white-space:nowrap; overflow:hidden; }
+  #cboard .cb-bar .nm .rt { color:rgba(255,255,255,0.55); }
+  #cboard .cb-bar .ck { font-size:15px; line-height:1; padding:5px 9px; border-radius:3px;
+    font-variant-numeric:tabular-nums; opacity:0.4; transition:opacity 0.2s; }
+  #cboard .cb-bar .ck.w { background:#f0f0f0; color:#111; }
+  #cboard .cb-bar .ck.b { background:#262421; color:#eee; box-shadow:inset 0 0 0 1px #3a3a3a; }
+  #cboard .cb-bar .ck.on { opacity:1; }
+  #cb-board { position:relative; width:360px; height:360px; }
+  #cb-board .sq { position:absolute; width:45px; height:45px; overflow:hidden; }
+  #cb-board .sq.l { background:#ebecd0; }
+  #cb-board .sq.d { background:#739552; }
+  #cb-board .sq.hl::after { content:''; position:absolute; inset:0; background:rgba(255,255,51,0.5); }
+  #cb-board .sq img, #cb-board .sq .up { position:absolute; inset:0; z-index:1; }
+  #cb-board .sq img { width:100%; height:100%; }
+  #cb-board .sq .up { display:flex; align-items:center; justify-content:center; font-size:34px; line-height:1; }
+  #cb-board .sq .up.uw { color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.7); }
+  #cb-board .sq .up.ub { color:#1b1b1b; }
+  #cb-board .sq .co { position:absolute; font-size:10px; line-height:1; }
+  #cb-board .sq .co.cr { left:3px; top:3px; }
+  #cb-board .sq .co.cf { right:3px; bottom:2px; }
+  #cb-board .sq.l .co { color:#739552; }
+  #cb-board .sq.d .co { color:#ebecd0; }
+  #cb-ctl { height:32px; margin-top:2px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  #cb-ctl button { pointer-events:auto; background:#000; color:#9a9a9a; border:1px solid #333;
+    width:46px; height:26px; font:inherit; font-size:14px; line-height:1; cursor:pointer; padding:0; }
+  #cb-ctl button:hover { color:#fff; border-color:#777; }
+  #cb-n { color:rgba(255,255,255,0.6); font-size:12px; letter-spacing:0.1em; min-width:56px;
+    text-align:center; font-variant-numeric:tabular-nums; }
 
 
   /* the embedded contact form (v64): transparent HTML inputs floated over the assembled
@@ -1489,16 +1519,22 @@ function terrainH(x,y){ /* tallest glyph within ~±3 units of (x,y); minZ where 
    non-ASCII characters are transliterated for the 3D font (ø→oe etc.) — so just edit
    the text here and both display modes follow. Keep bodies to a few sentences: the
    assembled text scales down to fit, so shorter reads bigger. media/links stay HTML. */
-/* ================= EDIT YOUR CHESS GAMES HERE (v65) =================
-   The chess facet embeds chess.com's own game viewer (their board, pieces and step
-   controls) straight into the scene. Per game: `emb` = the chess.com embed id — create
-   one via Share > Embed on any game, it's the id in `chess.com/emboard?id=…` — and
-   `link` = the game page (the file:// fallback opens it in a new tab). The GAME 1/2/3
-   stencil buttons on the facet map to this array by index. */
+/* ================= EDIT YOUR CHESS GAMES HERE (v66) =================
+   The chess facet renders these with the site's own chess.com-style viewer (the
+   v65 emboard embed could show neither ratings nor clocks and offered no outside
+   control, so the v64 PGN engine is back). Per game: w/wr b/br = usernames +
+   ratings, base = starting clock in seconds, link = the game on chess.com, pgn =
+   movetext straight from the chess.com public API
+   (api.chess.com/pub/player/julsgaard/games/YYYY/MM) - KEEP the {[%clk ...]}
+   comments, they drive the bullet clocks. me = which color Thomas played; that
+   side sits at the bottom of the board. */
 const CHESS_GAMES=[
-  {emb:'15417418', link:'https://www.chess.com/game/live/145985164978'}, // Nixkram (2516) - Julsgaard, 0-1 bullet
-  {emb:'15417438', link:'https://www.chess.com/game/live/145045309634'}, // kratoscollection (2324) - Julsgaard, 0-1 bullet
-  {emb:'15417450', link:'https://www.chess.com/game/live/147627507266'}, // Julsgaard - DonquixotDoflamingo (2202), 1-0 bullet
+  {w:'Nixkram',wr:2516,b:'Julsgaard',br:1703,base:60,me:'b', link:'https://www.chess.com/game/live/145985164978', // 0-1 bullet, Nov 26 2025 - won as Black
+   pgn:'1. b3 {[%clk 0:00:57.5]} 1... d5 {[%clk 0:00:59.9]} 2. Bb2 {[%clk 0:00:56.9]} 2... Bf5 {[%clk 0:00:59.8]} 3. g3 {[%clk 0:00:56.3]} 3... e6 {[%clk 0:00:59.3]} 4. Bg2 {[%clk 0:00:55.9]} 4... f6 {[%clk 0:00:58.7]} 5. d3 {[%clk 0:00:55.5]} 5... Bd6 {[%clk 0:00:58.1]} 6. Nd2 {[%clk 0:00:55]} 6... Bg6 {[%clk 0:00:57.7]} 7. e3 {[%clk 0:00:54.5]} 7... Ne7 {[%clk 0:00:57.5]} 8. Ne2 {[%clk 0:00:54]} 8... O-O {[%clk 0:00:57.2]} 9. h3 {[%clk 0:00:53.5]} 9... Nd7 {[%clk 0:00:56.8]} 10. a3 {[%clk 0:00:53]} 10... e5 {[%clk 0:00:56.1]} 11. g4 {[%clk 0:00:52.3]} 11... Bf7 {[%clk 0:00:54.9]} 12. Ng3 {[%clk 0:00:50.5]} 12... g6 {[%clk 0:00:53.9]} 13. e4 {[%clk 0:00:49.2]} 13... d4 {[%clk 0:00:52.9]} 14. Qe2 {[%clk 0:00:48.1]} 14... Kg7 {[%clk 0:00:52.4]} 15. h4 {[%clk 0:00:47.1]} 15... Rh8 {[%clk 0:00:51.9]} 16. h5 {[%clk 0:00:46.2]} 16... g5 {[%clk 0:00:51.4]} 17. h6+ {[%clk 0:00:45]} 17... Kf8 {[%clk 0:00:47.5]} 18. Nf5 {[%clk 0:00:44.5]} 18... Nxf5 {[%clk 0:00:46.5]} 19. exf5 {[%clk 0:00:42.6]} 19... Ke7 {[%clk 0:00:46]} 20. Bxb7 {[%clk 0:00:41.2]} 20... Rb8 {[%clk 0:00:44.8]} 21. Bg2 {[%clk 0:00:40.9]} 21... c5 {[%clk 0:00:44.3]} 22. Ne4 {[%clk 0:00:40.1]} 22... Nb6 {[%clk 0:00:42.6]} 23. Nxd6 {[%clk 0:00:37.6]} 23... Qxd6 {[%clk 0:00:42.5]} 24. a4 {[%clk 0:00:35]} 24... Bd5 {[%clk 0:00:42]} 25. Be4 {[%clk 0:00:32.8]} 25... Bxe4 {[%clk 0:00:40]} 26. Qxe4 {[%clk 0:00:31.5]} 26... a5 {[%clk 0:00:39.9]} 27. Ba3 {[%clk 0:00:30.6]} 27... Nd7 {[%clk 0:00:38.2]} 28. O-O {[%clk 0:00:27]} 28... Nb6 {[%clk 0:00:34.6]} 29. Rae1 {[%clk 0:00:26]} 29... Nd5 {[%clk 0:00:33.6]} 30. Qg2 {[%clk 0:00:21]} 30... Nc3 {[%clk 0:00:32.8]} 31. f4 {[%clk 0:00:19.8]} 31... gxf4 {[%clk 0:00:30.7]} 32. Rxf4 {[%clk 0:00:19.7]} 32... Kf7 {[%clk 0:00:28.8]} 33. Rf3 {[%clk 0:00:18.2]} 33... Rbg8 {[%clk 0:00:28.3]} 34. Rg3 {[%clk 0:00:17.5]} 34... Rg5 {[%clk 0:00:27.3]} 35. Bc1 {[%clk 0:00:16.4]} 35... Nd5 {[%clk 0:00:26.6]} 36. Bxg5 {[%clk 0:00:15]} 36... fxg5 {[%clk 0:00:26.5]} 37. Rf1 {[%clk 0:00:14.3]} 37... Nf4 {[%clk 0:00:25.9]} 38. Qe4 {[%clk 0:00:12]} 38... Rg8 {[%clk 0:00:24.3]} 39. Re1 {[%clk 0:00:10.8]} 39... Kf6 {[%clk 0:00:22.5]} 40. Rf3 {[%clk 0:00:09.6]} 40... Re8 {[%clk 0:00:21.4]} 41. Qb7 {[%clk 0:00:08]} 41... Qe7 {[%clk 0:00:19.7]} 42. Qe4 {[%clk 0:00:07]} 42... Qd6 {[%clk 0:00:18.3]} 43. Qb7 {[%clk 0:00:05.8]} 43... Re7 {[%clk 0:00:17.9]} 44. Qe4 {[%clk 0:00:05.1]} 44... Qb6 {[%clk 0:00:16.5]} 45. Ref1 {[%clk 0:00:05]} 45... Qd6 {[%clk 0:00:15.6]} 46. Rxf4 {[%clk 0:00:04.9]} 46... gxf4 {[%clk 0:00:15.1]} 47. Qf3 {[%clk 0:00:04.4]} 47... Re8 {[%clk 0:00:13.2]} 48. Qh3 {[%clk 0:00:04.3]} 48... Rg8 {[%clk 0:00:11.8]} 49. g5+ {[%clk 0:00:04.2]} 49... Rxg5+ {[%clk 0:00:10.8]} 50. Kh1 {[%clk 0:00:04.1]} 50... Qe7 {[%clk 0:00:09.7]} 51. Qf3 {[%clk 0:00:04]} 51... Qf7 {[%clk 0:00:09.2]} 52. Qe4 {[%clk 0:00:03.9]} 52... Qh5# {[%clk 0:00:08.8]} 0-1'},
+  {w:'kratoscollection',wr:2324,b:'Julsgaard',br:1767,base:60,me:'b', link:'https://www.chess.com/game/live/145045309634', // 0-1 bullet, Nov 2 2025 - won as Black
+   pgn:'1. d3 {[%clk 0:00:59.9]} 1... g6 {[%clk 0:00:59.7]} 2. c3 {[%clk 0:00:59.8]} 2... Bg7 {[%clk 0:00:59.6]} 3. Qc2 {[%clk 0:00:59.6]} 3... Nf6 {[%clk 0:00:59.5]} 4. e4 {[%clk 0:00:59]} 4... d5 {[%clk 0:00:58.6]} 5. Be2 {[%clk 0:00:58.9]} 5... dxe4 {[%clk 0:00:57.6]} 6. dxe4 {[%clk 0:00:58.8]} 6... Be6 {[%clk 0:00:56.6]} 7. Be3 {[%clk 0:00:58.7]} 7... Nc6 {[%clk 0:00:55.6]} 8. Nd2 {[%clk 0:00:58.6]} 8... Qd7 {[%clk 0:00:54.4]} 9. h3 {[%clk 0:00:58.5]} 9... O-O-O {[%clk 0:00:53.9]} 10. a4 {[%clk 0:00:58.3]} 10... Ne5 {[%clk 0:00:52.2]} 11. g4 {[%clk 0:00:58.2]} 11... Nc4 {[%clk 0:00:50.8]} 12. f4 {[%clk 0:00:58.1]} 12... Nxe3 {[%clk 0:00:49.5]} 13. Qb1 {[%clk 0:00:57.1]} 13... Ng2+ {[%clk 0:00:47.9]} 14. Kf2 {[%clk 0:00:56.7]} 14... Nxf4 {[%clk 0:00:47]} 15. Bf1 {[%clk 0:00:56.6]} 15... Nd3+ {[%clk 0:00:45.8]} 16. Kg2 {[%clk 0:00:55.1]} 16... Nc5 {[%clk 0:00:45.2]} 17. Ngf3 {[%clk 0:00:55]} 17... Ncxe4 {[%clk 0:00:44.6]} 18. Nxe4 {[%clk 0:00:54.1]} 18... Nxe4 {[%clk 0:00:44.1]} 19. Qxe4 {[%clk 0:00:54]} 19... h5 {[%clk 0:00:37.7]} 20. g5 {[%clk 0:00:53.1]} 20... Bd5 {[%clk 0:00:34.9]} 21. Qe3 {[%clk 0:00:52.4]} 21... Qf5 {[%clk 0:00:34.1]} 22. Qxa7 {[%clk 0:00:51.1]} 22... Qxf3+ {[%clk 0:00:31.9]} 23. Kg1 {[%clk 0:00:50.6]} 23... Qg3+ {[%clk 0:00:30.5]} 24. Bg2 {[%clk 0:00:49.2]} 24... Qxg2# {[%clk 0:00:29.4]} 0-1'},
+  {w:'Julsgaard',wr:1802,b:'DonquixotDoflamingo',br:2202,base:60,me:'w', link:'https://www.chess.com/game/live/147627507266', // 1-0 bullet, Jan 5 2026 - won as White
+   pgn:'1. d4 {[%clk 0:00:58.5]} 1... e5 {[%clk 0:00:59.8]} 2. Bf4 {[%clk 0:00:58.1]} 2... exf4 {[%clk 0:00:58.9]} 3. e3 {[%clk 0:00:57.5]} 3... fxe3 {[%clk 0:00:57.1]} 4. fxe3 {[%clk 0:00:57.4]} 4... Nf6 {[%clk 0:00:56.4]} 5. Nf3 {[%clk 0:00:57.3]} 5... Bb4+ {[%clk 0:00:55.1]} 6. c3 {[%clk 0:00:56.5]} 6... Be7 {[%clk 0:00:54.5]} 7. Nbd2 {[%clk 0:00:56.4]} 7... d5 {[%clk 0:00:54]} 8. Nc4 {[%clk 0:00:56.3]} 8... c6 {[%clk 0:00:53.7]} 9. Nce5 {[%clk 0:00:55.4]} 9... Nbd7 {[%clk 0:00:52.3]} 10. Bd3 {[%clk 0:00:53.9]} 10... Nxe5 {[%clk 0:00:51.7]} 11. Nxe5 {[%clk 0:00:53.8]} 11... Be6 {[%clk 0:00:50.3]} 12. Qf3 {[%clk 0:00:52.8]} 12... O-O {[%clk 0:00:48.9]} 13. h3 {[%clk 0:00:50.9]} 13... Nd7 {[%clk 0:00:47.7]} 14. Ng4 {[%clk 0:00:48.3]} 14... f5 {[%clk 0:00:43.8]} 15. Ne5 {[%clk 0:00:47.2]} 15... Nxe5 {[%clk 0:00:43]} 16. dxe5 {[%clk 0:00:47.1]} 16... Bc5 {[%clk 0:00:41.4]} 17. O-O-O {[%clk 0:00:45.3]} 17... a5 {[%clk 0:00:40]} 18. Qh5 {[%clk 0:00:43.6]} 18... h6 {[%clk 0:00:38.8]} 19. Qg6 {[%clk 0:00:41.8]} 19... Qg5 {[%clk 0:00:36.9]} 20. Qxg5 {[%clk 0:00:39.7]} 20... hxg5 {[%clk 0:00:36.8]} 21. g4 {[%clk 0:00:38.1]} 21... Bxe3+ {[%clk 0:00:31.5]} 22. Kc2 {[%clk 0:00:37.6]} 22... f4 {[%clk 0:00:31]} 23. h4 {[%clk 0:00:35.8]} 23... Bxg4 {[%clk 0:00:21.8]} 24. hxg5 {[%clk 0:00:34.7]} 24... Bxd1+ {[%clk 0:00:20.2]} 25. Kxd1 {[%clk 0:00:33.4]} 25... c5 {[%clk 0:00:19.3]} 26. Bg6 {[%clk 0:00:32.6]} 26... d4 {[%clk 0:00:15.8]} 27. Bh7+ {[%clk 0:00:31.1]} 27... Kf7 {[%clk 0:00:14.5]} 28. g6+ {[%clk 0:00:30.7]} 28... Ke7 {[%clk 0:00:13.3]} 29. Rh5 {[%clk 0:00:29.3]} 29... dxc3 {[%clk 0:00:11.6]} 30. bxc3 {[%clk 0:00:28.3]} 30... Rad8+ {[%clk 0:00:11.3]} 31. Ke2 {[%clk 0:00:27.2]} 31... Rd2+ {[%clk 0:00:11.2]} 32. Kf3 {[%clk 0:00:26.5]} 32... Rfd8 {[%clk 0:00:10.5]} 33. Ke4 {[%clk 0:00:26.2]} 33... c4 {[%clk 0:00:08.6]} 34. Bg8 {[%clk 0:00:25.6]} 34... R2d4+ {[%clk 0:00:06.1]} 35. Kf5 {[%clk 0:00:24.5]} 35... R4d7 {[%clk 0:00:04.1]} 36. Bxc4 {[%clk 0:00:23.1]} 36... Rf8+ {[%clk 0:00:02.2]} 37. Ke4 {[%clk 0:00:22.6]} 37... Rc7 {[%clk 0:00:02]} 38. Bb5 {[%clk 0:00:20.9]} 38... Rxc3 {[%clk 0:00:01.9]} 39. Rh7 {[%clk 0:00:19.8]} 39... Rc5 {[%clk 0:00:01.8]} 40. Rxg7+ {[%clk 0:00:19.2]} 40... Ke6 {[%clk 0:00:01]} 41. Bd7# {[%clk 0:00:16.6]} 1-0'},
 ];
 const JOURNEY=[
   {xf: 0.06, yf: 1.00},
@@ -1606,13 +1642,14 @@ const JOURNEY=[
     ]}},
   {xf:-0.50, yf: 0.06},
   {xf:-0.24, yf:-0.02},
-  /* Interests: chess and ONE piano facet holding both recordings (v61): PLAY develops the
-     ASCII still into an in-scene video plane that starts immediately; the stencil
-     next-arrow beside the still re-assembles it into the other recording. `vids` lists
-     the recordings, `imgScale` renders the still (and thus the video) bigger than a
-     standard cover. The chess facet (v65) works the same way with chess.com's own embed
-     board: the GAME 1/2/3 stencil buttons project the game's emboard iframe onto the
-     cover area (see `games` / #cboard). */
+  /* Interests: chess and ONE piano facet holding both recordings. The piano still
+     auto-develops into the current recording's first frame (v66), PLAY brings it to
+     life on an in-scene video plane, and the stencil next-arrow re-assembles the still
+     into the other recording; `vids` lists the recordings, `imgScale` renders the still
+     (and thus the video) bigger than a standard cover. The chess cover auto-develops
+     into the site's OWN chess.com-style board (v66 — names, ratings and the bullet
+     clocks, which the old emboard embed couldn't show): the digit stencil buttons
+     switch games, arrow keys step the moves (see CHESS_GAMES / #cboard). */
   {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Beyond the work', body:'What I do when the methods are put away: chess, and the piano.\nDrag to look around — step through some of my games move by move, or listen to me play.', media:[],
     gallery:[
       {img:'chessboard', title:'Chess', imgScale:1.95, hFit:1.5, btnCell:0.26,
@@ -2954,7 +2991,10 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     st.gallery.forEach((g,i)=>{
       // hyperlink marks / text-only entries never develop; video facets (v61) hold their
       // ASCII still until PLAY develops it into the in-scene video plane
-      const photoKey=(!g.vids&&g.img&&COVER_PHOTOS[g.img])?g.img:null;
+      // vids facets develop into the CURRENT recording's still (piano1/piano2 — v66);
+      // a games facet never photo-develops: its cover auto-opens the chess board instead
+      const photoKey=g.vids?(COVER_PHOTOS[g.vids[0].ascii]?g.vids[0].ascii:null)
+                    :(g.img&&COVER_PHOTOS[g.img]&&!g.games)?g.img:null;
       if(photoKey) getPhotoTex(photoKey); // warm the texture decode before the first develop
       const dy=((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step; // alternate sides: -1,+1,-2,+2,…
       defs.push({lay:buildCoverLayout(g, st.id==='cases'), dy:dy*Math.PI/180,
@@ -2991,9 +3031,9 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  Rp:Math.atan((d.lay.h*f/2)/dist)+(d.clearM!==undefined?d.clearM:0.15),
                  coneY:Math.atan((d.lay.w*f/2)/dist)+0.06, // the sight cone: the content block's exact angular
                  coneP:Math.atan((d.lay.h*f/2)/dist)+0.06, // footprint (+ a hair), used with a depth test in pass 3
-                 photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pStart:0,
+                 photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pKill:false, pStart:0,
                  vids:d.vids||null, vIdx:0, vPlane:null, vEl:null, vSrc:null, vOn:false, vT0:0, vEnded:false, vSwap:null,
-                 games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, // in-scene chess embed (v65)
+                 games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, cbDis:0, // in-scene chess board (v66)
                  pdf:d.pdf, g:d.g, holdT0:0, fields:d.lay.fields||null,
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
                  state:'home', items:[], extras:[], fades:[], t0:0});
@@ -3128,7 +3168,7 @@ function facetOut(F,now,noHand){ // noHand: departure — everything goes home, 
   if(F.state!=='in'&&F.state!=='hold') return;
   if(F.g) hideMore(); // a cover leaving the gaze takes its read-more card with it
   if(F.vids) stopFacetVideo(F); // a playing video pauses + folds when its facet leaves the gaze
-  if(F.games) F.cbOn=false; // the chess embed hides with the facet — a re-fire wants a fresh GAME click
+  if(F.games){ F.cbOn=false; F.cbT0=0; F.cbDis=0; } // the chess board hides with the facet — a re-fire auto-develops it fresh
   F.state='out'; F.t0=now; F.pT0=0; F.pOn=false; F.pDone=false;
   const n=F.items.length, stag=F_OUT_MS-F_OUT_FLY_MS;
   for(const it of F.items){ const m=it.m;
@@ -3171,8 +3211,8 @@ function restoreFacet(F){ // exact snap home: geometry, position, palette, flags
     fd.m.material.opacity=1; fd.m.visible=true; }
   if(F.tiles) for(const t of F.tiles){ t.material.opacity=0; t.visible=false; }
   if(F.vids){ stopFacetVideo(F,true); F.vSwap=null; for(const it of F.items) it.vsOn=false; }
-  if(F.games) F.cbOn=false; // instant restore drops the chess embed too
-  F.state='home'; F.pT0=0; F.pOn=false; F.pDone=false;
+  if(F.games){ F.cbOn=false; F.cbT0=0; F.cbDis=0; } // instant restore drops the chess board too
+  F.state='home'; F.pT0=0; F.pOn=false; F.pDone=false; F.pKill=false;
   for(const b of F.btns) b.hover=false;
 }
 function disposeFacetTiles(F){ // tiles + video plane are real scene meshes — free them when the facet is discarded
@@ -3187,7 +3227,7 @@ function disposeFacetTiles(F){ // tiles + video plane are real scene meshes — 
 function disassemble(instant){ // release the whole stop (dock change, mode change, intro, generator)
   glyphsDirty=true;
   renderer.domElement.style.cursor=''; // a hovered button may have left it as a pointer
-  hideMore(); // the read-more card belongs to the stop being left (the chess embed hides itself — updateChessBoard's state gate)
+  hideMore(); // the read-more card belongs to the stop being left (the chess board hides itself — updateChessBoard's state gate)
   releaseWelcome(); // banner glyphs (if any) snap home into the face
   if(instant){
     if(stopFacets) for(const F of stopFacets.facets){ restoreFacet(F); disposeFacetTiles(F); }
@@ -3276,73 +3316,259 @@ function hideMore(){ if(!moreOpen) return; moreCard.classList.remove('open'); mo
    the stop (disassemble). They deliberately DON'T close on look-away like the read-more
    card — mid-game that would be hostile. */
 
-/* ---- the in-scene chess board (v65 — replaces the #chess-card overlay and its
-   home-grown PGN engine): chess.com's own embed viewer — green board, their pieces,
-   the players/result header and the step controls — one iframe per game (lazy: created
-   on first view, kept so switching back is instant), projected onto the chess facet's
-   cover area every frame by updateChessBoard(), the same trick as the contact inputs.
-   The #cboard wrap crops the embed below its control bar (the move list + "Play Chess"
-   footer would double the height); CB_W is the iframe's internal CSS width — the
-   embed's board is a fixed ~360 CSS px in its narrow one-column layout (the wide
-   layout drops the step controls), so we render narrow and upscale with a transform
-   (verified headless: pieces stay crisp at ~1.7×). The games live in CHESS_GAMES
-   (declared above JOURNEY). Under file:// the embed never boots (like every chess.com/
-   YouTube embed) — the GAME buttons fall back to opening the game page in a new tab,
-   like the piano video's file:// fallback. */
-const CB_W=430;    // iframe internal width: comfortably inside their one-column layout
-const CB_CROP=155; // px cut off the bottom: the move list (~120) + the footer link (~35)
-const cbWrap=document.createElement('div'); cbWrap.id='cboard'; document.body.appendChild(cbWrap);
-const cbFrames={}, cbNatH={}; // per-game iframe / natural height from their resize postMessage
-window.addEventListener('message',e=>{ // the emboard posts {id, frameHeight} on load + internal resize
-  const d=e.data;
-  if(d&&d.frameHeight&&CHESS_GAMES.some(g=>g.emb===String(d.id))) cbNatH[d.id]=d.frameHeight+37;
-});
-function cbFrame(gi){
-  const emb=CHESS_GAMES[gi].emb;
-  if(!cbFrames[emb]){
-    const f=document.createElement('iframe');
-    f.setAttribute('allowtransparency','true'); // their body is transparent — glyphs show through the side gutters
-    f.setAttribute('scrolling','no'); // the iframe IS the crop window (see updateChessBoard) — never scrollbars
-    f.width=CB_W; f.height=457; f.src='https://www.chess.com/emboard?id='+emb;
-    cbWrap.appendChild(f); cbFrames[emb]=f;
-  }
-  return cbFrames[emb];
+/* ---- the in-scene chess board (v66 — replaces the v65 chess.com emboard iframes):
+   the embed could show neither ratings nor the bullet clocks, and offers no outside
+   control at all (it only posts {id,frameHeight}; cross-origin, its current move is
+   unknowable — verified against its bundles), so the board is OURS again. The v64
+   PGN legality engine drives a DOM board styled exactly like chess.com's viewer:
+   their green squares, their neo piece art (images.chesscomfiles.com, unicode
+   fallback when the CDN is unreachable), inside coordinates, last-move highlight —
+   plus what the embed couldn't give us: name+rating bars above and below the board
+   (Thomas's side at the bottom, like chess.com), per-move bullet clocks read from
+   the {[%clk …]} comments, and a mono step-control row. The whole 360px-wide stack
+   is projected onto the chess facet's cover area every frame by updateChessBoard()
+   as ONE composited transform (translate3d+scale, zero per-frame layout — the v65
+   iframe re-laid-out width/height every frame and visibly shimmered). The cover
+   auto-develops into the game like a photo cover (PHOTO_DELAY after hold); the
+   digit buttons switch games; ←/→ step moves while the board is up (the journey
+   keydown defers via chessBoardActive). No iframe left to refuse file:// either.
+   The games live in CHESS_GAMES (declared above JOURNEY). */
+const CV_N=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+const CV_K=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+const CV_B=[[-1,-1],[-1,1],[1,-1],[1,1]], CV_R=[[-1,0],[1,0],[0,-1],[0,1]];
+function cvIsW(p){ return p!==' '&&p===p.toUpperCase(); }
+function cvStart(){
+  const b='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'.split('/')
+    .map(r=>{ let o=''; for(const c of r) o+=(c>='1'&&c<='8')?' '.repeat(+c):c; return o; }).join('').split('');
+  return {b, w:true, cast:{K:true,Q:true,k:true,q:true}, ep:-1};
 }
-function facetChessGame(F,gi){ // a GAME stencil button: hang that game's chess.com board over the cover
+function cvAttacked(b,i,byW){ // is square i attacked by side byW
+  const r=i>>3, f=i&7;
+  const pr=byW?r+1:r-1; // pawns capture toward lower rows for white
+  if(pr>=0&&pr<8) for(const df of[-1,1]){ const ff=f+df;
+    if(ff>=0&&ff<8&&b[pr*8+ff]===(byW?'P':'p')) return true; }
+  for(const[dr,df]of CV_N){ const rr=r+dr,ff=f+df;
+    if(rr>=0&&rr<8&&ff>=0&&ff<8&&b[rr*8+ff]===(byW?'N':'n')) return true; }
+  for(const[dr,df]of CV_K){ const rr=r+dr,ff=f+df;
+    if(rr>=0&&rr<8&&ff>=0&&ff<8&&b[rr*8+ff]===(byW?'K':'k')) return true; }
+  for(const dirs of[CV_B,CV_R]){ const diag=dirs===CV_B;
+    for(const[dr,df]of dirs){ let rr=r+dr,ff=f+df;
+      while(rr>=0&&rr<8&&ff>=0&&ff<8){ const p=b[rr*8+ff];
+        if(p!==' '){ if(cvIsW(p)===byW){ const u=p.toUpperCase();
+            if(u==='Q'||(diag&&u==='B')||(!diag&&u==='R')) return true; } break; }
+        rr+=dr; ff+=df; } } }
+  return false;
+}
+function cvApply(st,m){ // -> the position after m (st untouched)
+  const b=st.b.slice(), cast=Object.assign({},st.cast); let ep=-1;
+  const p=b[m.from];
+  b[m.from]=' ';
+  if(m.isEp) b[st.w?m.to+8:m.to-8]=' ';
+  b[m.to]=m.promo?(st.w?m.promo:m.promo.toLowerCase()):p;
+  if(m.castle==='K'){ const r0=st.w?63:7; b[r0-2]=b[r0]; b[r0]=' '; }
+  if(m.castle==='Q'){ const r0=st.w?56:0; b[r0+3]=b[r0]; b[r0]=' '; }
+  const u=p.toUpperCase();
+  if(u==='K'){ if(st.w){cast.K=cast.Q=false;} else {cast.k=cast.q=false;} }
+  if(u==='P'&&Math.abs(m.to-m.from)===16) ep=(m.to+m.from)/2;
+  for(const a of[[63,'K'],[56,'Q'],[7,'k'],[0,'q']]) if(m.from===a[0]||m.to===a[0]) cast[a[1]]=false;
+  return {b, w:!st.w, cast, ep};
+}
+function cvMoves(st){ // every fully legal move for the side to move
+  const b=st.b, w=st.w, out=[];
+  const push=(from,to,extra)=>{
+    const base=Object.assign({from,to},extra||{});
+    if(b[from].toUpperCase()==='P'&&((w&&to<8)||(!w&&to>=56)))
+      for(const pr of['Q','R','B','N']) out.push(Object.assign({},base,{promo:pr}));
+    else out.push(base);
+  };
+  for(let i=0;i<64;i++){ const p=b[i]; if(p===' '||cvIsW(p)!==w) continue;
+    const r=i>>3, f=i&7, u=p.toUpperCase();
+    if(u==='P'){
+      const d=w?-8:8, one=i+d;
+      if(one>=0&&one<64&&b[one]===' '){ push(i,one);
+        if(r===(w?6:1)&&b[i+2*d]===' ') push(i,i+2*d); }
+      for(const df of[-1,1]){ const ff=f+df; if(ff<0||ff>7) continue; const t=one+df;
+        if(t<0||t>=64) continue;
+        if(b[t]!==' '&&cvIsW(b[t])!==w) push(i,t);
+        else if(t===st.ep&&b[t]===' ') push(i,t,{isEp:true}); }
+    } else if(u==='N'||u==='K'){
+      for(const[dr,df]of(u==='N'?CV_N:CV_K)){ const rr=r+dr,ff=f+df;
+        if(rr<0||rr>7||ff<0||ff>7) continue; const t=rr*8+ff;
+        if(b[t]===' '||cvIsW(b[t])!==w) push(i,t); }
+      if(u==='K'){ const home=w?60:4;
+        if(i===home&&!cvAttacked(b,home,!w)){
+          if((w?st.cast.K:st.cast.k)&&b[home+1]===' '&&b[home+2]===' '&&b[w?63:7]===(w?'R':'r')
+             &&!cvAttacked(b,home+1,!w)&&!cvAttacked(b,home+2,!w)) push(i,home+2,{castle:'K'});
+          if((w?st.cast.Q:st.cast.q)&&b[home-1]===' '&&b[home-2]===' '&&b[home-3]===' '&&b[w?56:0]===(w?'R':'r')
+             &&!cvAttacked(b,home-1,!w)&&!cvAttacked(b,home-2,!w)) push(i,home-2,{castle:'Q'});
+        } }
+    } else {
+      const dirs=u==='B'?CV_B:u==='R'?CV_R:CV_B.concat(CV_R);
+      for(const[dr,df]of dirs){ let rr=r+dr,ff=f+df;
+        while(rr>=0&&rr<8&&ff>=0&&ff<8){ const t=rr*8+ff;
+          if(b[t]===' ') push(i,t);
+          else { if(cvIsW(b[t])!==w) push(i,t); break; }
+          rr+=dr; ff+=df; } }
+    }
+  }
+  return out.filter(m=>{ const ns=cvApply(st,m); return !cvAttacked(ns.b,ns.b.indexOf(w?'K':'k'),!w); });
+}
+function cvSan(st,san){ // the legal move a SAN token denotes (null if ambiguous/illegal)
+  const s=san.replace(/[+#!?]+$/,'');
+  if(s==='O-O'||s==='0-0') return cvMoves(st).find(m=>m.castle==='K')||null;
+  if(s==='O-O-O'||s==='0-0-0') return cvMoves(st).find(m=>m.castle==='Q')||null;
+  const m=/^([KQRBN])?([a-h])?([1-8])?x?([a-h])([1-8])(=?([QRBN]))?$/.exec(s);
+  if(!m) return null;
+  const piece=m[1]||'P', ff=m[2]?m[2].charCodeAt(0)-97:-1, fr=m[3]?8-(+m[3]):-1;
+  const to=(8-(+m[5]))*8+(m[4].charCodeAt(0)-97), promo=m[7]||null;
+  const cand=cvMoves(st).filter(mv=>
+    mv.to===to && st.b[mv.from].toUpperCase()===piece &&
+    (promo?mv.promo===promo:!mv.promo) &&
+    (ff<0||(mv.from&7)===ff) && (fr<0||(mv.from>>3)===fr));
+  return cand.length===1?cand[0]:null;
+}
+function cvTokens(pgn){ // strip comments / variations / NAGs / numbers / result
+  let flat='', depth=0;
+  for(const ch of pgn.replace(/\{[^}]*\}/g,' ')){
+    if(ch==='(') depth++;
+    else if(ch===')') depth=Math.max(0,depth-1);
+    else if(!depth) flat+=ch;
+  }
+  return flat.split(/\s+/)
+    .filter(t=>t&&!/^\d+\.+$/.test(t)&&!/^\$\d+$/.test(t)&&!/^(1-0|0-1|1\/2-1\/2|\*)$/.test(t))
+    .map(t=>t.replace(/^\d+\.+/,'')).filter(t=>t);
+}
+const CB_W=360, CB_H=462, CB_SQ=45; // internal px: 34px bars + 8×45 board + 2+32px controls; scaled as one transform
+const cbWrap=document.createElement('div'); cbWrap.id='cboard';
+cbWrap.innerHTML=
+  '<div class="cb-bar"><span class="nm"></span><span class="ck"></span></div>'+
+  '<div id="cb-board"></div>'+
+  '<div class="cb-bar"><span class="nm"></span><span class="ck"></span></div>'+
+  '<div id="cb-ctl"><button data-a="first" title="Start">|&#171;</button><button data-a="prev" title="Previous move">&#8249;</button>'+
+  '<span id="cb-n"></span>'+
+  '<button data-a="next" title="Next move">&#8250;</button><button data-a="last" title="End">&#187;|</button></div>';
+document.body.appendChild(cbWrap);
+const cbBoardEl=cbWrap.querySelector('#cb-board'), cbN=cbWrap.querySelector('#cb-n');
+const cbBars=cbWrap.querySelectorAll('.cb-bar'), cbTop=cbBars[0], cbBot=cbBars[1];
+const cbSquares=[]; // display order, top-left first; cvOrient maps display slot -> board index
+for(let s=0;s<64;s++){ const d=document.createElement('div');
+  d.className='sq '+((((s>>3)+(s&7))%2===0)?'l':'d'); // parity is flip-invariant (63-s preserves it)
+  d.style.left=(s&7)*CB_SQ+'px'; d.style.top=(s>>3)*CB_SQ+'px';
+  cbBoardEl.appendChild(d); cbSquares.push(d); }
+const CB_UNI={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+function cbPieceEl(p){ // chess.com's own neo piece art; unicode when the CDN is unreachable
+  const w=cvIsW(p), t=p.toLowerCase(), img=document.createElement('img');
+  img.src='https://images.chesscomfiles.com/chess-themes/pieces/neo/150/'+(w?'w':'b')+t+'.png';
+  img.alt=''; img.draggable=false;
+  img.onerror=()=>{ const u=document.createElement('span'); u.className='up '+(w?'uw':'ub');
+    u.textContent=CB_UNI[t]; img.replaceWith(u); };
+  return img;
+}
+const cv={gi:-1, ply:0, pos:[], sans:[], moves:[], clks:[], flip:false, topW:false, disp:null, err:null};
+function cvSecs(s){ const p=s.split(':').map(Number); let t=0; for(const v of p) t=t*60+v; return t; } // '0:00:57.5' -> 57.5
+function cvFmtClk(t){ // 57.5 -> '0:57.5' (bullet keeps the tenths — that's half the drama)
+  const m=Math.floor(t/60), s=t-m*60, w=Math.floor(s), d=Math.round((s-w)*10);
+  return m+':'+String(w).padStart(2,'0')+'.'+Math.min(9,d);
+}
+function cvOrient(flip){ // draw from Thomas's side (like chess.com); coordinates re-labeled to match
+  cv.flip=flip; cv.topW=flip; cv.disp=Array(64).fill(null); // null disp = full piece redraw on next cvShow
+  for(const el of cbBoardEl.querySelectorAll('.co')) el.remove();
+  for(let s=0;s<64;s++){ const r=s>>3, f=s&7, el=cbSquares[s];
+    if(f===0){ const c=document.createElement('span'); c.className='co cr'; c.textContent=flip?r+1:8-r; el.appendChild(c); }
+    if(r===7){ const c=document.createElement('span'); c.className='co cf'; c.textContent=String.fromCharCode(flip?104-f:97+f); el.appendChild(c); }
+  }
+}
+function cvBar(el,name,elo,whiteSide){
+  el.querySelector('.nm').innerHTML=String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+' <span class="rt">('+elo+')</span>';
+  el.querySelector('.ck').className='ck '+(whiteSide?'w':'b'); // the chip says whose clock it is, chess.com-style
+}
+function cvLoad(gi){
+  const g=CHESS_GAMES[gi];
+  cv.gi=gi; cv.ply=0; cv.pos=[cvStart()]; cv.sans=[]; cv.moves=[]; cv.err=null;
+  // clock trail: chess.com's {[%clk …]} comments, one per ply in move order
+  cv.clks=[...g.pgn.matchAll(/\[%clk ([\d:.]+)\]/g)].map(m=>cvSecs(m[1]));
+  let st=cv.pos[0];
+  for(const tok of cvTokens(g.pgn)){
+    const m=cvSan(st,tok);
+    if(!m){ cv.err='PGN error at "'+tok+'"'; break; }
+    st=cvApply(st,m); cv.pos.push(st); cv.sans.push(tok); cv.moves.push(m);
+  }
+  cvOrient(g.me==='b');
+  cvBar(cbTop, cv.topW?g.w:g.b, cv.topW?g.wr:g.br, cv.topW);
+  cvBar(cbBot, cv.topW?g.b:g.w, cv.topW?g.br:g.wr, !cv.topW);
+  cvShow(0);
+}
+function cvClkAt(k,white){ // remaining time after that side's latest move among the first k plies
+  let t=CHESS_GAMES[cv.gi].base;                            // both clocks start at base
+  for(let i=white?0:1;i<k&&i<cv.clks.length;i+=2) t=cv.clks[i]; // white moves = plies 1,3,5… (0-based even)
+  return t;
+}
+function cvShow(k){
+  cv.ply=Math.max(0,Math.min(cv.sans.length,k));
+  const st=cv.pos[cv.ply], last=cv.ply?cv.moves[cv.ply-1]:null;
+  for(let s=0;s<64;s++){
+    const i=cv.flip?63-s:s, p=st.b[i], el=cbSquares[s];
+    if(cv.disp[s]!==p){ cv.disp[s]=p; // diff per square — untouched pieces never re-render (no img flicker)
+      const old=el.querySelector('img,.up'); if(old) old.remove();
+      if(p!==' ') el.appendChild(cbPieceEl(p)); }
+    el.classList.toggle('hl', !!last&&(i===last.from||i===last.to));
+  }
+  cbN.textContent=cv.ply+' / '+cv.sans.length;
+  const wc=cvClkAt(cv.ply,true), bc=cvClkAt(cv.ply,false);
+  cbTop.querySelector('.ck').textContent=cvFmtClk(cv.topW?wc:bc);
+  cbBot.querySelector('.ck').textContent=cvFmtClk(cv.topW?bc:wc);
+  const over=cv.ply===cv.sans.length&&!cv.err;   // at the final position nobody is "to move"
+  cbTop.querySelector('.ck').classList.toggle('on',!over&&st.w===cv.topW);
+  cbBot.querySelector('.ck').classList.toggle('on',!over&&st.w!==cv.topW);
+}
+function cvStep(d){ cvShow(cv.ply+d); }
+cbWrap.querySelector('#cb-ctl').addEventListener('click',e=>{
+  const a=e.target.dataset&&e.target.dataset.a; if(!a) return;
+  if(a==='first') cvShow(0); else if(a==='prev') cvStep(-1);
+  else if(a==='next') cvStep(1); else cvShow(cv.sans.length);
+});
+function facetChessGame(F,gi){ // a digit stencil button (or the auto-develop): hang that game over the cover
   if(!F.games||!F.games[gi]) return;
-  if(location.protocol==='file:'){ window.open(F.games[gi].link,'_blank','noopener'); return; }
-  cbFrame(gi); // start loading immediately (the wrap fades in as the photo folds)
-  F.cbIdx=gi; F.cbOn=true; F.cbT0=performance.now();
+  if(cv.gi!==gi) cvLoad(gi); // same game keeps its position — a look-away/return resumes where you were
+  F.cbIdx=gi; F.cbOn=true;
+  if(!F.cbDis){ F.cbDis=performance.now(); // the ascii cover dissolves under the developing board (once per hold)
+    for(const it of F.items) if(it.dev) it.pD=Math.random()*PHOTO_STAGGER*0.5; }
+}
+function chessBoardActive(){ // the journey arrow keys defer to the board while one is up
+  if(uiState!=='journey'||jMode!=='docked'||stopInfoMode!=='assemble'||!stopFacets) return false;
+  for(const c of stopFacets.facets) if(c.games&&c.cbOn&&c.state==='hold') return true;
+  return false;
 }
 let cbOnDom=false;
 function cbHide(){ if(cbOnDom){ cbOnDom=false; cbWrap.classList.remove('on'); } }
-function updateChessBoard(){ // per-frame, camera final: position the active embed over the cover glyphs
+function updateChessBoard(){ // per-frame, camera final: position the board over the cover glyphs
   let F=null;
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets)
-    for(const c of stopFacets.facets) if(c.games&&c.cbOn&&c.state==='hold'){ F=c; break; }
+    for(const c of stopFacets.facets) if(c.games&&c.state==='hold'){ F=c; break; }
   if(!F){ cbHide(); return; }
-  const emb=F.games[F.cbIdx].emb, fr=cbFrame(F.cbIdx), lay=F.lay;
-  for(const k in cbFrames) cbFrames[k].style.display=(cbFrames[k]===fr)?'':'none';
+  if(!F.cbOn){ // auto-develop: the cover opens the (last viewed) game by itself, like a photo cover
+    const now=performance.now();
+    if(!F.cbT0){ F.cbT0=now+PHOTO_DELAY; cbHide(); return; }
+    if(now<F.cbT0){ cbHide(); return; }
+    facetChessGame(F,Math.max(0,F.cbIdx));
+    if(!F.cbOn){ cbHide(); return; }
+  }
   // project the cover-grid rect with THIS frame's camera (render hasn't run yet — refresh the inverse ourselves)
   camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+  const lay=F.lay;
   _cfC.copy(F.anchor).addScaledVector(F.right,(lay.imgCX||0)*F.f).addScaledVector(F.up,lay.imgCY*F.f);
   if(_cfE.copy(_cfC).sub(camera.position).dot(F.dir)<=0.5){ cbHide(); return; } // behind / edge-on
   cfProject(_cfE.copy(_cfC).addScaledVector(F.right,lay.imgW*F.f/2),_cfP1);
   cfProject(_cfE.copy(_cfC).addScaledVector(F.up,lay.imgH*F.f/2),_cfP2);
   cfProject(_cfE.copy(_cfC),_cfP0);
   const rw=Math.abs(_cfP1.x-_cfP0.x)*2, rh=Math.abs(_cfP2.y-_cfP0.y)*2;
-  const natH=cbNatH[emb]||612, cropH=Math.max(300,natH-CB_CROP);
-  const s=Math.min(rw/CB_W, rh/cropH); // uniform fit into the grid rect (header+board+controls)
-  /* the IFRAME is the crop: its own viewport clips the move list + footer (scrolling=no).
-     Never let it overhang the wrap — a cross-origin iframe composites as its own layer,
-     and the overhang blacks out the canvas beneath it (that ate the GAME buttons once). */
-  const hAttr=Math.round(cropH); if(+fr.height!==hAttr) fr.height=hAttr;
-  fr.style.transform='scale('+s+')';
-  cbWrap.style.left=(_cfP0.x-CB_W*s/2)+'px'; cbWrap.style.top=(_cfP0.y-cropH*s/2)+'px';
-  cbWrap.style.width=(CB_W*s)+'px'; cbWrap.style.height=(cropH*s)+'px';
+  const s=Math.min(rw/CB_W, rh/CB_H); // uniform fit into the grid rect
+  /* ONE composited transform — no per-frame layout, so the board rides the breathing
+     drift and drag-look as smoothly as the glyphs (the v65 iframe re-laid-out its
+     width/height every frame and visibly shimmered). */
+  cbWrap.style.transform='translate3d('+(_cfP0.x-CB_W*s/2)+'px,'+(_cfP0.y-CB_H*s/2)+'px,0) scale('+s+')';
   if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); }
 }
-
 /* (v61: the piano video overlay is gone — the recordings play INSIDE the scene on the
    facet's own video plane; see the in-scene video block near buildPhotoTiles.) */
 
@@ -3564,7 +3790,7 @@ function updateFacet(F,now,dt){
   // the develop: shortly after the ASCII settles, the real front page fades in tile
   // by tile while the image glyphs dissolve beneath it (the title stays as glyphs)
   if(F.photoKey){
-    const holding=(F.state==='hold')&&!F.cbOn; // an open chess embed folds the developed photo under it (v65)
+    const holding=(F.state==='hold')&&!F.cbOn&&!F.vOn&&!F.vSwap; // an open chess board, playing video or mid-swap folds the developed photo (v66)
     if(holding&&!F.pOn){
       if(!F.pT0) F.pT0=now+PHOTO_DELAY;
       else if(now>=F.pT0){
@@ -3592,11 +3818,25 @@ function updateFacet(F,now,dt){
       } else { // any other state: the photo folds away fast, glyph restore is handled by the flights
         for(const tl of F.tiles){
           if(!tl.visible) continue;
-          renderDirty=true; // the chess-embed fold happens in 'hold', where nothing else keeps frames coming
+          renderDirty=true; // the chess-board/video fold happens in 'hold', where nothing else keeps frames coming
           tl.material.opacity-=dt*4;
           if(tl.material.opacity<=0){ tl.material.opacity=0; tl.visible=false; }
         }
+        if(F.pKill&&!F.tiles.some(tl=>tl.visible)){ // vnext retired this still: free its tiles, re-arm the develop for the new photoKey
+          for(const tl of F.tiles){ scene.remove(tl); tl.geometry.dispose(); tl.material.dispose(); }
+          F.tiles=null; F.pKill=false; F.pT0=0; F.pOn=false; F.pDone=false;
+        }
       }
+    }
+  }
+  // the chess cover's cells dissolve under the auto-developed board (v66) — same move
+  // as the photo develop, but the "photo" is the projected DOM board in #cboard
+  if(F.games&&F.cbOn&&F.state==='hold'&&F.cbDis){
+    if(now-F.cbDis<PHOTO_STAGGER*0.5+PHOTO_TILE_MS+120) renderDirty=true; // in 'hold' nothing else keeps frames coming
+    for(const it of F.items){
+      if(!it.dev||!it.done) continue;
+      const q=Math.min(1,Math.max(0,(now-F.cbDis-it.pD)/PHOTO_TILE_MS));
+      it.m.material.opacity=Math.min(it.m.material.opacity,1-q); it.m.visible=q<1;
     }
   }
   updateFacetVideo(F,now,dt); // in-scene video (v61): develop/fold the plane, animate the next-still swap
@@ -3691,6 +3931,10 @@ function facetNextVideo(F){
   if(!F.vids||F.vids.length<2) return;
   stopFacetVideo(F); // fold the plane; the update loop fades it out
   F.vIdx=(F.vIdx+1)%F.vids.length;
+  // the developed still retires with the old recording (v66): its tiles fold (the photo
+  // gate sees vSwap), pKill frees them, then the machinery develops the NEW still
+  F.photoKey=COVER_PHOTOS[F.vids[F.vIdx].ascii]?F.vids[F.vIdx].ascii:null;
+  if(F.tiles) F.pKill=true; else { F.pT0=0; F.pOn=false; F.pDone=false; }
   const A=ASCII_COVERS[F.vids[F.vIdx].ascii], now=performance.now();
   F.vSwap={t0:now};
   for(const it of F.items){
@@ -3802,7 +4046,7 @@ function tourReset(){ tour.p=tour.pT=0; tour.hint=false; tour.k=-1; }
 function tourDwell(yawOff){ // how long to hold on whatever hangs at this gaze offset
   if(!stopFacets) return 4000;
   for(const F of stopFacets.facets)
-    if(Math.abs(wrapAng((stopFacets.yaw0+yawOff)-F.yaw))<0.05) return F.photoKey?6200:5000; // covers need their develop beat
+    if(Math.abs(wrapAng((stopFacets.yaw0+yawOff)-F.yaw))<0.05) return (F.photoKey||F.games)?6200:5000; // covers need their develop beat
   return 4000;
 }
 function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet around the panorama
@@ -4379,6 +4623,8 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape'&&moreOpen){ hideMore(); return; } // close the read-more card first
   if(e.key==='Escape'&&(uiState==='journey'||uiState==='entering')){ beginExit(); return; }
   if(uiState!=='journey'||jMode!=='docked') return;
+  if(chessBoardActive()&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){ // the chess board owns ←/→ while it's up
+    cvStep(e.key==='ArrowRight'?1:-1); e.preventDefault(); return; }
   if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '||e.key==='ArrowRight') departTo(dockIdx+1);
   else if(e.key==='ArrowUp'||e.key==='PageUp'||e.key==='ArrowLeft') departTo(dockIdx-1);
 });
