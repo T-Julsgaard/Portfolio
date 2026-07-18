@@ -2033,22 +2033,34 @@ const MINIME2={cols:26,rows:66,g:[
 '  :::..:.       :-.:::.   ','  =-:::.         :=--:-   ','  --::            -===:   '
 ]};
 /* welcome-figure options (dev panel > Welcome figure). Each: the glyph grid + its display
-   pitch (cw/ch/s, facet units) + optional wave descriptor — the hand-cluster grid box
-   [c0..c1]×[r0..r1], the shoulder pivot (pc,pr) it rotates about, and the raised base angle
-   (rad, negative = clockwise, lifts the viewer-left hand up-and-out). 'scene' is the new
-   seated figure (default, waves); 'classic' is the original headshot (static, no arm). */
+   pitch (cw/ch/s, facet units) + optional wave descriptor — a TWO-SEGMENT arm (the whole
+   viewer-left arm waves, not just the hand): 'up' is the upper-arm grid box and 'lo' the
+   forearm+hand boxes ([c0..c1]×[r0..r1] each; col 5 is the '.' torso separator and stays
+   put, as do the lap-edge dots the old hand box used to drag along). The upper segment
+   rotates about the shoulder pivot (sc,sr) by b1·envelope; the lower segment rotates about
+   the elbow (ec,er) — carried along by the shoulder rotation — by (b1+b2)·envelope plus
+   the wiggle. Angles rad, negative = up-and-out to the viewer-left. b1/b2 were validated
+   against the real grid (scratchpad arm_check.py): raised pose keeps the hand clear of the
+   section-nav column (right edge at miX0−2.0) and below the head. 'scene' is the seated
+   figure (default, waves); 'classic' is the original headshot (static, no arm). */
 const WFIG={
   scene:{grid:MINIME2, cw:0.130, ch:0.144, s:0.13,
-         wave:{c0:0,c1:5,r0:34,r1:41, pc:5,pr:33, base:-1.5}},
+         wave:{up:{c0:0,c1:4,r0:19,r1:26},
+               lo:[{c0:0,c1:4,r0:27,r1:33},{c0:0,c1:4,r0:34,r1:40}],
+               sc:3.5,sr:18.2, ec:2.5,er:27, b1:-0.5,b2:-1.9}},
   classic:{grid:MINIME, cw:0.165, ch:0.185, s:0.16, wave:null}
 };
 let welcomeFigure=localStorage.getItem('pf_welcome_figure')||'scene';
 /* Greeting-wave styles (dev panel > Welcome Stop > Wave). Each is a motion profile the
-   flagged hand cluster follows as it rotates rigidly about the shoulder pivot:
-   rise → (preHold at the top) → side-to-side wiggle → fall → rest, looped. Fields (ms
-   except angles): baseK scales the figure's raised angle (WFIG…wave.base); back = a small
-   overshoot as the arm snaps up; amp/freq (rad / Hz) set the wave size + speed; decay calms
-   later swings. 'hand' styles are quick small oscillations, 'arm' styles bigger slow swings. */
+   two-segment arm follows: rise → (preHold at the top) → side-to-side wiggle → fall →
+   rest, looped. Fields (ms except angles): baseK scales the figure's raised angles
+   (WFIG…wave.b1/b2); back = a small overshoot as the arm snaps up; amp/freq (rad / Hz)
+   set the wave size + speed; decay calms later swings. The amps were tuned for the old
+   wrist-pivot hand wave; the elbow lever is ~2.4× longer, so WAVE_WIGK scales them down
+   globally rather than retuning every style. WAVE_ARMSHARE bleeds a fraction of the
+   (unlagged) wiggle into the upper arm so the whole limb sways; the forearm follows
+   WAVE_LAG ms behind — a slight whip that reads as a loose, natural wave. */
+const WAVE_WIGK=0.55, WAVE_ARMSHARE=0.35, WAVE_LAG=110;
 const WAVE_STYLES={
   friendly:{rise:340,preHold:90, wig:1500,fall:380,rest:2600, amp:0.26,freq:2.7,baseK:1.00,back:1,decay:0.5},  // warm hand wave (default)
   gentle:  {rise:520,preHold:140,wig:1200,fall:520,rest:3400, amp:0.15,freq:1.9,baseK:0.85,back:0,decay:0.3},  // subtle, understated
@@ -2613,11 +2625,12 @@ function buildWelcomeLayout(){
      Applied after miTop so the figure column stays put; the recentre spreads the rest. */
   const calUp=overFig?0.6:0;
   if(calUp){ for(let i=0;i<calEnd;i++) items[i].y+=calUp; for(const cc of calCells) cc.cy+=calUp; bannerCY+=calUp; }
-  let wavePivot=null, waveBase=0;
-  if(wv){ wavePivot={x:miX0+wv.pc*cwP, y:miTop-wv.pr*chP}; waveBase=wv.base; }
+  let waveS=null, waveE=null, waveB1=0, waveB2=0;
+  if(wv){ waveS={x:miX0+wv.sc*cwP, y:miTop-wv.sr*chP}; waveE={x:miX0+wv.ec*cwP, y:miTop-wv.er*chP}; waveB1=wv.b1; waveB2=wv.b2; }
+  const inWv=(b,c,r)=>c>=b.c0&&c<=b.c1&&r>=b.r0&&r<=b.r1;
   for(let r=0;r<G.rows;r++){ const row=G.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
     const it={ch, x:miX0+c*cwP, y:miTop-r*chP, s:sP, L:COVER_RAMP.indexOf(ch)/9};
-    if(wv&&c>=wv.c0&&c<=wv.c1&&r>=wv.r0&&r<=wv.r1) it.wave=true;
+    if(wv){ if(inWv(wv.up,c,r)) it.wave=1; else for(const b of wv.lo) if(inWv(b,c,r)){ it.wave=2; break; } } // 1 = upper arm (shoulder), 2 = forearm+hand (elbow)
     items.push(it); } }
   /* the section list (v60): the other stops as stencil-bitmap labels (letters MADE of
      '#' glyphs, like the marks — the positive of the punched-out buttons), left-aligned
@@ -2649,10 +2662,10 @@ function buildWelcomeLayout(){
   for(const it of items){ it.x-=cx; it.y-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
   for(const b of btns){ b.cx-=cx; b.cy-=cy; }
-  if(wavePivot){ wavePivot.x-=cx; wavePivot.y-=cy; }
+  if(waveS){ waveS.x-=cx; waveS.y-=cy; waveE.x-=cx; waveE.y-=cy; }
   const ret={items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
           bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns,
-          wavePivot, waveBase};
+          waveS, waveE, waveB1, waveB2};
   if(isHtmlCal){ // the develop image covers exactly the grid glyph cells (full-cell extent, recentred)
     ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=calCX-cx; ret.imgCY=(calTop+calBot)/2+calUp-cy;
   }
@@ -2774,39 +2787,54 @@ function updateWelcomeBanner(now){
 }
 function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', t0:now-WB_GAP+700, letters:[], s:WBAN_CELL*1.15}; hideBannerGlyphs(); }
 function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor()); m.userData.asm=false; } }
-/* the greeting wave: once the figure has settled (facet 'hold'), his flagged hand glyphs
-   rotate as a rigid cluster about the shoulder pivot — a raise (ease up), a ~1 s wiggle,
-   then a lower, then a few seconds at rest, on repeat. Rotation happens in layout space
-   (lx,ly about the pivot) and is remapped to the facet plane, so at angle 0 every glyph
-   sits exactly on its settled position (it.to). Only the settled hand cells move. */
+/* the greeting wave: once the figure has settled (facet 'hold'), his flagged arm glyphs
+   move as a TWO-SEGMENT limb — the upper arm rotates about the shoulder pivot, the
+   forearm+hand about the elbow (itself carried by the shoulder rotation) — a raise
+   (ease up), a ~1 s wiggle, then a lower, then a few seconds at rest, on repeat. The
+   raise/fall envelope drives both segments (b1 at the shoulder, b1+b2 total at the
+   elbow); the wiggle rides mostly on the forearm, WAVE_LAG ms behind the WAVE_ARMSHARE
+   fraction the upper arm carries, so the limb whips a little instead of turning rigidly.
+   Motion happens in layout space (lx,ly) and is remapped to the facet plane, so at
+   angles 0 every glyph sits exactly on its settled position (it.to). Only settled cells move. */
 function waveBack(t){ const s=1.35; return 1+(s+1)*Math.pow(t-1,3)+s*Math.pow(t-1,2); } // slight overshoot as the arm snaps up (own gentler curve — easeOutBack is already taken)
 function waveWin(t){ const e=0.14; return t<e?easeInOut(t/e) : t>1-e?easeInOut((1-t)/e) : 1; } // near-flat amplitude, smooth 0 at both ends → continuous into rise/fall
-function welcomeWaveAngle(tp,base,W){
-  const period=W.rise+(W.preHold||0)+W.wig+W.fall+W.rest, c=tp%period, A=base*(W.baseK||1);
-  if(c<W.rise) return A*(W.back?waveBack(c/W.rise):easeInOut(c/W.rise));   // raise the arm
-  let c2=c-W.rise; const ph=W.preHold||0;
-  if(c2<ph) return A;                                                          // hold up a beat before waving
-  c2-=ph;
-  if(c2<W.wig){ const t=c2/W.wig;                                              // wave side to side
-    const amp=W.amp*waveWin(t)*(W.decay?Math.exp(-W.decay*t):1);
-    return A+amp*Math.sin(2*Math.PI*W.freq*c2/1000); }
-  const c3=c2-W.wig;
-  if(c3<W.fall) return A*(1-easeInOut(c3/W.fall));                             // lower the arm
+function welcomeWaveEnv(tp,W){ // the raise/fall envelope, 0→1→0 across one cycle (holds 1 through preHold + wiggle)
+  const period=W.rise+(W.preHold||0)+W.wig+W.fall+W.rest, c=tp%period;
+  if(c<W.rise) return W.back?waveBack(c/W.rise):easeInOut(c/W.rise);           // raise the arm
+  const c2=c-W.rise-(W.preHold||0)-W.wig;
+  if(c2<0) return 1;                                                           // up: preHold beat + the wiggle window
+  if(c2<W.fall) return 1-easeInOut(c2/W.fall);                                 // lower the arm
   return 0;                                                                    // rest until the next cycle
+}
+function welcomeWaveWig(tp,W){ // the side-to-side oscillation (rad), 0 outside the wiggle window
+  const period=W.rise+(W.preHold||0)+W.wig+W.fall+W.rest;
+  const c2=(tp%period)-W.rise-(W.preHold||0);
+  if(c2<0||c2>=W.wig) return 0;
+  const t=c2/W.wig;
+  return W.amp*waveWin(t)*(W.decay?Math.exp(-W.decay*t):1)*Math.sin(2*Math.PI*W.freq*c2/1000);
 }
 function updateWelcomeWave(now){
   const F=welcome.F;
-  if(!F||F.state!=='hold'||!F.lay.waveBase){ welcome.waveT0=null; return; }
+  if(!F||F.state!=='hold'||!F.lay.waveS){ welcome.waveT0=null; return; }
   if(welcome.waveItems==null) welcome.waveItems=F.items.filter(it=>it.wave);
   if(!welcome.waveItems.length) return;
   if(welcome.waveT0==null) welcome.waveT0=now+900; // a beat to settle before the first wave
-  const W=WAVE_STYLES[welcomeWave]; // 'off' (or unknown) → a=0, cluster pinned at its settled home
-  const piv=F.lay.wavePivot, a=W?welcomeWaveAngle(Math.max(0,now-welcome.waveT0),F.lay.waveBase,W):0;
-  const ca=Math.cos(a), sa=Math.sin(a), f=F.f;
+  const W=WAVE_STYLES[welcomeWave]; // 'off' (or unknown) → angles 0, arm pinned at its settled home
+  const L=F.lay, K=W?(W.baseK||1):0, tp=Math.max(0,now-welcome.waveT0);
+  const e=W?welcomeWaveEnv(tp,W):0;
+  const w =W?WAVE_WIGK*welcomeWaveWig(tp,W):0;                    // upper arm's share, in phase
+  const w2=W?WAVE_WIGK*welcomeWaveWig(Math.max(0,tp-WAVE_LAG),W):0; // forearm follows a beat behind
+  const a1=L.waveB1*K*e+WAVE_ARMSHARE*w;   // upper arm about the shoulder
+  const aT=(L.waveB1+L.waveB2)*K*e+w2;     // forearm+hand about the elbow (total layout-space angle)
+  const S=L.waveS, E=L.waveE, f=F.f;
+  const c1=Math.cos(a1), s1=Math.sin(a1), c2=Math.cos(aT), s2=Math.sin(aT);
+  const Ex=S.x+(E.x-S.x)*c1-(E.y-S.y)*s1, Ey=S.y+(E.x-S.x)*s1+(E.y-S.y)*c1; // the elbow, carried by the shoulder rotation
   for(const it of welcome.waveItems){
     if(!it.done) continue; // not landed yet — leave the flight in charge
-    const dx=it.lx-piv.x, dy=it.ly-piv.y;
-    it.m.position.copy(F.anchor).addScaledVector(F.right,(piv.x+dx*ca-dy*sa)*f).addScaledVector(F.up,(piv.y+dx*sa+dy*ca)*f);
+    let px,py;
+    if(it.wave===2){ const dx=it.lx-E.x, dy=it.ly-E.y; px=Ex+dx*c2-dy*s2; py=Ey+dx*s2+dy*c2; }
+    else           { const dx=it.lx-S.x, dy=it.ly-S.y; px=S.x+dx*c1-dy*s1; py=S.y+dx*s1+dy*c1; }
+    it.m.position.copy(F.anchor).addScaledVector(F.right,px*f).addScaledVector(F.up,py*f);
   }
 }
 /* the section list writes (v60): once the facet settles ('hold'), the nav labels — whose
