@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-18T21:22:36.530Z",
+  "generatedAt": "2026-07-18T22:22:09.602Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 10,
+    "today": 6,
     "month": 78,
     "year": 163,
     "total": 198,
@@ -16,54 +16,12 @@
     }
   },
   "commits": {
-    "today": 10,
+    "today": 6,
     "month": 75,
     "year": 158,
     "total": 189
   },
   "calendar": [
-    {
-      "date": "2025-07-13",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 0
-    },
-    {
-      "date": "2025-07-14",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 1
-    },
-    {
-      "date": "2025-07-15",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 2
-    },
-    {
-      "date": "2025-07-16",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 3
-    },
-    {
-      "date": "2025-07-17",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 4
-    },
-    {
-      "date": "2025-07-18",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 5
-    },
-    {
-      "date": "2025-07-19",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 6
-    },
     {
       "date": "2025-07-20",
       "count": 0,
@@ -2247,6 +2205,12 @@
       "count": 6,
       "level": "FIRST_QUARTILE",
       "weekday": 6
+    },
+    {
+      "date": "2026-07-19",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 0
     }
   ],
   "repos": {
