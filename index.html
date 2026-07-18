@@ -1644,8 +1644,9 @@ const JOURNEY=[
   {xf:-0.24, yf:-0.02},
   /* Interests: chess and ONE piano facet holding both recordings. The piano still
      auto-develops into the current recording's first frame (v66), PLAY brings it to
-     life on an in-scene video plane, and the stencil next-arrow re-assembles the still
-     into the other recording; `vids` lists the recordings, `imgScale` renders the still
+     life on an in-scene video plane, and the skip-track mark re-assembles the still
+     into the other recording; `vids` lists the recordings ('cap' = its caption line —
+     the current one renders bright, the other dim), `imgScale` renders the still
      (and thus the video) bigger than a standard cover. The chess cover auto-develops
      into the site's OWN chess.com-style board (v66 — names, ratings and the bullet
      clocks, which the old emboard embed couldn't show): the digit stencil buttons
@@ -1657,9 +1658,9 @@ const JOURNEY=[
         games:CHESS_GAMES,
         btns:[{t:'1',kind:'cgame',data:0},{t:'2',kind:'cgame',data:1},{t:'3',kind:'cgame',data:2}],
         mark:{img:'chessdotcom', href:'https://www.chess.com/member/julsgaard', cap:"Let's play a game :)"}},
-      {img:'piano1', title:'Piano', sub:'An upright, opened up', imgScale:1.6,
-        blurb:'Recorded at an upright with the front panel off — watching the hammers work is half the performance. PLAY brings the still to life; the arrow assembles the next recording.',
-        vids:[{src:'videos/piano-1.mp4', ascii:'piano1'},{src:'videos/piano-2.mp4', ascii:'piano2'}],
+      {img:'piano1', title:'Piano', sub:'Current practice repertoire', imgScale:2.1, hFit:1.4,
+        vids:[{src:'videos/piano-1.mp4', ascii:'piano1', cap:"Beethoven's Moonlight Sonata - Third Movement (Alternative Interpretation)"},
+              {src:'videos/piano-2.mp4', ascii:'piano2', cap:"Beethoven's Pathétique Sonata - Third Movement (Alternative Interpretation)"}],
         btns:[{t:'PLAY',kind:'vplay'}]}
     ]}},
   {xf: 0.32, yf:-0.14},
@@ -2330,12 +2331,15 @@ const ROT_ARROWS_SM={
     ':=+%###',
     '.....#.'],
 };
-const VNEXT_ART=[
-  '+..#..',
-  '.+..#.',
-  '..+..#',
-  '.+..#.',
-  '+..#..'];
+const VNEXT_ART=[ // v67: skip-track mark (solid triangle + stop bar, the ⏭ media idiom) —
+  // deliberately NOT a chevron: the old design read as one of the rotation-hint arrows
+  '#......@',
+  '###....@',
+  '#####..@',
+  '#####%.@',
+  '#####..@',
+  '###....@',
+  '#......@'];
 function layArrowArt(items,art,cell,x0,yTop,mirror,extra){ // -> {w,h}; x0 = LEFT edge, yTop = top edge
   const rows=art.length, cols=art[0].length;
   for(let r=0;r<rows;r++){ const line=art[r];
@@ -2358,6 +2362,7 @@ function addFlankArrows(lay,art){ // a mirrored arrow pair flanking a finished (
 }
 const BTN_CELL=0.19;                                 // stencil cell size (layout units; v41: 0.26→0.19, slightly smaller buttons)
 const BTN_DIM=new THREE.Color('#a8a8a8'), BTN_HOT=new THREE.Color('#ffffff'); // idle pulse range; hover pins to HOT
+const VCAP_HOT=new THREE.Color('#ffffff'), VCAP_DIM=new THREE.Color('#5f5f5f'); // caption tracklist (v67): current recording bright, the other dim
 const BTN_POP_DELAY=1500, BTN_POP_MS=450;            // the download button's attention "pop" after the facet settles
 let stopFacets=null, asmRetired=[];                  // docked stop's facets / facets still flying home after departure
 let freeYaw=0,freeYawT=0,freePitch=0,freePitchT=0;   // 360° docked look (drag), smoothed
@@ -2447,11 +2452,23 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
   }
   const imgCY0=imgTop-ih/2; y=imgTop-ih-(A?0.9:0.1);
   const btns=[];
-  if(g.vids&&g.vids.length>1){ // v61: the next-recording chevron, hung right of the still
-    const cell=0.30, ax0=iw/2+0.8;
-    const a=layArrowArt(items,VNEXT_ART,cell,ax0,imgCY0+2.5*cell,false,{btn:'vnext'});
+  if(g.vids&&g.vids.length>1){ // v61: the next-recording control (skip-track mark), hung right of the still
+    const cell=0.26, ax0=iw/2+0.8;
+    const a=layArrowArt(items,VNEXT_ART,cell,ax0,imgCY0+VNEXT_ART.length/2*cell,false,{btn:'vnext'});
     btns.push({kind:'vnext', cx:ax0+a.w/2, cy:imgCY0, hw:a.w/2+0.45, hh:a.h/2+0.55});
     if((ax0+a.w)*2>maxW) maxW=(ax0+a.w)*2;
+  }
+  if(g.vids){ // v67: one caption line per recording under the still — a mini tracklist; the
+    // current recording's line renders bright, the other dim (updateFacetVideo recolors)
+    let first=true;
+    g.vids.forEach((vd,vi)=>{ if(!vd.cap) return;
+      if(first){ y-=0.15; first=false; }
+      const t=asciiSafe(vd.cap), s=Math.min(0.5,(iw-0.6)/Math.max(1,layoutLine(t,1).w));
+      const {xs,w:lw}=layoutLine(t,s);
+      if(lw+1>maxW) maxW=lw+1;
+      for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+xs[i], y:y+chBase(ch)*s, s, L:null, vcap:vi}); }
+      y-=s+0.30;
+    });
   }
   if(g.href){ // the mark IS the link: caption pulses, the whole grid+caption is the hit rect
     if(g.cap) addLine(asciiSafe(g.cap),0.5,0.35,'link');
@@ -3067,7 +3084,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         to:new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f),
         s1:li.s*F.f, geoA:glyphGeo(li.ch), L:li.L!==undefined?li.L:null, dev:li.dev||undefined,
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
-        wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr};
+        wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr, vcap:li.vcap};
       F.items.push(rec);
       if(li.btn){ const b=F.btns.find(bb=>bb.kind===li.btn); if(b) b.items.push(rec); } // button glyphs: pulsed/hover-lit each frame while assembled
     }
@@ -3541,6 +3558,22 @@ function chessBoardActive(){ // the journey arrow keys defer to the board while 
 }
 let cbOnDom=false;
 function cbHide(){ if(cbOnDom){ cbOnDom=false; cbWrap.classList.remove('on'); } }
+const _cbP0={x:0,y:0}, _cbP1={x:0,y:0}, _cbP2={x:0,y:0}, _cbP3={x:0,y:0};
+function cbQuadTransform(p0,p1,p2,p3){ // CSS matrix3d mapping the CB_W×CB_H box onto the projected
+  // corner quad (TL,TR,BR,BL, screen px) — the classic square→quad homography (Heckbert),
+  // element transform-origin must be top left. Returns null when degenerate.
+  const u0=p0.x,v0=p0.y,u1=p1.x,v1=p1.y,u2=p2.x,v2=p2.y,u3=p3.x,v3=p3.y;
+  const sx=u0-u1+u2-u3, sy=v0-v1+v2-v3;
+  const dx1=u1-u2, dx2=u3-u2, dy1=v1-v2, dy2=v3-v2;
+  const den=dx1*dy2-dx2*dy1;
+  if(!isFinite(den)||Math.abs(den)<1e-9) return null;
+  const g=(sx*dy2-sy*dx2)/den, h=(dx1*sy-dy1*sx)/den;
+  const a=u1-u0+g*u1, b=u3-u0+h*u3, c=u0;
+  const d=v1-v0+g*v1, e=v3-v0+h*v3, f=v0;
+  const iw=1/CB_W, ih=1/CB_H; // prescale: internal px -> the unit square the map above expects
+  const m='matrix3d('+(a*iw)+','+(d*iw)+',0,'+(g*iw)+','+(b*ih)+','+(e*ih)+',0,'+(h*ih)+',0,0,1,0,'+c+','+f+',0,1)';
+  return m.indexOf('NaN')<0?m:null;
+}
 function updateChessBoard(){ // per-frame, camera final: position the board over the cover glyphs
   let F=null;
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets)
@@ -3558,15 +3591,20 @@ function updateChessBoard(){ // per-frame, camera final: position the board over
   const lay=F.lay;
   _cfC.copy(F.anchor).addScaledVector(F.right,(lay.imgCX||0)*F.f).addScaledVector(F.up,lay.imgCY*F.f);
   if(_cfE.copy(_cfC).sub(camera.position).dot(F.dir)<=0.5){ cbHide(); return; } // behind / edge-on
-  cfProject(_cfE.copy(_cfC).addScaledVector(F.right,lay.imgW*F.f/2),_cfP1);
-  cfProject(_cfE.copy(_cfC).addScaledVector(F.up,lay.imgH*F.f/2),_cfP2);
-  cfProject(_cfE.copy(_cfC),_cfP0);
-  const rw=Math.abs(_cfP1.x-_cfP0.x)*2, rh=Math.abs(_cfP2.y-_cfP0.y)*2;
-  const s=Math.min(rw/CB_W, rh/CB_H); // uniform fit into the grid rect
-  /* ONE composited transform — no per-frame layout, so the board rides the breathing
-     drift and drag-look as smoothly as the glyphs (the v65 iframe re-laid-out its
-     width/height every frame and visibly shimmered). */
-  cbWrap.style.transform='translate3d('+(_cfP0.x-CB_W*s/2)+'px,'+(_cfP0.y-CB_H*s/2)+'px,0) scale('+s+')';
+  /* v67: pin the board to the facet PLANE with a true projective transform — the old
+     translate3d+scale kept it screen-facing, so a drag-look made it swim against the
+     glyphs instead of hanging in the scene. Uniform-fit the CB_W×CB_H stack into the
+     cover-grid rect in WORLD units, project its four corners, and map the box onto that
+     quad with one composited matrix3d — still zero per-frame layout. */
+  const u=Math.min(lay.imgW*F.f/CB_W, lay.imgH*F.f/CB_H); // world units per internal px
+  const HW=CB_W*u/2, HH=CB_H*u/2;
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right,-HW).addScaledVector(F.up, HH),_cbP0); // TL
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right, HW).addScaledVector(F.up, HH),_cbP1); // TR
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right, HW).addScaledVector(F.up,-HH),_cbP2); // BR
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right,-HW).addScaledVector(F.up,-HH),_cbP3); // BL
+  const tf=cbQuadTransform(_cbP0,_cbP1,_cbP2,_cbP3);
+  if(!tf){ cbHide(); return; }
+  cbWrap.style.transform=tf;
   if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); }
 }
 /* (v61: the piano video overlay is gone — the recordings play INSIDE the scene on the
@@ -3956,6 +3994,12 @@ function facetNextVideo(F){
 function updateFacetVideo(F,now,dt){ // per-frame: develop-in, fold-out, end-of-video, the next-swap flights
   if(!F.vids) return;
   const holding=(F.state==='hold');
+  // v67: the caption tracklist — the current recording's line eases to white, the other dims
+  if((F.state==='in'||holding)&&!inverted) for(const it of F.items){
+    if(it.vcap===undefined||!(it.swapped||it.done)||it.vsOn) continue;
+    const c=it.m.material.color, tgt=it.vcap===F.vIdx?VCAP_HOT:VCAP_DIM;
+    if(Math.abs(c.r-tgt.r)>0.002){ c.lerp(tgt,Math.min(1,dt*5)); renderDirty=true; }
+  }
   if(F.vOn&&F.vEl&&F.vEl.ended&&!F.vEnded){ F.vEnded=true; musicRelease(); } // rest on the last frame
   if(F.vPlane){
     if(holding&&F.vOn){
