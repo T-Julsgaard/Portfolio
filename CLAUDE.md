@@ -6,7 +6,7 @@ Orientation in one paragraph: the portrait (a Grainrad ASCII export embedded as 
 
 ## Deep documentation — READ BEFORE TOUCHING a subsystem
 
-This file is a lean index; the detailed subsystem documentation (architecture, validated invariants, tuned constants, and the pitfalls/regressions that already bit us) lives in `docs/`. **Reading the relevant doc before editing is mandatory, not optional** — these systems are full of non-obvious couplings, and every past regression is documented there with its symptom.
+This file is a lean index; the detailed subsystem documentation (architecture, validated invariants, tuned constants, and the pitfalls/regressions that already bit us) lives in `docs/`. **Consulting the relevant doc before editing is mandatory** — these systems are full of non-obvious couplings, and every past regression is documented there with its symptom. But read it *proportionally*: for a small, localized edit, Grep the doc for the relevant headings/keywords and read only those sections; do a full read only for substantive work on a subsystem you haven't touched yet this session.
 
 | Before touching… | Read |
 |---|---|
@@ -25,6 +25,17 @@ When a subsystem changes, update its `docs/` file (and `FACET-ASSEMBLY-MANUAL.md
 - **Never attribute commits to an AI tool** (user requirement, applies to every commit in this repo): no `Co-Authored-By`, no "Generated with" lines.
 - **Always validate camera-math/data-dependent changes** (distances, fog thresholds, grid spacing, terrain clearance, flood-fill reachability) against the real embedded `asciiData` with a quick script before shipping. Node is NOT installed on this machine; Python 3.11 is available as `python`. JS syntax can be checked with the `esprima` pip package.
 - **Keep `AGENTS.md` in sync**: it is read by other agents (Codex/ChatGPT) and must stay byte-identical to this file. After ANY edit to `CLAUDE.md`, copy it over `AGENTS.md` in the same commit — and vice versa if an edit lands in `AGENTS.md` first. The `docs/` files are shared by both and need no mirroring.
+
+## Verification policy — scale effort to the change (token budget)
+
+Verification here has historically been over-done (full multi-stop screenshot drives for logic tweaks). Default to the **cheapest tier that actually proves the change**; escalate only when the tier below can't show the result, or the user explicitly asks for more.
+
+1. **Every change (the floor):** JS syntax check via the `esprima` pip package. Cheap, always do it.
+2. **Data/camera-math changes** (distances, fog, spacing, clearance, flood-fill) **and case-studies content edits** (glyph budget): a quick Python script against the real embedded data, per the Hard rules above. **No browser needed** — do not screenshot a change a script already proved.
+3. **Visual/layout/content changes:** ONE targeted screenshot of the affected stop/state (preview tab or headless CDP) — not a journey tour. Reuse an already-running server/Chrome instance instead of relaunching.
+4. **Journey/camera-path or global visual changes only:** a multi-stop screenshot drive. ffmpeg videos only when the user explicitly asks for one.
+
+Never run tiers 3–4 for changes with no visual surface. Animation *feel* and frame rate can't be judged remotely anyway — for those, just tell the user what to eyeball in a real browser (see Browser testing below).
 
 ## Files
 
@@ -48,3 +59,4 @@ When a subsystem changes, update its `docs/` file (and `FACET-ASSEMBLY-MANUAL.md
 
 - The file CAN be browser-tested from here (since v28/v29): `.claude/launch.json` defines a `portfolio-static` config (`python -m http.server 8123`; `portfolio-static-8124` is a fallback for when another session holds 8123) for the Claude preview tools — navigate, check console logs, screenshot, and drive the journey by clicking `#enter-btn`/rail dots and dispatching PointerEvents on the canvas. Caveats: WebGL there is software-rendered and the hidden tab throttles rAF to ~1/s between tool calls, so animation-timing/FPS observations are unreliable — use it for correctness and settled-state visual parity, not performance numbers.
 - Still report clearly what to check when the user opens changes in a real browser (real-GPU behavior, animation feel and frame rate can only be judged there).
+- Browser testing is tiers 3–4 of the Verification policy above — don't reach for it on logic-only or script-provable changes.
