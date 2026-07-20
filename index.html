@@ -494,6 +494,16 @@
         <div class="row"><span>Fullscreen on enter</span><input type="checkbox" id="toggleFullscreen"></div>
         <div class="row"><span>Invert</span><input type="checkbox" id="toggleInvert"></div>
         <div class="row"><span>Raw (no processing)</span><input type="checkbox" id="toggleRaw"></div>
+        <label>UI font
+          <select id="uiFontSelect">
+            <option value="mono">System mono (classic)</option>
+            <option value="plexmono">IBM Plex Mono</option>
+            <option value="jetbrains">JetBrains Mono</option>
+            <option value="spacegrotesk">Space Grotesk</option>
+            <option value="inter">Inter</option>
+            <option value="garamond">EB Garamond</option>
+          </select>
+        </label>
         <div class="sect-reset" data-reset="render">
           <button type="button" class="sreset-btn">Reset Render</button>
           <div class="sreset-confirm"><span>Sure?</span><button type="button" class="yes">Reset</button><button type="button" class="no">Cancel</button></div>
@@ -1541,11 +1551,11 @@ function terrainH(x,y){ /* tallest glyph within ~±3 units of (x,y); minZ where 
    comments, they drive the bullet clocks. me = which color Thomas played; that
    side sits at the bottom of the board. */
 const CHESS_GAMES=[
-  {w:'Nixkram',wr:2516,b:'Julsgaard',br:1812,base:60,me:'b', cap:'vs Nixkram (2516) - won as Black', link:'https://www.chess.com/game/live/145985164978', // 0-1 bullet, Nov 26 2025 - won as Black
+  {w:'Nixkram',wr:2516,b:'Julsgaard',br:1812,base:60,me:'b', cap:'vs Nixkram (2516) - Bullet', link:'https://www.chess.com/game/live/145985164978', // 0-1 bullet, Nov 26 2025 - won as Black
    pgn:'1. b3 {[%clk 0:00:57.5]} 1... d5 {[%clk 0:00:59.9]} 2. Bb2 {[%clk 0:00:56.9]} 2... Bf5 {[%clk 0:00:59.8]} 3. g3 {[%clk 0:00:56.3]} 3... e6 {[%clk 0:00:59.3]} 4. Bg2 {[%clk 0:00:55.9]} 4... f6 {[%clk 0:00:58.7]} 5. d3 {[%clk 0:00:55.5]} 5... Bd6 {[%clk 0:00:58.1]} 6. Nd2 {[%clk 0:00:55]} 6... Bg6 {[%clk 0:00:57.7]} 7. e3 {[%clk 0:00:54.5]} 7... Ne7 {[%clk 0:00:57.5]} 8. Ne2 {[%clk 0:00:54]} 8... O-O {[%clk 0:00:57.2]} 9. h3 {[%clk 0:00:53.5]} 9... Nd7 {[%clk 0:00:56.8]} 10. a3 {[%clk 0:00:53]} 10... e5 {[%clk 0:00:56.1]} 11. g4 {[%clk 0:00:52.3]} 11... Bf7 {[%clk 0:00:54.9]} 12. Ng3 {[%clk 0:00:50.5]} 12... g6 {[%clk 0:00:53.9]} 13. e4 {[%clk 0:00:49.2]} 13... d4 {[%clk 0:00:52.9]} 14. Qe2 {[%clk 0:00:48.1]} 14... Kg7 {[%clk 0:00:52.4]} 15. h4 {[%clk 0:00:47.1]} 15... Rh8 {[%clk 0:00:51.9]} 16. h5 {[%clk 0:00:46.2]} 16... g5 {[%clk 0:00:51.4]} 17. h6+ {[%clk 0:00:45]} 17... Kf8 {[%clk 0:00:47.5]} 18. Nf5 {[%clk 0:00:44.5]} 18... Nxf5 {[%clk 0:00:46.5]} 19. exf5 {[%clk 0:00:42.6]} 19... Ke7 {[%clk 0:00:46]} 20. Bxb7 {[%clk 0:00:41.2]} 20... Rb8 {[%clk 0:00:44.8]} 21. Bg2 {[%clk 0:00:40.9]} 21... c5 {[%clk 0:00:44.3]} 22. Ne4 {[%clk 0:00:40.1]} 22... Nb6 {[%clk 0:00:42.6]} 23. Nxd6 {[%clk 0:00:37.6]} 23... Qxd6 {[%clk 0:00:42.5]} 24. a4 {[%clk 0:00:35]} 24... Bd5 {[%clk 0:00:42]} 25. Be4 {[%clk 0:00:32.8]} 25... Bxe4 {[%clk 0:00:40]} 26. Qxe4 {[%clk 0:00:31.5]} 26... a5 {[%clk 0:00:39.9]} 27. Ba3 {[%clk 0:00:30.6]} 27... Nd7 {[%clk 0:00:38.2]} 28. O-O {[%clk 0:00:27]} 28... Nb6 {[%clk 0:00:34.6]} 29. Rae1 {[%clk 0:00:26]} 29... Nd5 {[%clk 0:00:33.6]} 30. Qg2 {[%clk 0:00:21]} 30... Nc3 {[%clk 0:00:32.8]} 31. f4 {[%clk 0:00:19.8]} 31... gxf4 {[%clk 0:00:30.7]} 32. Rxf4 {[%clk 0:00:19.7]} 32... Kf7 {[%clk 0:00:28.8]} 33. Rf3 {[%clk 0:00:18.2]} 33... Rbg8 {[%clk 0:00:28.3]} 34. Rg3 {[%clk 0:00:17.5]} 34... Rg5 {[%clk 0:00:27.3]} 35. Bc1 {[%clk 0:00:16.4]} 35... Nd5 {[%clk 0:00:26.6]} 36. Bxg5 {[%clk 0:00:15]} 36... fxg5 {[%clk 0:00:26.5]} 37. Rf1 {[%clk 0:00:14.3]} 37... Nf4 {[%clk 0:00:25.9]} 38. Qe4 {[%clk 0:00:12]} 38... Rg8 {[%clk 0:00:24.3]} 39. Re1 {[%clk 0:00:10.8]} 39... Kf6 {[%clk 0:00:22.5]} 40. Rf3 {[%clk 0:00:09.6]} 40... Re8 {[%clk 0:00:21.4]} 41. Qb7 {[%clk 0:00:08]} 41... Qe7 {[%clk 0:00:19.7]} 42. Qe4 {[%clk 0:00:07]} 42... Qd6 {[%clk 0:00:18.3]} 43. Qb7 {[%clk 0:00:05.8]} 43... Re7 {[%clk 0:00:17.9]} 44. Qe4 {[%clk 0:00:05.1]} 44... Qb6 {[%clk 0:00:16.5]} 45. Ref1 {[%clk 0:00:05]} 45... Qd6 {[%clk 0:00:15.6]} 46. Rxf4 {[%clk 0:00:04.9]} 46... gxf4 {[%clk 0:00:15.1]} 47. Qf3 {[%clk 0:00:04.4]} 47... Re8 {[%clk 0:00:13.2]} 48. Qh3 {[%clk 0:00:04.3]} 48... Rg8 {[%clk 0:00:11.8]} 49. g5+ {[%clk 0:00:04.2]} 49... Rxg5+ {[%clk 0:00:10.8]} 50. Kh1 {[%clk 0:00:04.1]} 50... Qe7 {[%clk 0:00:09.7]} 51. Qf3 {[%clk 0:00:04]} 51... Qf7 {[%clk 0:00:09.2]} 52. Qe4 {[%clk 0:00:03.9]} 52... Qh5# {[%clk 0:00:08.8]} 0-1'},
-  {w:'kratoscollection',wr:2324,b:'Julsgaard',br:1767,base:60,me:'b', cap:'vs kratoscollection (2324) - won as Black', link:'https://www.chess.com/game/live/145045309634', // 0-1 bullet, Nov 2 2025 - won as Black
+  {w:'kratoscollection',wr:2324,b:'Julsgaard',br:1767,base:60,me:'b', cap:'vs kratoscollection (2324) - Bullet', link:'https://www.chess.com/game/live/145045309634', // 0-1 bullet, Nov 2 2025 - won as Black
    pgn:'1. d3 {[%clk 0:00:59.9]} 1... g6 {[%clk 0:00:59.7]} 2. c3 {[%clk 0:00:59.8]} 2... Bg7 {[%clk 0:00:59.6]} 3. Qc2 {[%clk 0:00:59.6]} 3... Nf6 {[%clk 0:00:59.5]} 4. e4 {[%clk 0:00:59]} 4... d5 {[%clk 0:00:58.6]} 5. Be2 {[%clk 0:00:58.9]} 5... dxe4 {[%clk 0:00:57.6]} 6. dxe4 {[%clk 0:00:58.8]} 6... Be6 {[%clk 0:00:56.6]} 7. Be3 {[%clk 0:00:58.7]} 7... Nc6 {[%clk 0:00:55.6]} 8. Nd2 {[%clk 0:00:58.6]} 8... Qd7 {[%clk 0:00:54.4]} 9. h3 {[%clk 0:00:58.5]} 9... O-O-O {[%clk 0:00:53.9]} 10. a4 {[%clk 0:00:58.3]} 10... Ne5 {[%clk 0:00:52.2]} 11. g4 {[%clk 0:00:58.2]} 11... Nc4 {[%clk 0:00:50.8]} 12. f4 {[%clk 0:00:58.1]} 12... Nxe3 {[%clk 0:00:49.5]} 13. Qb1 {[%clk 0:00:57.1]} 13... Ng2+ {[%clk 0:00:47.9]} 14. Kf2 {[%clk 0:00:56.7]} 14... Nxf4 {[%clk 0:00:47]} 15. Bf1 {[%clk 0:00:56.6]} 15... Nd3+ {[%clk 0:00:45.8]} 16. Kg2 {[%clk 0:00:55.1]} 16... Nc5 {[%clk 0:00:45.2]} 17. Ngf3 {[%clk 0:00:55]} 17... Ncxe4 {[%clk 0:00:44.6]} 18. Nxe4 {[%clk 0:00:54.1]} 18... Nxe4 {[%clk 0:00:44.1]} 19. Qxe4 {[%clk 0:00:54]} 19... h5 {[%clk 0:00:37.7]} 20. g5 {[%clk 0:00:53.1]} 20... Bd5 {[%clk 0:00:34.9]} 21. Qe3 {[%clk 0:00:52.4]} 21... Qf5 {[%clk 0:00:34.1]} 22. Qxa7 {[%clk 0:00:51.1]} 22... Qxf3+ {[%clk 0:00:31.9]} 23. Kg1 {[%clk 0:00:50.6]} 23... Qg3+ {[%clk 0:00:30.5]} 24. Bg2 {[%clk 0:00:49.2]} 24... Qxg2# {[%clk 0:00:29.4]} 0-1'},
-  {w:'Julsgaard',wr:1802,b:'DonquixotDoflamingo',br:2202,base:60,me:'w', cap:'vs DonquixotDoflamingo (2202) - won as White', link:'https://www.chess.com/game/live/147627507266', // 1-0 bullet, Jan 5 2026 - won as White
+  {w:'Julsgaard',wr:1802,b:'DonquixotDoflamingo',br:2202,base:60,me:'w', cap:'vs DonquixotDoflamingo (2202) - Bullet', link:'https://www.chess.com/game/live/147627507266', // 1-0 bullet, Jan 5 2026 - won as White
    pgn:'1. d4 {[%clk 0:00:58.5]} 1... e5 {[%clk 0:00:59.8]} 2. Bf4 {[%clk 0:00:58.1]} 2... exf4 {[%clk 0:00:58.9]} 3. e3 {[%clk 0:00:57.5]} 3... fxe3 {[%clk 0:00:57.1]} 4. fxe3 {[%clk 0:00:57.4]} 4... Nf6 {[%clk 0:00:56.4]} 5. Nf3 {[%clk 0:00:57.3]} 5... Bb4+ {[%clk 0:00:55.1]} 6. c3 {[%clk 0:00:56.5]} 6... Be7 {[%clk 0:00:54.5]} 7. Nbd2 {[%clk 0:00:56.4]} 7... d5 {[%clk 0:00:54]} 8. Nc4 {[%clk 0:00:56.3]} 8... c6 {[%clk 0:00:53.7]} 9. Nce5 {[%clk 0:00:55.4]} 9... Nbd7 {[%clk 0:00:52.3]} 10. Bd3 {[%clk 0:00:53.9]} 10... Nxe5 {[%clk 0:00:51.7]} 11. Nxe5 {[%clk 0:00:53.8]} 11... Be6 {[%clk 0:00:50.3]} 12. Qf3 {[%clk 0:00:52.8]} 12... O-O {[%clk 0:00:48.9]} 13. h3 {[%clk 0:00:50.9]} 13... Nd7 {[%clk 0:00:47.7]} 14. Ng4 {[%clk 0:00:48.3]} 14... f5 {[%clk 0:00:43.8]} 15. Ne5 {[%clk 0:00:47.2]} 15... Nxe5 {[%clk 0:00:43]} 16. dxe5 {[%clk 0:00:47.1]} 16... Bc5 {[%clk 0:00:41.4]} 17. O-O-O {[%clk 0:00:45.3]} 17... a5 {[%clk 0:00:40]} 18. Qh5 {[%clk 0:00:43.6]} 18... h6 {[%clk 0:00:38.8]} 19. Qg6 {[%clk 0:00:41.8]} 19... Qg5 {[%clk 0:00:36.9]} 20. Qxg5 {[%clk 0:00:39.7]} 20... hxg5 {[%clk 0:00:36.8]} 21. g4 {[%clk 0:00:38.1]} 21... Bxe3+ {[%clk 0:00:31.5]} 22. Kc2 {[%clk 0:00:37.6]} 22... f4 {[%clk 0:00:31]} 23. h4 {[%clk 0:00:35.8]} 23... Bxg4 {[%clk 0:00:21.8]} 24. hxg5 {[%clk 0:00:34.7]} 24... Bxd1+ {[%clk 0:00:20.2]} 25. Kxd1 {[%clk 0:00:33.4]} 25... c5 {[%clk 0:00:19.3]} 26. Bg6 {[%clk 0:00:32.6]} 26... d4 {[%clk 0:00:15.8]} 27. Bh7+ {[%clk 0:00:31.1]} 27... Kf7 {[%clk 0:00:14.5]} 28. g6+ {[%clk 0:00:30.7]} 28... Ke7 {[%clk 0:00:13.3]} 29. Rh5 {[%clk 0:00:29.3]} 29... dxc3 {[%clk 0:00:11.6]} 30. bxc3 {[%clk 0:00:28.3]} 30... Rad8+ {[%clk 0:00:11.3]} 31. Ke2 {[%clk 0:00:27.2]} 31... Rd2+ {[%clk 0:00:11.2]} 32. Kf3 {[%clk 0:00:26.5]} 32... Rfd8 {[%clk 0:00:10.5]} 33. Ke4 {[%clk 0:00:26.2]} 33... c4 {[%clk 0:00:08.6]} 34. Bg8 {[%clk 0:00:25.6]} 34... R2d4+ {[%clk 0:00:06.1]} 35. Kf5 {[%clk 0:00:24.5]} 35... R4d7 {[%clk 0:00:04.1]} 36. Bxc4 {[%clk 0:00:23.1]} 36... Rf8+ {[%clk 0:00:02.2]} 37. Ke4 {[%clk 0:00:22.6]} 37... Rc7 {[%clk 0:00:02]} 38. Bb5 {[%clk 0:00:20.9]} 38... Rxc3 {[%clk 0:00:01.9]} 39. Rh7 {[%clk 0:00:19.8]} 39... Rc5 {[%clk 0:00:01.8]} 40. Rxg7+ {[%clk 0:00:19.2]} 40... Ke6 {[%clk 0:00:01]} 41. Bd7# {[%clk 0:00:16.6]} 1-0'},
 ];
 const JOURNEY=[
@@ -1683,7 +1693,7 @@ const JOURNEY=[
     gallery:[
       {img:'chessboard', title:'Chess', imgScale:1.95, hFit:1.5,
         games:CHESS_GAMES,
-        mark:{img:'chessdotcom', href:'https://www.chess.com/member/julsgaard', cap:"Let's play a game :)", cap2:'chess.com ->', side:true, tilt:-0.16}},
+        mark:{img:'chessdotcom', href:'https://www.chess.com/member/julsgaard', cap:"Let's play a game :)", s:0.24, side:true, tilt:-0.16}},
       {img:'piano1', title:'Piano', sub:'Current practice repertoire', imgScale:2.1, hFit:1.4,
         vids:[{src:'videos/piano-1.mp4', ascii:'piano1', cap:"Beethoven's Moonlight Sonata - Third Movement (Alternative Interpretation)"},
               {src:'videos/piano-2.mp4', ascii:'piano2', cap:"Beethoven's Pathétique Sonata - Third Movement (Alternative Interpretation)"}],
@@ -2585,8 +2595,8 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
     const r=layBtnRow(items,btns,bdefs,y,maxW,g.btnCell); y=r.y; maxW=r.maxW;
   }
   if(g.mark&&g.mark.side){ // v68: the mark hangs BESIDE the grid, gently tilted — a pinned club
-    // card next to the board. Pawn on top, caption lines (wrapped) beneath, an explicit
-    // 'chess.com ->' line (cap2) as the link affordance; the whole block rotates by
+    // card next to the board. v70: caption lines (wrapped) on TOP, the pawn beneath and
+    // smaller (`mark.s`), no cap2 line; the whole block rotates by
     // `tilt` about its centre (glyphs stay upright — the tilted BASELINE reads as the
     // tilt, in keeping with the ASCII idiom) and sits right of the projected board.
     const A2=ASCII_COVERS[g.mark.img], ms=g.mark.s||0.34, mcw=A2.cw*ms, mch=A2.ch*ms;
@@ -2595,13 +2605,13 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
     if(g.mark.cap2) lines.push([asciiSafe(g.mark.cap2),0.38]);
     let bW=mw, bH=mh+0.35; for(const [t,s] of lines){ bW=Math.max(bW,layoutLine(t,s).w); bH+=s+0.24; }
     const start=items.length;
-    { let ly=bH/2; // local layout, centred on (0,0)
-      for(let r=0;r<A2.rows;r++)for(let c=0;c<A2.cols;c++){ const a=A2.g[r][c]; if(a===' ') continue;
-        items.push({ch:a, x:(c+0.5)*mcw-mw/2, y:ly-(r+0.5)*mch, s:mch*1.05, L:COVER_RAMP.indexOf(a)/9}); }
-      ly-=mh+0.35;
+    { let ly=bH/2; // local layout, centred on (0,0) — caption first, pawn beneath (v70)
       for(const [t,s] of lines){ const {xs,w:lw}=layoutLine(t,s);
         for(let i=0;i<t.length;i++){ const ch2=t[i]; if(ch2!==' ') items.push({ch:ch2, x:-lw/2+xs[i], y:ly-s+chBase(ch2)*s, s, L:null, btn:'link'}); }
-        ly-=s+0.24; } }
+        ly-=s+0.24; }
+      ly-=0.35;
+      for(let r=0;r<A2.rows;r++)for(let c=0;c<A2.cols;c++){ const a=A2.g[r][c]; if(a===' ') continue;
+        items.push({ch:a, x:(c+0.5)*mcw-mw/2, y:ly-(r+0.5)*mch, s:mch*1.05, L:COVER_RAMP.indexOf(a)/9}); } }
     const th=g.mark.tilt||-0.16, ct=Math.cos(th), st2=Math.sin(th);
     const rw=(bW*ct+bH*Math.abs(st2))/2, rh=(bH*ct+bW*Math.abs(st2))/2; // rotated half-extents
     // the DOM board uniform-fits inside the grid rect, so its real half-width is known here:
@@ -5289,6 +5299,36 @@ bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>
 // (and the next look-back replay) just follow the new values
 bindRange('welNavDelay','valWelNavDelay',v=>{ WNAV_DELAY=v*1000; },v=>v.toFixed(1)+'s');
 bindRange('welNavStep','valWelNavStep',v=>{ WNAV_STEP=v*1000; },v=>v.toFixed(1)+'s');
+/* v70: UI font switcher (dev tools ▸ Render). Swaps the HTML/UI body font only — the 3D
+   scene glyphs draw from their own geometry/atlas and never follow CSS. Google Fonts
+   stylesheets are injected lazily the first time a webfont is picked (nothing external
+   loads while the classic system-mono default is active); the choice persists in
+   localStorage pf_ui_font and participates in Set-default/Reset like any Render control. */
+const UI_FONTS={
+  mono:{css:'"SFMono-Regular", ui-monospace, "DejaVu Sans Mono", monospace'},
+  plexmono:{g:'IBM+Plex+Mono:wght@400;500;600', css:'"IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace'},
+  jetbrains:{g:'JetBrains+Mono:wght@400;500;600', css:'"JetBrains Mono", "SFMono-Regular", ui-monospace, monospace'},
+  spacegrotesk:{g:'Space+Grotesk:wght@400;500;600', css:'"Space Grotesk", system-ui, sans-serif'},
+  inter:{g:'Inter:wght@400;500;600', css:'"Inter", system-ui, sans-serif'},
+  garamond:{g:'EB+Garamond:wght@400;500;600', css:'"EB Garamond", Georgia, serif'}
+};
+let uiFont=localStorage.getItem('pf_ui_font')||'mono';
+const uiFontLoaded={};
+function applyUIFont(id){
+  const f=UI_FONTS[id]||UI_FONTS.mono;
+  if(f.g&&!uiFontLoaded[id]){
+    const l=document.createElement('link'); l.rel='stylesheet';
+    l.href='https://fonts.googleapis.com/css2?family='+f.g+'&display=swap';
+    document.head.appendChild(l); uiFontLoaded[id]=true;
+  }
+  document.body.style.fontFamily=f.css;
+}
+applyUIFont(uiFont);
+const uiFontSelect=document.getElementById('uiFontSelect');
+uiFontSelect.value=UI_FONTS[uiFont]?uiFont:'mono';
+uiFontSelect.addEventListener('change',()=>{
+  uiFont=uiFontSelect.value; try{ localStorage.setItem('pf_ui_font',uiFont); }catch(e){}
+  applyUIFont(uiFont); });
 const inspectCheck=document.getElementById('toggleInspect');
 inspectCheck.addEventListener('change',e=>setInspect(e.target.checked));
 bindRange('inspectHard','valInspectHard',v=>{ inspectHard=v; },v=>Math.round(v*100)+'%');
@@ -5309,6 +5349,7 @@ const CTRL_DEF={
   bloomStrength:['range',BASE_BLOOM], bloomRadius:['range',0.5], bloomThreshold:['range',0.2],
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
+  uiFontSelect:['select','mono'],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
@@ -5318,7 +5359,7 @@ const CTRL_DEF={
   welNavDelay:['range',1.0], welNavStep:['range',0.9]
 };
 const SECT_CTRLS={
-  render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw'],
+  render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
   journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welTitlePosSelect','welSize','welHalo','welNavDelay','welNavStep']
