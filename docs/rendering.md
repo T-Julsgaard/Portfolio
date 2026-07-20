@@ -2,6 +2,12 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v72: overview distance and Raw lifecycle
+
+The overview camera starts exactly 20% farther from the face than the previous framing: `frontPos2.z = midZ + (farDist*0.55-midZ)*1.20`. This is derived from the real portrait bounds, so future portrait swaps retain the ratio rather than inheriting a fixed world-space offset.
+
+**Raw (no processing)** is now a state convention as well as a dev toggle. It is checked/applied on initial overview and whenever the visitor exits or replays the intro; `beginEnter()` unchecks it and calls `applyRaw(false)` before the journey transition. Thus free roam shows the raw Grainrad portrait, while Welcome and all journey stops use the processed journey rendering. `CTRL_DEF.toggleRaw` is `true`, matching the overview factory state.
+
 ## Portrait data and glyph geometry
 
 The portrait data (as of v18) is a direct Grainrad ASCII generator export (172×157 grid, standard charset `.:-=+%#@*`, all-white). The 19 frames in `PROGRESSIVE_FRAMES` (34 → 3,791 glyphs, coarse → fine) drive the "Progressive" load animation; unlike the pre-v18 set (which came from Grainrad itself), they are generated offline by downsampling the embedded `asciiData` onto coarser grids (5 → 64 columns, representative glyph per cell = fine glyph nearest the cell centre, cell z = mean depth) — so a portrait swap requires regenerating them from the new data. Bounds/constants (`centerX/Y`, `spanX/Y`, `midZ`, `farDist`, fog, the journey path and its terrain heightmap) are all derived from the embedded `asciiData`, so swapping the portrait data automatically re-scales the whole scene. Glyph geometry is cached per unique character (`glyphGeo`) and shared across all instances — required at this glyph count — with a dash fallback for symbols the helvetiker font lacks (`∏ ∑ √ ÷ ≠ ≥ ≤ ×`). Since v28 the geometry is a flat `ShapeGeometry` (same font outlines the old extruded TextGeometry used; the 0.02 extrusion was invisible on billboarded unlit glyphs and doubled the triangle count).

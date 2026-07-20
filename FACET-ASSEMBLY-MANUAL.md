@@ -7,6 +7,14 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v72 addendum: linear timeline facets
+
+Work experience and Education have a second navigation presentation selected by `timelineNav` (factory `scroll`; classic `rotate` remains available). Scroll mode does **not** create a separate content system: it builds the normal intro/gallery facets, orders them with the stop's explicit `scrollOrder`, gives every facet the same yaw, and moves only the active facet through the shared forward reading plane. `addTimelineNav()` duplicates a small ASCII index into every layout and registers `timelineN` hit rectangles.
+
+The handoff invariant still applies. `timelineTo()` activates the receiver before calling `facetOut()` on the sender; `facetOut()` remains the sole transfer point through `byMesh`/`hold`. Each item keeps an immutable `baseTo`; `updateTimelineMotion()` adds the temporary vertical offset and never overwrites the canonical target. Departure still sets `noHand=true`. Test overview -> adjacent -> non-adjacent click in both directions, plus switching the dev control between scroll and rotate while docked.
+
+Real embedded-data validation for this implementation: 13,268 terrain glyphs; Work claims 4,646 (8,622 spare), Education claims 3,040 (10,228 spare). The new ASCII indexes therefore do not approach the binding Case-studies budget.
+
 ## 1. The design principles (non-negotiable, from the user)
 
 1. **Every glyph gets used. Nothing fades in place.** The identity of the site is that

@@ -2,6 +2,12 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v72: left-side Welcome and linear timeline navigation
+
+The Welcome waypoint moved to `xf:-0.58, yf:0.82`, putting the assembled composition on the portrait's left while preserving the surrounding terrain as the visible scene. Welcome is a deliberate camera exception: `welcomeLookQuat(pos,out)` points horizontally at `faceCenter`, and it is used by direct entry, flight touchdown, and `assembleStop()`. `buildWelcomeLayout()` uses `cx=0`, so the seated figure and central spine are exactly on that camera axis rather than merely centered inside an asymmetric authored layout.
+
+Work experience and Education default to `timelineNav='scroll'`. Their explicit `scrollOrder` starts at the overview and proceeds newest to oldest. While docked there, wheel and either arrow pair step the internal timeline; clicking an ASCII list entry jumps directly to it. Crossing the list boundary continues to the adjacent journey stop. Auto tour uses the same timeline stepper. The Journey dev-panel setting **Experience & Education** switches to `rotate`, restoring the panorama, drag-look, and rotation-arrow behavior without changing other stops.
+
 ## Scene bounds and the path
 
 Bounds/derived constants are computed once from the embedded `asciiData` JSON (13,268 `{x,y,z,char}` instances): `centerX/Y`, `spanX/Y`, `midZ`, `farDist`. Glyph grid spacing is `0.6` (x) × `1.0` (y) — used wherever code needs real neighbor/row adjacency.

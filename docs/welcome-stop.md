@@ -1,5 +1,11 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v72 - left-side scene framing and under-calendar commit stream
+
+Welcome now assembles over the portrait's left side (`xf:-0.58, yf:0.82`) instead of near the middle. The authored content is unchanged in scale and structure, but `buildWelcomeLayout()` fixes its central spine at local `cx=0`; `welcomeLookQuat()` aims the camera horizontally at `faceCenter` for entry, arrival, and the docked facet. The figure therefore stays dead center while the portrait terrain remains visible around the entire composition. The Welcome bounds were validated against the embedded portrait: the waypoint lies inside the data bounds and the nearest real terrain glyph is 0.601 units away in XY.
+
+The commit banner now emerges from a compact strip immediately under the calendar rather than recruiting visibly across the screen. Cells use a short under-baseline swoop before settling (`WB_FLY=360`, `WB_COL=14`); clearing reverses into that same hidden sink. The saved time becomes reading time (`WB_LINGER=4400`, `WB_GAP=700`). The first stat does not start until the facet is holding, the keyboard greeting has completely typed, and `WB_FIRST_PAUSE=480` ms has elapsed. Classic-title mode uses the hold time plus the same pause.
+
 Deep reference for the first journey stop: the contribution calendar, the commit-ticker banner, the ASCII figure, the section-list nav, and the GitHub Actions stats pipeline. Read this before touching the welcome stop or data/stats.json plumbing.
 
 ## v71 — reference-led composition and an independent greeting

@@ -542,6 +542,12 @@
         </label>
         <div class="row"><span>Auto tour (scroll-only)</span><input type="checkbox" id="toggleAutoTour"></div>
         <div class="row"><span>Cursor sway (docked)</span><input type="checkbox" id="toggleCursorSway"></div>
+        <label>Experience &amp; Education
+          <select id="timelineNavSelect">
+            <option value="scroll">Scroll timeline</option>
+            <option value="rotate">Rotate panorama</option>
+          </select>
+        </label>
         <label>Rotation arrows
           <select id="arrowSelect">
             <option value="stream">Stream (triple chevron)</option>
@@ -1229,7 +1235,7 @@ function applyInvert(on){
    composer), ACES tone mapping, distance fog, the vignette overlay, and the off-white glyph tint —
    so the portrait renders exactly like the raw generator scene: plain antialiased renderer,
    pure #ffffff glyphs on black. The frame loop switches to renderer.render() while this is on. */
-let rawMode=false;
+let rawMode=true;
 function applyRaw(on){
   rawMode=on; renderDirty=true;
   scene.fog=on?null:sceneFog;
@@ -1585,7 +1591,7 @@ const JOURNEY=[
   /* github:true → assemble mode builds this stop with buildWelcomeLayout (title +
      live contribution calendar + commit ticker + the mini-me figure) instead of the
      generic title/body layout. Panel mode still shows the title/body below. */
-  {xf: 0.00, yf: 0.84, stop:{id:'welcome', label:'Welcome', title:'Welcome', github:true, body:'Hi, I\'m Thomas.\nThis landscape is my face — 13,268 ASCII characters of it.\nScroll to travel: the path snakes over the terrain and pauses at six stops, each one a piece of what I do. Drag to look around at any stop.', media:[]}},
+  {xf:-0.58, yf: 0.82, stop:{id:'welcome', label:'Welcome', title:'Welcome', github:true, body:'Hi, I\'m Thomas.\nThis landscape is my face — 13,268 ASCII characters of it.\nScroll to travel: the path snakes over the terrain and pauses at six stops, each one a piece of what I do. Drag to look around at any stop.', media:[]}},
   {xf:-0.26, yf: 0.80},
   /* Work experience: five roles ring the visitor (same 360° facet machinery as the case
      studies), CHRONOLOGICAL — most recent immediately to the RIGHT of the intro, oldest
@@ -1596,7 +1602,7 @@ const JOURNEY=[
      now ('In short' section); `link` adds a "Visit website" line to that card. The
      Earlier-roles card cycles UNICEF/Artium/Brande through the up/down arrows (v68 —
      `vids` slides without `src`, caption tracklist below). */
-  {xf:-0.44, yf: 0.64, stop:{id:'work', label:'Experience', title:'Work experience', body:'Thomas Julsgaard — Techno-Anthropologist. My strength is speaking both \'developer\' and \'user\'.\nFive chapters of work surround this point — drag to look around: each company assembles out of the terrain as you face it, then develops into its logo.', media:[{src:'images/Profile 2.jpeg',caption:'Thomas Julsgaard'}], links:[{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'Download CV'}],
+  {xf:-0.44, yf: 0.64, stop:{id:'work', label:'Experience', title:'Work experience', body:'References are available upon request.', media:[{src:'images/Profile 2.jpeg',caption:'Thomas Julsgaard'}], links:[{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'Download CV'}], scrollOrder:[0,2,4,3,1],
     gallery:[
       {img:'ow', title:'Orange Wheel Advisory', sub:'Technical Analyst & Co-owner · Oct 2025 – present',
         link:'https://orange-wheel.com/',
@@ -1635,15 +1641,14 @@ const JOURNEY=[
      programme lives in the sub. Chronological clockwise like Work: newest (ITU, the
      upcoming MSc) immediately right of the intro, oldest (IBG) immediately left —
      the -1,+1,-2,+2 ring makes that array order [ITU, IBG, AAU, Askov]. */
-  {xf: 0.36, yf: 0.22, stop:{id:'edu', label:'Education', title:'Education', body:'From Ikast-Brande Gymnasium to a BSc in Techno-Anthropology — and, from August 2026, an MSc in Software Design at the IT University of Copenhagen.\nDrag to look around — each chapter assembles as you face it; the diploma downloads as a PDF.', media:[], links:[{href:'pdfs/Thomas Julsgaard, BSc, Teknoantropologi [redacted CPR].pdf',label:'BSc diploma'},{href:'pdfs/Tutor certificate 2023.pdf',label:'Tutor certificate'}],
+  {xf: 0.36, yf: 0.22, stop:{id:'edu', label:'Education', title:'Education', body:'Diplomas are available upon request.', media:[], links:[{href:'pdfs/Tutor certificate 2023.pdf',label:'Tutor certificate'}], scrollOrder:[0,2,3,1],
     gallery:[
       {img:'itu', title:'IT University of Copenhagen', sub:'MSc, Software Design · Aug 2026 – 2028',
         blurb:'Starting August 21, 2026: a two-year MSc in Software Design, specializing in Business Analytics — AI and big data.'},
       {img:'ibg', title:'Ikast-Brande Gymnasium', sub:'Democracy & Globalization · 2017 – 2020',
         blurb:'Upper secondary education on the democracy & globalization line.'},
       {img:'aau', title:'Aalborg University', sub:'BSc, Techno-Anthropology · Copenhagen · 2022 – 2025',
-        blurb:'Weighted average 11.3 on the Danish 7-scale — roughly a 3.9 GPA equivalent. Ethnographic and digital methods, participatory technology assessment, human-centered design.',
-        pdf:'pdfs/Thomas Julsgaard, BSc, Teknoantropologi [redacted CPR].pdf', pdfLabel:'Download the diploma',
+        blurb:'Graduated with a Danish grade average of 11.3\nEquivalent to a weighted GPA of 3.9/4.0',
         more:{sections:[
           ['The degree','A three-year BSc at Aalborg University Copenhagen built on problem-based learning: every semester pairs coursework with a real-world project for an external partner.'],
           ['Core competencies','Ethnographic methods · qualitative & quantitative methods · user involvement · interviewing · AI alignment · UI/UX research · human-centered design · participatory technology assessment & design · data scraping · network analysis · data visualization · Gephi · philosophy of technology · life-cycle assessment (LCA) · problem-based learning (PBL).']]}},
@@ -1812,8 +1817,13 @@ buildJourney(JCLEAR);
 
 /* overview camera: OrbitControls so the visitor can freely look around the whole portrait before entering
    (left-drag to orbit, ctrl/shift/right-drag to pan, scroll to zoom — OrbitControls' own default scheme) */
-const frontPos2=new THREE.Vector3(centerX, centerY, farDist*0.55); // ~10% further out than the original framing, for a fuller overview
+const frontPos2=new THREE.Vector3(centerX, centerY, midZ+(farDist*0.55-midZ)*1.20); // exactly 20% farther from the face than the previous framing
 const faceCenter=new THREE.Vector3(centerX, centerY, midZ);
+function welcomeLookQuat(pos,out){ // the left-side Welcome stop looks back across the whole portrait
+  _pd.position.copy(pos); _pd.up.set(0,0,1);
+  _pv.set(faceCenter.x,faceCenter.y,pos.z); _pd.lookAt(_pv); _pd.updateMatrixWorld();
+  return out.copy(_pd.quaternion);
+}
 const _dummy=new THREE.PerspectiveCamera();
 _dummy.position.copy(frontPos2); _dummy.up.set(0,1,0); _dummy.lookAt(faceCenter); _dummy.updateMatrixWorld();
 const exploreQuat=_dummy.quaternion.clone();
@@ -2214,6 +2224,7 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    shaded ASCII arrows flanks every facet on multi-facet stops — the "there's more around
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
+let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
 const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge and arrow
 /* ===== AUTO TOUR (v57, dev panel > Journey > "Auto tour", default OFF) =====
    A scroll-only guided mode. In free roam the tour owns the camera: scrolling sweeps a
@@ -2655,6 +2666,32 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-bot, imgW:iw, imgH:ih, imgCY:imgCY0-cy2, btns}; // img* = where the photo plane develops
 }
+/* Work/Education scroll mode: every facet carries the same compact ASCII index. The
+   current line gets a leading '>'; every line is clickable. Plain text keeps the list
+   legible and cheap enough to duplicate across the stop without threatening the pool. */
+const TL_S=0.42, TL_LINE=0.82, TL_GAP=2.2, TL_SLIDE=5.5, TL_MS=900;
+function timelineText(t){
+  t=asciiSafe(t).toUpperCase().replace(/[^\x20-\x7E]/g,'');
+  return t.length>24?t.slice(0,23)+'-':t;
+}
+function addTimelineNav(lay,labels,active){
+  lay.btns=lay.btns||[];
+  const lines=labels.map((t,i)=>(i===active?'> ':'  ')+(i<10?'0':'')+i+' '+timelineText(t));
+  let listW=0; for(const t of lines) listW=Math.max(listW,layoutLine(t,TL_S).w);
+  const oldMin=-lay.w/2, oldMax=lay.w/2, listRight=oldMin-TL_GAP, listLeft=listRight-listW;
+  const listH=Math.max(TL_LINE,lines.length*TL_LINE), yTop=(lines.length-1)*TL_LINE/2;
+  lines.forEach((t,i)=>{
+    const kind='timeline'+i, y=yTop-i*TL_LINE, q=layoutLine(t,TL_S);
+    for(let c=0;c<t.length;c++){ const ch=t[c]; if(ch!==' ') lay.items.push({ch,x:listLeft+q.xs[c],y:y+chBase(ch)*TL_S,s:TL_S,L:null,btn:kind,tf:1}); }
+    lay.btns.push({kind,timeline:i,data:i,cx:listLeft+q.w/2,cy:y,hw:q.w/2+0.35,hh:TL_LINE*0.46});
+  });
+  const minX=listLeft-0.35, maxX=oldMax, cx=(minX+maxX)/2;
+  for(const it of lay.items) it.x-=cx;
+  for(const b of lay.btns) b.cx-=cx;
+  lay.imgCX=(lay.imgCX||0)-cx;
+  lay.w=maxX-minX; lay.h=Math.max(lay.h,listH+0.6); lay.timeline=true;
+  return lay;
+}
 function layBtnRow(items,btns,bdefs,y,maxW,cellOpt){ // one stencil-button row (v59: extracted byte-identical
   // from buildCoverLayout so buildContactLayout shares it): solid '#' blocks, label punched out
   const cell=cellOpt||BTN_CELL, H=9, GAPB=1.6; // 7 font rows + 1 row pad top/bottom; cellOpt (v65): the chess GAME digits render on a bigger grid
@@ -2831,13 +2868,15 @@ function buildWelcomeLayout(){
   for(const it of items){ const h=it.s*0.5; minX=Math.min(minX,it.x-h); maxX=Math.max(maxX,it.x+h); minY=Math.min(minY,it.y-h); maxY=Math.max(maxY,it.y+h); }
   if(typeTitle){ minX=Math.min(minX,tX0); maxX=Math.max(maxX,tX0+tW); minY=Math.min(minY,titleTop-7*tCell); maxY=Math.max(maxY,titleTop); }
   minY=Math.min(minY,bannerCY-WBANNER_S);
-  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  /* Keep the figure exactly on the camera axis. The side groups are intentionally
+     asymmetric; centring their combined bounds nudged the character off-axis. */
+  const cx=0, cy=(minY+maxY)/2, fullW=2*Math.max(Math.abs(minX),Math.abs(maxX));
   for(const it of items){ it.x-=cx; it.y-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
   for(const b of btns){ b.cx-=cx; b.cy-=cy; }
   if(typeTitle){ for(const c of typeTitle.cells){ c.x-=cx; c.y-=cy; } typeTitle.cursorX=typeTitle.cursorX.map(x=>x-cx); typeTitle.yTop-=cy; }
   if(waveS){ waveS.x-=cx; waveS.y-=cy; waveE.x-=cx; waveE.y-=cy; }
-  const ret={items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
+  const ret={items, w:fullW, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
           bannerCX:-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns, typeTitle,
           waveS, waveE, waveB1, waveB2};
   if(isHtmlCal){
@@ -2896,7 +2935,7 @@ function reserveWelcomeBanner(F){
    stencil assembles at c·WB_COL ms, stays WB_LINGER, then streams home, so the HEAD of a long
    message is already dissolving while its TAIL is still arriving: a continuous character
    stream rather than the old write→hold→clear block. */
-const WB_FLY=560, WB_COL=22, WB_LINGER=3400, WB_GAP=700; // LINGER > the longest message's sweep, so every stat is briefly readable whole
+const WB_FLY=360, WB_COL=14, WB_LINGER=4400, WB_GAP=700, WB_FIRST_PAUSE=480;
 const WBAN_CELL=0.15; // nominal stencil cell (matches the section list; long messages shrink to the calendar width)
 function welcomeMessages(){
   if(!statsReady()||!GH_STATS.commits) return ['LOADING COMMITS'];
@@ -2920,9 +2959,13 @@ function startBannerWrite(now){
   hideBannerGlyphs();
   if(letters.length>b.pool.length) letters.length=b.pool.length; // never in practice — the reserve is sized from the messages
   letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=geoT; L.swapped=false; L.held=false; L.out=false; L.done=false;
-    L.from=rec.home.clone();
-    L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.5).addScaledVector(F.right,2.2+Math.random()*1.6).addScaledVector(F.up,0.5+Math.random()*0.8);
-    L.cctrl=new THREE.Vector3().lerpVectors(L.to,rec.home,0.5).addScaledVector(F.right,-(1.6+Math.random()*1.6)).addScaledVector(F.up,0.4+Math.random()*0.7); });
+    /* Reveal from a narrow strip immediately under the calendar, curl below the
+       baseline, then settle upward into the banner. The reverse returns to that
+       strip before the now-invisible proxy snaps home, so neither leg crosses the view. */
+    L.from=L.to.clone().addScaledVector(F.up,1.15+Math.random()*0.45).addScaledVector(F.right,(Math.random()-0.5)*0.8);
+    L.sink=L.from.clone();
+    L.wctrl=L.to.clone().addScaledVector(F.up,-(0.65+Math.random()*0.55)).addScaledVector(F.right,(Math.random()-0.5)*1.8);
+    L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.5).addScaledVector(F.up,-(0.5+Math.random()*0.45)).addScaledVector(F.right,(Math.random()-0.5)*1.4); });
   b.letters=letters; b.s=cell*1.15; b.phase='stream'; b.t0=now;
 }
 function animateBanner(L,p,writing){
@@ -2932,7 +2975,7 @@ function animateBanner(L,p,writing){
     else { m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=0; m.visible=false; m.material.color.set(asmRestColor()); m.userData.asm=false; }
     L.swapped=true; return;
   }
-  const from=writing?L.from:L.to, to=writing?L.to:rec.home, ctrl=writing?L.wctrl:L.cctrl, e=easeInOut(p), ie=1-e;
+  const from=writing?L.from:L.to, to=writing?L.to:L.sink, ctrl=writing?L.wctrl:L.cctrl, e=easeInOut(p), ie=1-e;
   m.visible=true;
   m.position.set(ie*ie*from.x+2*ie*e*ctrl.x+e*e*to.x, ie*ie*from.y+2*ie*e*ctrl.y+e*e*to.y, ie*ie*from.z+2*ie*e*ctrl.z+e*e*to.z);
   if(!L.swapped&&p>=0.5){ m.geometry=writing?L.geoT:rec.geo0; m.material.color.set(writing?(inverted?GLYPH_DARK:'#ffffff'):asmRestColor()); m.userData.asm=writing; L.swapped=true; }
@@ -2941,7 +2984,15 @@ function animateBanner(L,p,writing){
 }
 function updateWelcomeBanner(now){
   const b=welcome.banner;
-  if(b.phase==='wait'){ if(now-b.t0>=WB_GAP) startBannerWrite(now); return; }
+  if(b.phase==='wait'){
+    if(b.first){
+      const F=welcome.F, spec=F&&F.lay.typeTitle;
+      if(!F||F.state!=='hold') return;
+      const titleDone=spec?F.holdT0+WTW_DELAY+welcomeKeyAt(spec.text.length-1)+WTW_POP:F.holdT0;
+      if(now>=titleDone+WB_FIRST_PAUSE){ b.first=false; startBannerWrite(now); }
+    } else if(now-b.t0>=WB_GAP) startBannerWrite(now);
+    return;
+  }
   // 'stream': every stencil cell is self-clocked off its column — assemble, linger, stream home
   let done=true;
   for(const L of b.letters){
@@ -2959,7 +3010,7 @@ function updateWelcomeBanner(now){
   }
   if(done){ b.mi=(b.mi+1)%b.msgs.length; b.phase='wait'; b.t0=now; }
 }
-function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', t0:now-WB_GAP+700, letters:[], s:WBAN_CELL*1.15}; hideBannerGlyphs(); }
+function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', first:true, t0:now, letters:[], s:WBAN_CELL*1.15}; hideBannerGlyphs(); }
 function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor()); m.userData.asm=false; } }
 /* the greeting wave: once the figure has settled (facet 'hold'), his flagged arm glyphs
    move as a TWO-SEGMENT limb — the upper arm rotates about the shoulder pivot, the
@@ -3091,13 +3142,15 @@ function welcomeCalTip(x,y){
 function assembleStop(k){ // build the docked stop's facet panorama and partition the terrain once
   disassemble(true);
   poseAt(stopS[k],_aP,_aQ);
-  _aF.set(0,0,-1).applyQuaternion(_aQ);
   const st=STOPS[k];
+  if(st.github) welcomeLookQuat(_aP,_aQ);
+  _aF.set(0,0,-1).applyQuaternion(_aQ);
   // flip (v59, contact): the whole panorama hangs 180° off the travel direction, so the
   // docked view reads against the scene the journey just crossed instead of the void ahead
   const yaw0=wrapAng(Math.atan2(_aF.y,_aF.x)+(st.flip?Math.PI:0));
   const pitch0=Math.asin(Math.max(-1,Math.min(1,_aF.z)));
   const isWelcome=!!st.github, isContact=!!st.contact;
+  const scrollMode=timelineNav==='scroll'&&Array.isArray(st.scrollOrder)&&st.gallery;
   // clearM: how far past the content the terrain is absorbed (the halo beyond the sight
   // cone). Welcome uses a tight halo so the scene stays visible right up to the block on
   // both sides — the wide title+calendar+mini-me otherwise eats too much of the flanks.
@@ -3109,11 +3162,15 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   // on BOTH flanks; combined with the tighter clearM the terrain comes right up to the
   // content (fine here — nothing sits in front of the POV at the welcome stop).
   const isWelcomeImg=isWelcome&&(welcomeCal==='html'||welcomeCal==='html2'); // exact mode: the calendar day-cells develop into a crisp image
-  const defs=[{lay:isWelcome?buildWelcomeLayout():isContact?buildContactLayout(k):buildStopLayout(k), dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:isContact?0.92:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:isWelcomeImg?'ghcal':null, pdf:null, g:null}];
+  const orderedGallery=scrollMode?st.scrollOrder.map(i=>st.gallery[i]).filter(Boolean):st.gallery;
+  const timelineLabels=scrollMode?[st.title].concat(orderedGallery.map(g=>g.title)):null;
+  const introLay=isWelcome?buildWelcomeLayout():isContact?buildContactLayout(k):buildStopLayout(k);
+  if(scrollMode) addTimelineNav(introLay,timelineLabels,0);
+  const defs=[{lay:introLay, dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:isContact?0.92:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:isWelcomeImg?'ghcal':null, pdf:null, g:null, scrollSlot:0}];
   if(st.gallery){ // facets ring the visitor at even 360/(n+1) spacing (intro holds the 0° slot)
     // spacing must exceed 2×F_GAZE_IN (~46°) so fire windows never overlap → max 6 gallery facets
     const step=360/(st.gallery.length+1);
-    st.gallery.forEach((g,i)=>{
+    (orderedGallery||st.gallery).forEach((g,i)=>{
       // hyperlink marks / text-only entries never develop; video facets (v61) hold their
       // ASCII still until PLAY develops it into the in-scene video plane
       // vids facets develop into the CURRENT recording's still (piano1/piano2 — v66);
@@ -3121,10 +3178,12 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       const photoKey=g.vids?(COVER_PHOTOS[g.vids[0].ascii]?g.vids[0].ascii:null)
                     :(g.img&&COVER_PHOTOS[g.img]&&!g.games)?g.img:null;
       if(photoKey) getPhotoTex(photoKey); // warm the texture decode before the first develop
-      const dy=((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step; // alternate sides: -1,+1,-2,+2,…
-      defs.push({lay:buildCoverLayout(g, st.id==='cases'), dy:dy*Math.PI/180,
+      const dy=scrollMode?0:((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step; // timeline stacks dead ahead; panorama alternates -1,+1,-2,+2,…
+      const coverLay=buildCoverLayout(g, st.id==='cases');
+      if(scrollMode) addTimelineNav(coverLay,timelineLabels,i+1);
+      defs.push({lay:coverLay, dy:dy*Math.PI/180,
         dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:g.hFit||1.25, photoKey, pdf:g.pdf||null, g,
-        vids:g.vids||null, games:g.games||null}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
+        vids:g.vids||null, games:g.games||null, scrollSlot:i+1}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
   }
   /* rotation-hint arrows (v61, covers-everywhere v62): every facet of a multi-facet stop
      gets a flanking pair — welcome and contact are single-facet (nothing to rotate to) so
@@ -3132,7 +3191,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      (ROT_ARROWS_SM): that stop runs ~12.9k of the 13,268 glyphs, and six full pairs would
      overflow the pool and silently short the last cover (validated in Python, see §4 of
      the facet manual — worst case with the compact pairs is 13,145, ~123 spare). */
-  if(defs.length>1&&ARROW_STYLE!=='off'){
+  if(defs.length>1&&!scrollMode&&ARROW_STYLE!=='off'){
     const art=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
     const artSm=ROT_ARROWS_SM[ARROW_STYLE]||ROT_ARROWS_SM.stream;
     for(const d of defs) addFlankArrows(d.lay,(st.id==='cases'&&d.g)?artSm:art);
@@ -3161,7 +3220,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, cbDis:0, // in-scene chess board (v66)
                  elist:(d.g&&d.g.list)||null, eIdx:0, // v68: highlight list (volunteering)
                  pdfEntry:(d.g&&d.g.pdfEntry!==undefined)?d.g.pdfEntry:null, // v69: DOWNLOAD only shows while THIS list entry is highlighted
-                 pdf:d.pdf, g:d.g, holdT0:0, fields:d.lay.fields||null,
+                  pdf:d.pdf, g:d.g, holdT0:0, fields:d.lay.fields||null, scrollSlot:d.scrollSlot||0, scrollMove:null, scrollExit:0,
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
                  state:'home', items:[], extras:[], fades:[], t0:0});
   }
@@ -3190,8 +3249,9 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     for(let i=0;i<need;i++){
       const mi=picked[i].i, li=F.lay.items[i], m=textMeshes[mi];
       owner[mi]=fi;
-      const rec={m, ri:i, home:m.position.clone(), geo0:m.geometry,
-        to:new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f),
+       const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,li.x*F.f).addScaledVector(F.up,li.y*F.f);
+       const rec={m, ri:i, home:m.position.clone(), geo0:m.geometry,
+        to, baseTo:to.clone(),
         s1:li.s*F.f, geoA:li.tf?glyphGeoT(li.ch):glyphGeo(li.ch), L:li.L!==undefined?li.L:null, dev:li.dev||undefined, // tf (v70): typeset text renders in the active UI font
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
         wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr, vcap:li.vcap,
@@ -3253,7 +3313,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       to:null, from:null, ctrl:null, st:0, mode:null, s0:1, swapped:false, done:false};
     bF.extras.push(rec); byMesh.set(m,[rec]);
   }
-  stopFacets={k, facets, yaw0, pitch0, byMesh};
+  stopFacets={k, facets, yaw0, pitch0, byMesh, scrollMode, scrollIndex:0, scrollBusyUntil:0, scrollWheel:0};
   // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
   // frame()), so set BOTH current and target to level: docking involves zero re-aim
   freeYaw=freeYawT=0;
@@ -3304,7 +3364,8 @@ function facetOut(F,now,noHand){ // noHand: departure — everything goes home, 
       if(r){ launchAbsorb(r.F,r,now,Math.random()*stag); it.done=true; it.handed=true; continue; } } // it flies STRAIGHT there instead of home (v43)
     m.visible=true;
     it.from=m.position.clone(); it.s0=m.scale.x||0.05;
-    it.ctrl=new THREE.Vector3().lerpVectors(it.from,it.home,0.5).addScaledVector(F.up,1.2+Math.random()*1.8);
+    it.ctrl=new THREE.Vector3().lerpVectors(it.from,it.home,0.5)
+      .addScaledVector(F.up,F.scrollExit?F.scrollExit*(4.5+Math.random()*2.0):1.2+Math.random()*1.8);
     it.d=((n-1-it.ri)/n)*stag+Math.random()*40; it.swapped=false; it.done=false;
   }
   const en=F.extras.length;
@@ -3315,7 +3376,8 @@ function facetOut(F,now,noHand){ // noHand: departure — everything goes home, 
     m.visible=true;
     ex.mode='out'; ex.st=now+(1-i/Math.max(1,en))*stag+Math.random()*60; ex.done=false; ex.swapped=false;
     ex.from=m.position.clone(); ex.s0=m.scale.x||0.05;
-    ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.home,0.5).addScaledVector(F.up,1+Math.random()*1.5);
+    ex.ctrl=new THREE.Vector3().lerpVectors(ex.from,ex.home,0.5)
+      .addScaledVector(F.up,F.scrollExit?F.scrollExit*(3.5+Math.random()*1.8):1+Math.random()*1.5);
   }
 }
 function restoreFacet(F){ // exact snap home: geometry, position, palette, flags
@@ -3372,6 +3434,12 @@ function disassemble(instant){ // release the whole stop (dock change, mode chan
 function facetGaze(cy,cp,dt){ // fire/release facets by YAW ONLY — each facet owns a horizontal slice,
   if(!stopFacets) return;     // so looking anywhere in its compass direction activates it (pitch never gates)
   const now=performance.now();
+  if(stopFacets.scrollMode){
+    const active=stopFacets.facets[stopFacets.scrollIndex];
+    if(active&&(active.state==='home'||active.state==='out')) facetIn(active,now);
+    for(const F of stopFacets.facets) if(F!==active&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
+    return;
+  }
   for(const F of stopFacets.facets){
     const d=Math.abs(wrapAng(cy-F.yaw));
     if(d<F_GAZE_IN&&(F.state==='home'||F.state==='out')) facetIn(F,now);
@@ -3411,6 +3479,32 @@ function rotateDock(dir){ // rotation-hint arrows: turn the docked view one face
   freePitchT=-stopFacets.pitch0; dockZoomT=1; // level = cancel the path pose's down-pitch (0 would ease onto pitch0's ground-stare)
   while(freeYawT> 2*Math.PI){ freeYawT-=2*Math.PI; freeYaw-=2*Math.PI; } // keep both wrapped
   while(freeYawT<-2*Math.PI){ freeYawT+=2*Math.PI; freeYaw+=2*Math.PI; } // (shift preserves the smoothing delta)
+}
+function updateTimelineMotion(now){
+  if(!stopFacets||!stopFacets.scrollMode) return;
+  for(const F of stopFacets.facets){
+    const M=F.scrollMove; if(!M) continue;
+    const p=Math.min(1,Math.max(0,(now-M.t0)/TL_MS)), off=M.from*(1-easeInOut(p));
+    for(const it of F.items) it.to.copy(it.baseTo).addScaledVector(F.up,off*F.f);
+    if(p>=1){ F.scrollMove=null; for(const it of F.items) it.to.copy(it.baseTo); }
+  }
+}
+function timelineTo(idx){
+  const S=stopFacets; if(!S||!S.scrollMode) return false;
+  const n=S.facets.length, now=performance.now();
+  if(idx<0||idx>=n){ departTo(dockIdx+(idx<0?-1:1)); return true; }
+  if(idx===S.scrollIndex||now<S.scrollBusyUntil) return true;
+  const old=S.facets[S.scrollIndex], next=S.facets[idx], dir=idx>S.scrollIndex?1:-1;
+  next.scrollMove={from:-dir*TL_SLIDE,t0:now};
+  for(const it of next.items) it.to.copy(it.baseTo).addScaledVector(next.up,next.scrollMove.from*next.f);
+  facetIn(next,now); // receiver becomes active first, so terrain glyphs hand straight across
+  old.scrollExit=dir; facetOut(old,now); old.scrollExit=0;
+  S.scrollIndex=idx; S.scrollBusyUntil=now+TL_MS; S.scrollWheel=0;
+  dockZoomT=1; renderDirty=true; glyphsDirty=true;
+  return true;
+}
+function timelineStep(dir){
+  return stopFacets&&stopFacets.scrollMode?timelineTo(stopFacets.scrollIndex+dir):false;
 }
 /* READ MORE: an HTML side card with the project's context / methods / outcomes
    (glyphs would blow the budget at ~450 chars per project). Closes on ×, Esc,
@@ -3904,7 +3998,7 @@ function updateFacet(F,now,dt){
   if(F.btns.length&&(F.state==='in'||F.state==='hold')){
     for(const b of F.btns){
       if(b.gone) continue; // v69: an entry-gated DOWNLOAD that is currently hidden — no pulse, no pop
-      const isNav=b.nav!==undefined;
+      const isNav=b.nav!==undefined, isTimeline=b.timeline!==undefined, isMenu=isNav||isTimeline;
       // arrow art (rotation hints / next-video chevron) is luminance-SHADED like the marks —
       // the stencil-button gray→white pulse would flatten it, so it gets its own treatment:
       // base shade with a gentle glow, hover lifts it well toward white
@@ -3914,14 +4008,15 @@ function updateFacet(F,now,dt){
       const isRot=(b.kind==='rotl'||b.kind==='rotr')&&ARROW_STYLE==='stream';
       // nav labels sit at a steady near-white (5 labels throbbing in sync would be noisy);
       // hover pins full bright — plus the swell below — as the click affordance
-      const w=b.hover?1:(isNav?0.78:0.45+0.4*(0.5+0.5*Math.sin(now*0.0045)));
+      const tlActive=isTimeline&&stopFacets&&stopFacets.scrollIndex===b.timeline;
+      const w=b.hover?1:(isTimeline?(tlActive?0.92:0.30):(isNav?0.78:0.45+0.4*(0.5+0.5*Math.sin(now*0.0045))));
       let pf=1;
       if(b.kind==='pdf'&&F.state==='hold'){
         const pt=(now-F.holdT0-BTN_POP_DELAY)/BTN_POP_MS;
         if(pt>0&&pt<1) pf=1+0.3*Math.sin(Math.PI*pt); // solid block: a subtler pop reads as a bold flash
       }
-      if(isNav||isRot) b.sc=(b.sc||1)+(((b.hover&&F.state==='hold')?WNAV_POP:1)-(b.sc||1))*Math.min(1,dt*10); // hover swell, smoothed
-      const swell=(isNav||isRot)&&Math.abs(b.sc-1)>0.002;
+      if(isMenu||isRot) b.sc=(b.sc||1)+(((b.hover&&F.state==='hold')?WNAV_POP:1)-(b.sc||1))*Math.min(1,dt*10); // hover swell, smoothed
+      const swell=(isMenu||isRot)&&Math.abs(b.sc-1)>0.002;
       if(swell) _nC.copy(F.anchor).addScaledVector(F.right,b.cx*F.f).addScaledVector(F.up,b.cy*F.f); // label centre, world
       for(const it of b.items){
         if(isNav&&!it.shown) continue; // not written in yet (or mid-write — the write owns it)
@@ -3932,7 +4027,7 @@ function updateFacet(F,now,dt){
           else it.m.material.color.copy(BTN_DIM).lerp(BTN_HOT,w);
         }
         if(F.state==='hold'){
-          if(isNav||isRot){ // the swell scales the whole label/arrow about its centre; settled = byte-exact home state
+          if(isMenu||isRot){ // the swell scales the whole label/arrow about its centre; settled = byte-exact home state
             it.m.scale.setScalar(it.s1*b.sc);
             if(swell) it.m.position.copy(it.to).sub(_nC).multiplyScalar(b.sc).add(_nC);
             else it.m.position.copy(it.to);
@@ -4235,6 +4330,7 @@ function updateFacetVideo(F,now,dt){ // per-frame: develop-in, fold-out, end-of-
 }
 function updateAssembly(now,dt){
   if(stopFacets||asmRetired.length) glyphsDirty=true; // flights, fades and photo dissolves all animate glyph state
+  updateTimelineMotion(now);
   if(stopFacets) for(const F of stopFacets.facets) updateFacet(F,now,dt);
   updateWelcome(now,dt); // the commit banner waterfall (welcome stop only)
   for(let i=asmRetired.length-1;i>=0;i--){
@@ -4290,6 +4386,11 @@ function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet a
   if(!stopFacets||stopInfoMode!=='assemble') return;
   const n=stopFacets.facets.length;
   if(n<2) return; // single-facet stop (welcome): nothing to sweep
+  if(stopFacets.scrollMode){
+    if(tour.k!==stopFacets.k){ tour.k=stopFacets.k; tour.holdUntil=now+tourDwell(0)+800; }
+    if(now>=tour.holdUntil){ timelineTo((stopFacets.scrollIndex+1)%n); tour.holdUntil=now+5900; }
+    return;
+  }
   if(tour.k!==stopFacets.k){ tour.k=stopFacets.k; tour.step=2*Math.PI/n; tour.holdUntil=now+tourDwell(0)+800; }
   if(now>=tour.holdUntil){
     freeYawT-=tour.step; // one direction, evenly through every facet, looping forever
@@ -4300,6 +4401,8 @@ function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet a
 
 function beginEnter(toIdx){
   if(!FONT) return; // portrait not built yet — nothing to land on
+  const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=false;
+  applyRaw(false); // the overview is the untouched Grainrad view; the journey uses the authored treatment
   tourReset(); // a manual Enter mid-sweep must not leave stale tour progress behind
   uiState='entering'; enterT0=performance.now(); enterToIdx=toIdx; journeyFrom=journeyT;
   dockZoom=dockZoomT=1; // a fresh entry never inherits a stale scroll-zoom
@@ -4792,6 +4895,11 @@ addEventListener('wheel',e=>{
     return;
   }
   if(uiState!=='journey'||jMode!=='docked'||performance.now()<dockCool) return;
+  if(stopInfoMode==='assemble'&&stopFacets&&stopFacets.scrollMode){
+    stopFacets.scrollWheel+=e.deltaY;
+    if(Math.abs(stopFacets.scrollWheel)>=70) timelineStep(stopFacets.scrollWheel>0?1:-1);
+    return;
+  }
   if(stopInfoMode==='assemble'&&!autoTour){ // v63: docked scroll ZOOMS (scroll-to-depart is gone;
     // auto tour keeps it — there the wheel is the only travel input by design)
     dockZoomT=Math.max(1,Math.min(DOCK_ZOOM_MAX,dockZoomT*Math.exp(-e.deltaY*0.0011)));
@@ -4823,6 +4931,7 @@ addEventListener('pointerup',e=>{
       else if(hit.b.kind==='esel') { hit.F.eIdx=hit.b.data; renderDirty=true; } // highlight list: pick that entry (v68)
       else if(hit.b.kind==='eprev') facetStepEntry(hit.F,-1);
       else if(hit.b.kind==='enext') facetStepEntry(hit.F,1);
+      else if(hit.b.timeline!==undefined) timelineTo(hit.b.data);
       else if(hit.b.kind==='rotl'||hit.b.kind==='rotr') rotateDock(hit.b.data); // rotation-hint arrows: turn one facet step
       else if(hit.b.kind==='send') cformSubmit(); // the embedded contact form's stencil SEND
       else if(hit.b.kind==='copy'){ // Discord mark: no public profile URLs — copy the username
@@ -4852,6 +4961,7 @@ addEventListener('pointermove',e=>{
   }
   if(!dragging) return;
   if(stopInfoMode==='assemble'){ // drag to look around: the world follows the pointer, street-view style
+    if(stopFacets&&stopFacets.scrollMode){ lastX=e.clientX; lastY=e.clientY; return; }
     // (drag rate divides by the scroll-zoom so a zoomed-in look pans at the same feel)
     freeYawT+=(e.clientX-lastX)*0.0032/dockZoom;
     freePitchT=Math.max(-1.5,Math.min(1.5,freePitchT+(e.clientY-lastY)*0.0026/dockZoom));
@@ -4877,13 +4987,15 @@ addEventListener('keydown',e=>{
   if(k==='ArrowLeft'||k==='ArrowRight'){
     if(chessBoardActive()){ cvStep(k==='ArrowRight'?1:-1); e.preventDefault(); return; } // the board owns ←/→
     if(stopInfoMode==='assemble'){
-      if(stopFacets&&stopFacets.facets.length>1) rotateDock(k==='ArrowLeft'?1:-1); // +1 = turn left
+      if(stopFacets&&stopFacets.scrollMode) timelineStep(k==='ArrowRight'?1:-1);
+      else if(stopFacets&&stopFacets.facets.length>1) rotateDock(k==='ArrowLeft'?1:-1); // +1 = turn left
       e.preventDefault(); return;
     }
     departTo(dockIdx+(k==='ArrowRight'?1:-1)); return;
   }
   if(k==='ArrowUp'||k==='ArrowDown'){
     if(stopInfoMode==='assemble'){
+      if(stopFacets&&stopFacets.scrollMode){ timelineStep(k==='ArrowDown'?1:-1); e.preventDefault(); return; }
       const F=facedSwitchFacet(), d=k==='ArrowDown'?1:-1;
       if(F){ if(F.vids&&F.vids.length>1){ if(F.state==='hold') facetStepVideo(F,d); }
              else if(F.elist) facetStepEntry(F,d); }
@@ -4930,7 +5042,10 @@ function frame(){
     if(k>=1){ k=1; done=true; }
     const ek=easeInOut(k);
     poseAt(stopS[enterToIdx],_jPos,_jQuat);
-    if(stopInfoMode==='assemble') levelQuat(_jQuat,_jQuat); // arrive gazing at the horizon, where the content hangs
+    if(stopInfoMode==='assemble'){
+      if(STOPS[enterToIdx].github) welcomeLookQuat(_jPos,_jQuat);
+      else levelQuat(_jQuat,_jQuat); // arrive gazing at the horizon, where the content hangs
+    }
     if(stopInfoMode==='assemble'&&STOPS[enterToIdx].flip){ // flipped stop: aim the whole dive at the scene, not the void
       _fwd.set(0,0,1); _jOff.setFromAxisAngle(_fwd,Math.PI); _jQuat.premultiply(_jOff); }
     camera.position.lerpVectors(enterFromPos,_jPos,ek);
@@ -4944,7 +5059,8 @@ function frame(){
     camera.position.lerpVectors(exitFromPos,frontPos2,ek);
     camera.quaternion.slerpQuaternions(exitFromQuat,exploreQuat,ek);
     journeyT=journeyFrom*(1-ek); // eases back to 0 on the exit curve
-    if(done){ camera.up.set(0,1,0); controls.target.copy(faceCenter); controls.enabled=true; controls.update(); uiState='overview'; syncButtons(); }
+    if(done){ camera.up.set(0,1,0); controls.target.copy(faceCenter); controls.enabled=true; controls.update(); uiState='overview';
+      const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=true; applyRaw(true); syncButtons(); }
   } else { /* journey: flying between stops, or docked at one */
     camera.up.set(0,0,1); journeyT=1;
     if(jMode==='flying'&&flight){
@@ -5078,7 +5194,7 @@ function frame(){
         if(g>0){ _fwd.set(0,0,1); _jOff.setFromAxisAngle(_fwd,Math.PI*g); camera.quaternion.premultiply(_jOff); }
       }
       lookX*=Math.exp(-dt*3); lookY*=Math.exp(-dt*3);
-      if(done) dock(flight.toIdx);
+      if(done){ if(stopInfoMode==='assemble'&&STOPS[flight.toIdx].github) welcomeLookQuat(camera.position,camera.quaternion); dock(flight.toIdx); }
     } else {
       poseAt(stopS[dockIdx],_jPos,_jQuat);
       _jPos.x+=Math.sin(now*0.00047)*0.16;                // idle drift: the camera breathes
@@ -5189,13 +5305,16 @@ const fullscreenCheck=document.getElementById('toggleFullscreen');
 fullscreenCheck.checked=fsEnabled;
 fullscreenCheck.addEventListener('change',e=>applyFullscreenPref(e.target.checked,true));
 document.getElementById('toggleInvert').addEventListener('change',e=>applyInvert(e.target.checked));
-document.getElementById('toggleRaw').addEventListener('change',e=>applyRaw(e.target.checked));
+const rawCheck=document.getElementById('toggleRaw'); rawCheck.checked=rawMode;
+rawCheck.addEventListener('change',e=>applyRaw(e.target.checked));
+applyRaw(rawMode);
 const introSelect=document.getElementById('introSelect');
 introSelect.value=introMode;
 document.getElementById('introReplay').addEventListener('click',()=>{
   if(!FONT) return; // portrait not built yet
   dragging=false; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1;
   uiState='overview'; hidePanel(); hideHint(); railSet(-1); syncButtons();
+  rawCheck.checked=true; applyRaw(true);
   beginIntro(introSelect.value); // replay the chosen load animation from the overview
 });
 introSelect.addEventListener('change',()=>{ introMode=introSelect.value; }); // keep the load-animation default in sync (drives the next page load's intro, saved via "Set as default")
@@ -5237,6 +5356,9 @@ cursorSwayCheck.addEventListener('change',e=>{
 function reassembleDocked(){ // live-rebuild whatever assembled stop is currently docked
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&dockIdx>=0) assembleStop(dockIdx);
 }
+const timelineNavSelect=document.getElementById('timelineNavSelect');
+timelineNavSelect.value=timelineNav;
+timelineNavSelect.addEventListener('change',()=>{ timelineNav=timelineNavSelect.value; reassembleDocked(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -5325,10 +5447,10 @@ function fireCheck(id,v){ const el=document.getElementById(id); if(el.checked!==
 const CTRL_DEF={
   bloomStrength:['range',BASE_BLOOM], bloomRadius:['range',0.5], bloomThreshold:['range',0.2],
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
-  toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',false],
+  toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',true],
   uiFontSelect:['select','mono'],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
-  toggleAutoTour:['check',false], toggleCursorSway:['check',false], arrowSelect:['select','stream'],
+  toggleAutoTour:['check',false], toggleCursorSway:['check',false], timelineNavSelect:['select','scroll'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
@@ -5336,7 +5458,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','timelineNavSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welSize','welHalo']
 };
