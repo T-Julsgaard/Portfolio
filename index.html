@@ -529,6 +529,7 @@
             <option value="panel">Overlay panel</option>
           </select>
         </label>
+        <div class="row"><span>Absorb full field of view</span><input type="checkbox" id="toggleAbsorbView" checked></div>
         <label>Travel — Adjacent stops
           <select id="travelAdjSelect">
             <option value="classic">Classic (eased rail)</option>
@@ -1148,7 +1149,7 @@ const spanX=maxX-minX, spanY=maxY-minY, midZ=(minZ+maxZ)/2;
 const farDist=Math.max(spanX,spanY)*2.1;
 
 /* renderer / scene / camera */
-const canvas=document.getElementById('three');
+const canvas=document.getElementById('three'), vignetteEl=document.getElementById('vignette');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -1167,7 +1168,8 @@ const USER_DEFAULTS=(()=>{ try{ return JSON.parse(localStorage.getItem('pf_user_
 const ud=(k,d)=> (USER_DEFAULTS[k]!==undefined ? USER_DEFAULTS[k] : d);
 
 scene.fog=new THREE.Fog(0x000000, spanY*ud('fogNear',0.35), spanY*ud('fogFar',1.5));
-const sceneFog=scene.fog; // stable handle: raw mode sets scene.fog=null; dev sliders keep tuning this object
+const sceneFog=scene.fog; // stable handle: raw mode sets scene.fog=null; the processing fade eases its tuned range in/out
+const baseFog={near:sceneFog.near,far:sceneFog.far};
 
 let BASE_FOV=ud('fov',52);
 const camera=new THREE.PerspectiveCamera(BASE_FOV, innerWidth/innerHeight, 0.1, 4000);
@@ -1225,6 +1227,7 @@ const BG_DARK='#000000', BG_LIGHT='#ffffff', GLYPH_LIGHT='#e8ecf3', GLYPH_DARK='
 function applyInvert(on){
   inverted=on; renderDirty=true; glyphsDirty=true; // per-instance colors need a re-sync
   const bg=on?BG_LIGHT:BG_DARK, glyph=on?GLYPH_DARK:(rawMode?GLYPH_RAW:GLYPH_LIGHT);
+  if(typeof PROCESS_RAW_COLOR!=='undefined') PROCESS_RAW_COLOR.value.set(on?GLYPH_DARK:GLYPH_RAW);
   scene.background.set(bg);
   sceneFog.color.set(bg);
   // glyphs currently serving as assembled stop content re-derive their palette-aware tint
@@ -1235,14 +1238,20 @@ function applyInvert(on){
    composer), ACES tone mapping, distance fog, the vignette overlay, and the off-white glyph tint —
    so the portrait renders exactly like the raw generator scene: plain antialiased renderer,
    pure #ffffff glyphs on black. The frame loop switches to renderer.render() while this is on. */
-let rawMode=true;
+let rawMode=true, processingBlend=0, processingAuto=false;
 function applyRaw(on){
-  rawMode=on; renderDirty=true;
+  rawMode=on; processingAuto=false; processingBlend=on?0:1; renderDirty=true;
   scene.fog=on?null:sceneFog;
   renderer.toneMapping=on?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1;
   INTRO_STEADY.set(on?GLYPH_RAW:GLYPH_LIGHT); // intros/progressive frames settle to the same tone
   syncVignette();
   applyInvert(inverted); // re-tints every existing glyph with the raw-aware palette
+}
+function beginProcessingFade(){
+  rawMode=false; processingAuto=true; processingBlend=journeyT;
+  scene.fog=sceneFog; renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  INTRO_STEADY.set(GLYPH_LIGHT); applyInvert(inverted); renderDirty=true;
 }
 let FONT=null;
 let introMode=ud('introSelect','progressive-soft'); // which load animation plays: 'progressive-soft' (resolution ramp, per-glyph dissolve at the end) | 'progressive' (resolution ramp, hard final cut) | 'surface' (embers)
@@ -1332,15 +1341,19 @@ function glyphGeoT(ch){
    instanceColor attribute and per-instance opacity a custom instanceOpacity attribute,
    so the fragment math is exactly the old per-mesh color/opacity uniforms'. */
 const BB_UNIFORM={value:new THREE.Quaternion()};
+const PROCESS_UNIFORM={value:0}; // 0 = raw handoff, 1 = authored journey palette
+const PROCESS_RAW_COLOR={value:new THREE.Color(GLYPH_RAW)};
 const GLYPH_MAT=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true});
 GLYPH_MAT.onBeforeCompile=shader=>{
   shader.uniforms.uBB=BB_UNIFORM;
+  shader.uniforms.uProcessed=PROCESS_UNIFORM;
+  shader.uniforms.uRawColor=PROCESS_RAW_COLOR;
   shader.vertexShader=shader.vertexShader
     .replace('#include <common>','#include <common>\nuniform vec4 uBB;\nattribute float instanceOpacity;\nvarying float vInstOp;\nvec3 qrot(vec4 q, vec3 v){ return v + 2.0*cross(q.xyz, cross(q.xyz, v) + q.w*v); }')
     .replace('#include <begin_vertex>','vec3 transformed = qrot(uBB, vec3(position));\nvInstOp = instanceOpacity;');
   shader.fragmentShader=shader.fragmentShader
-    .replace('#include <common>','#include <common>\nvarying float vInstOp;')
-    .replace('vec4 diffuseColor = vec4( diffuse, opacity );','vec4 diffuseColor = vec4( diffuse, opacity * vInstOp );');
+    .replace('#include <common>','#include <common>\nvarying float vInstOp;\nuniform float uProcessed;\nuniform vec3 uRawColor;')
+    .replace('vec4 diffuseColor = vec4( diffuse, opacity );','vec4 diffuseColor = vec4( mix( uRawColor, diffuse, uProcessed ), opacity * vInstOp );');
 };
 const _pools=new Map();     // char -> pool
 const _poolByGeo=new Map(); // glyphGeo(ch) result -> pool, for .geometry assignment
@@ -1604,14 +1617,14 @@ const JOURNEY=[
      `vids` slides without `src`, caption tracklist below). */
   {xf:-0.44, yf: 0.64, stop:{id:'work', label:'Experience', title:'Work experience', body:'References are available upon request.', media:[{src:'images/Profile 2.jpeg',caption:'Thomas Julsgaard'}], links:[{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'Download CV'}], scrollOrder:[0,2,4,3,1],
     gallery:[
-      {img:'ow', title:'Orange Wheel Advisory', sub:'Technical Analyst & Co-owner · Oct 2025 – present',
+      {img:'ow', title:'Orange Wheel Advisory', sub:'Technical Analyst & Co-owner', meta:'Oct 2025 – present',
         link:'https://orange-wheel.com/',
         more:{sections:[
           ['In short','Monte Carlo forecasting models in a web-based decision tool; scraping pipelines mapping Danish renewable energy producers; real-time optimization between grid sales and flexible load.'],
           ['Forecasting','Developed and integrated Monte Carlo based forecasting models into a web based decision tool used for profitability assessment and B2B and B2C client acquisition.'],
           ['Market intelligence','Engineered and deployed automated web scraping pipelines targeting data on Danish renewable energy producers to generate market intelligence on potential B2B and B2C customers.'],
           ['Live optimization','Led the development and maintenance of software systems that continuously monitor real time profitability metrics for demand load operations, dynamically optimizing between grid sales and flexible load allocation.']]}},
-      {img:'unicef', title:'Earlier roles', sub:'2021 – 2024',
+      {img:'unicef', title:'Earlier roles', meta:'2021 – 2024',
         vids:[{ascii:'unicef', cap:'UNICEF - Fundraiser - Nov 2023 - Jan 2024'},
               {ascii:'artium', cap:'Artium - Substitute teacher - 2022'},
               {ascii:'brande', cap:'Brande Aabo - Social care assistant - 2021'}],
@@ -1619,15 +1632,15 @@ const JOURNEY=[
           ['UNICEF — Fundraiser (Nov 2023 – Jan 2024)','Direct engagement and fundraising for humanitarian aid initiatives.'],
           ['Artium — Substitute teacher (2022)','Classroom management and educational support.'],
           ['Brande Åbo — Social care assistant (2021)','Support and care for residents with physical and mental disabilities.']]}},
-      {img:'concentrix', title:'Concentrix', sub:'Quality Assurance · Jan 2026 – Jul 2026',
+      {img:'concentrix', title:'Concentrix', sub:'Quality Assurance', meta:'Jan 2026 – Jul 2026',
         more:{sections:[
           ['In short','Quality assurance for frontline tech support — and built RAG-like systems that made the internal knowledge base searchable for frontline supporters.'],
           ['Quality assurance','Seven months of quality assurance for frontline tech support: reviewing cases, calibrating standards and feeding structured feedback back into the support organization.'],
           ['Knowledge systems','Developed RAG-like retrieval systems over the internal knowledge base, so frontline tech supporters could pull the right procedure out of thousands of articles while on a call.']]}},
-      {img:'introtech', title:'Introtech Ventures', sub:'Head of Technical Support · Sep 2024 – Feb 2025',
+      {img:'introtech', title:'Introtech Ventures', sub:'Head of Technical Support', meta:'Sep 2024 – Feb 2025',
         more:{sections:[
           ['In short','Guidance and support for the operating teams; strategic advice on growth plans, the competitive landscape and key initiatives for senior management.']]}},
-      {img:'nordic', title:'Nordic Mining', sub:'Co-founder · Feb 2024 – Jul 2025',
+      {img:'nordic', title:'Nordic Mining', sub:'Co-founder', meta:'Feb 2024 – Jul 2025',
         more:{sections:[
           ['In short','Modeled how flexible data centers add profitability to green energy grids, in collaboration with Energistyrelsen.'],
           ['The model','Developed a model to assess the profitability of flexible data centers in green energy grids. Modeled in collaboration with Energistyrelsen (the Danish Energy Agency).'],
@@ -1643,20 +1656,18 @@ const JOURNEY=[
      the -1,+1,-2,+2 ring makes that array order [ITU, IBG, AAU, Askov]. */
   {xf: 0.36, yf: 0.22, stop:{id:'edu', label:'Education', title:'Education', body:'Diplomas are available upon request.', media:[], links:[{href:'pdfs/Tutor certificate 2023.pdf',label:'Tutor certificate'}], scrollOrder:[0,2,3,1],
     gallery:[
-      {img:'itu', title:'IT University of Copenhagen', sub:'MSc, Software Design · Aug 2026 – 2028',
-        blurb:'Starting August 21, 2026: a two-year MSc in Software Design, specializing in Business Analytics — AI and big data.'},
-      {img:'ibg', title:'Ikast-Brande Gymnasium', sub:'Democracy & Globalization · 2017 – 2020',
-        blurb:'Upper secondary education on the democracy & globalization line.'},
-      {img:'aau', title:'Aalborg University', sub:'BSc, Techno-Anthropology · Copenhagen · 2022 – 2025',
+      {img:'itu', title:'IT University of Copenhagen', sub:'MSc, Software Design', meta:'Aug 2026 – 2028',
+        blurb:'Specializing in Artificial intelligence and big data.'},
+      {img:'ibg', title:'Ikast-Brande Gymnasium', sub:'Democracy & Globalization', meta:'2017 – 2020'},
+      {img:'aau', title:'Aalborg University', sub:'BSc, Techno-Anthropology', meta:'Copenhagen · 2022 – 2025',
         blurb:'Graduated with a Danish grade average of 11.3\nEquivalent to a weighted GPA of 3.9/4.0',
         more:{sections:[
           ['The degree','A three-year BSc at Aalborg University Copenhagen built on problem-based learning: every semester pairs coursework with a real-world project for an external partner.'],
           ['Core competencies','Ethnographic methods · qualitative & quantitative methods · user involvement · interviewing · AI alignment · UI/UX research · human-centered design · participatory technology assessment & design · data scraping · network analysis · data visualization · Gephi · philosophy of technology · life-cycle assessment (LCA) · problem-based learning (PBL).']]}},
-      {img:'askov', title:'Askov Højskole', sub:'Film Production · 2021',
-        blurb:'A year of film production — proficiency in the Adobe suite (Premiere Pro, Photoshop).'}
+      {img:'askov', title:'Askov Højskole', sub:'Film Production', meta:'2021'}
     ]}}, // (v68: the Volunteering facet moved to the Interests stop — the tutor certificate went with it)
   {xf: 0.04, yf: 0.20},
-  {xf:-0.34, yf: 0.22, stop:{id:'cases', label:'Case studies', title:'Case studies', body:'Six projects surround this point.\nDrag to look around — each cover assembles out of the terrain as you face it, then develops into its front page. Press DOWNLOAD under a cover to save the full report.', media:[], links:[{href:'pdfs/Hvilken VR-sion af dig.pdf',label:'VRChat'},{href:'pdfs/Den sorte boks i den hvide verden.pdf',label:'Radiology'},{href:'pdfs/Transcending the disciplinary divide.pdf',label:'Networks'},{href:'pdfs/Wegovy a matter of fact.pdf',label:'Wegovy'},{href:'pdfs/Så kører bussen, selv.pdf',label:'Buses'},{href:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',label:'Food'}],
+  {xf:-0.34, yf: 0.22, stop:{id:'cases', label:'Case studies', title:'Case studies', body:'', media:[], links:[{href:'pdfs/Hvilken VR-sion af dig.pdf',label:'VRChat'},{href:'pdfs/Den sorte boks i den hvide verden.pdf',label:'Radiology'},{href:'pdfs/Transcending the disciplinary divide.pdf',label:'Networks'},{href:'pdfs/Wegovy a matter of fact.pdf',label:'Wegovy'},{href:'pdfs/Så kører bussen, selv.pdf',label:'Buses'},{href:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',label:'Food'}],
     /* the 360° gallery: covers ring the visitor in this order (alternating sides, even 360/7 spacing).
        `img` names the ASCII_COVERS grid AND the COVER_PHOTOS texture it develops into;
        `ascii` optionally assembles a different grid first (the bus's pre-made ascii-art);
@@ -1716,7 +1727,7 @@ const JOURNEY=[
      chess.com mark hangs TILTED beside the board (`mark.side`). Volunteering is a
      `list` facet: both entries assembled, up/down arrows (or ↑/↓, or a click) move
      the bright highlight. */
-  {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Beyond the work', body:'What I do when the methods are put away: chess, the piano — and a bit of volunteering.\nDrag to look around — step through some of my games move by move, or listen to me play.', media:[],
+  {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Beyond the work', body:'', media:[],
     gallery:[
       {img:'chessboard', title:'Chess', imgScale:1.95, hFit:1.5,
         games:CHESS_GAMES,
@@ -2225,6 +2236,7 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
+let absorbView=ud('toggleAbsorbView',true); // when on, every terrain glyph inside the active camera view joins that facet's assembly
 const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge and arrow
 /* ===== AUTO TOUR (v57, dev panel > Journey > "Auto tour", default OFF) =====
    A scroll-only guided mode. In free roam the tour owns the camera: scrolling sweeps a
@@ -2491,8 +2503,9 @@ function buildStopLayout(k){ // -> {items:[{ch,x,y,s}], w, h}: text-plane coords
     layStencilLine(items,t,cell,-tw/2,y);
     y-=7*cell+1.5; // breathe before the body
   }
-  for(const l of wrapText(asciiSafe(st.body),46)) addLine(l, 0.95, 0.42);
-  const top=0.05, bot=y+0.42+0.95/2; // undo the final advance to find the block's true bottom edge
+  const bodyLines=wrapText(asciiSafe(st.body),46);
+  for(const l of bodyLines) addLine(l, 0.95, 0.42);
+  const top=0.05, bot=bodyLines.length?y+0.42+0.95/2:y+1.5; // empty-body stops end at the title, with no phantom text row
   const h=top-bot, cy=(top+bot)/2;
   for(const it of items) it.y-=cy;
   return {items, w:maxW, h};
@@ -2506,7 +2519,7 @@ function setImgColor(c,L){ // L=null -> text (a notch brighter than the terrain)
   else { const g=inverted?(0.72-0.58*L):(0.30+0.70*L); c.setRGB(g,g,g); }
   return c;
 }
-function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top, cover grid, blurb, stencil buttons
+function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional metadata line, cover grid, blurb, stencil buttons
   // v57: `img` is optional (imageless entries — education, the contact form facet — lay
   // out as pure text blocks: bigger title, no grid, no develop); `btns:[{t,kind,data}]`
   // adds custom stencil buttons next to DOWNLOAD/READ MORE; `href` makes the whole mark
@@ -2515,9 +2528,9 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
   const isc=g.imgScale||1, Acw=A?A.cw*isc:0, Ach=A?A.ch*isc:0; // imgScale (v61): the piano video cover renders bigger
   const items=[], iw=A?A.cols*Acw:0, ih=A?A.rows*Ach:0;
   let y=0, maxW=iw;
-  const addLine=(t,s,gap,btn)=>{ const {xs,w:lw}=layoutLine(t,s);
+  const addLine=(t,s,gap,btn,L)=>{ const {xs,w:lw}=layoutLine(t,s);
     if(lw+1>maxW) maxW=lw+1;
-    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+xs[i], y:y+chBase(ch)*s, s, L:null, btn:btn||undefined, tf:1}); }
+    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+xs[i], y:y+chBase(ch)*s, s, L:L===undefined?null:L, btn:btn||undefined, tf:1}); }
     y-=s+gap; };
   const title=asciiSafe(g.title); // ONE line, always: long titles shrink instead of wrapping
   const tFitW=A?23:20; let topY=0.6; // topY: the block's true top edge (recentre below)
@@ -2528,10 +2541,11 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
     const t=stencilSafe(g.title), cell=Math.min(A?0.16:0.20, tFitW/stCols(t)), tw=stCols(t)*cell;
     if(tw+1>maxW) maxW=tw+1;
     layStencilLine(items,t,cell,-tw/2,y);
-    y-=7*cell+0.45; topY=0.05;
+    y-=7*cell+0.82; topY=0.05;
   }
-  if(g.sub) addLine(asciiSafe(g.sub),0.55,0.35);
-  y-=0.5; const imgTop=y; // the cover grid hangs below the header block
+  if(g.sub) addLine(asciiSafe(g.sub),0.58,g.meta?0.30:0.42);
+  if(g.meta) addLine(asciiSafe(g.meta),0.46,0.34,undefined,0.62);
+  y-=0.55; const imgTop=y; // the cover grid hangs below the more breathable header block
   if(A){
     /* v69: covers are subject-shaped now (background cells are spaces, so the card's black
        frame never renders as a faint dotted square). Multi-slide covers lay the UNION of
@@ -2666,30 +2680,34 @@ function buildCoverLayout(g,plainTitle){ // v40: one-line title/subtitle on top,
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-bot, imgW:iw, imgH:ih, imgCY:imgCY0-cy2, btns}; // img* = where the photo plane develops
 }
-/* Work/Education scroll mode: every facet carries the same compact ASCII index. The
-   current line gets a leading '>'; every line is clickable. Plain text keeps the list
-   legible and cheap enough to duplicate across the stop without threatening the pool. */
-const TL_S=0.42, TL_LINE=0.82, TL_GAP=2.2, TL_SLIDE=5.5, TL_MS=900;
+/* Work/Education scroll mode: one persistent compact ASCII index sits beside the
+   changing content facet. Keeping it as its own facet means a scroll only rebuilds the
+   main card; the left list no longer flies out and assembles again from a second glyph set. */
+const TL_S=0.50, TL_LINE=0.96, TL_GAP=2.2, TL_SLIDE=5.5, TL_MS=900;
 function timelineText(t){
   t=asciiSafe(t).toUpperCase().replace(/[^\x20-\x7E]/g,'');
   return t.length>24?t.slice(0,23)+'-':t;
 }
-function addTimelineNav(lay,labels,active){
-  lay.btns=lay.btns||[];
-  const lines=labels.map((t,i)=>(i===active?'> ':'  ')+(i<10?'0':'')+i+' '+timelineText(t));
+function buildTimelineNavLayout(labels){
+  const items=[], btns=[];
+  const lines=labels.map((t,i)=>(i<10?'0':'')+i+' '+timelineText(t));
   let listW=0; for(const t of lines) listW=Math.max(listW,layoutLine(t,TL_S).w);
-  const oldMin=-lay.w/2, oldMax=lay.w/2, listRight=oldMin-TL_GAP, listLeft=listRight-listW;
+  const contentReserve=45, totalW=listW+TL_GAP+contentReserve+0.7;
+  const listLeft=-totalW/2+0.35, textLeft=listLeft+TL_S*2.0;
   const listH=Math.max(TL_LINE,lines.length*TL_LINE), yTop=(lines.length-1)*TL_LINE/2;
   lines.forEach((t,i)=>{
     const kind='timeline'+i, y=yTop-i*TL_LINE, q=layoutLine(t,TL_S);
-    for(let c=0;c<t.length;c++){ const ch=t[c]; if(ch!==' ') lay.items.push({ch,x:listLeft+q.xs[c],y:y+chBase(ch)*TL_S,s:TL_S,L:null,btn:kind,tf:1}); }
-    lay.btns.push({kind,timeline:i,data:i,cx:listLeft+q.w/2,cy:y,hw:q.w/2+0.35,hh:TL_LINE*0.46});
+    for(let c=0;c<t.length;c++){ const ch=t[c]; if(ch!==' ') items.push({ch,x:textLeft+q.xs[c],y:y+chBase(ch)*TL_S,s:TL_S,L:null,btn:kind,tf:1}); }
+    btns.push({kind,timeline:i,data:i,cx:textLeft+q.w/2,cy:y,hw:q.w/2+0.35,hh:TL_LINE*0.46});
   });
-  const minX=listLeft-0.35, maxX=oldMax, cx=(minX+maxX)/2;
-  for(const it of lay.items) it.x-=cx;
-  for(const b of lay.btns) b.cx-=cx;
-  lay.imgCX=(lay.imgCX||0)-cx;
-  lay.w=maxX-minX; lay.h=Math.max(lay.h,listH+0.6); lay.timeline=true;
+  items.push({ch:'>',x:listLeft,y:yTop+chBase('>')*TL_S,s:TL_S,L:null,tf:1,timelineCaret:true});
+  return {items,btns,w:totalW,h:listH+0.6,timeline:true,timelineY:lines.map((_,i)=>yTop-i*TL_LINE)};
+}
+function shiftLayoutX(lay,dx){ // timeline content breathes to the right of the persistent index
+  for(const it of lay.items) it.x+=dx;
+  for(const b of (lay.btns||[])) b.cx+=dx;
+  if(lay.imgW) lay.imgCX=(lay.imgCX||0)+dx;
+  lay.w+=Math.abs(dx)*2; // keep fit/cone extents truthful after the off-centre composition
   return lay;
 }
 function layBtnRow(items,btns,bdefs,y,maxW,cellOpt){ // one stencil-button row (v59: extracted byte-identical
@@ -3165,7 +3183,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   const orderedGallery=scrollMode?st.scrollOrder.map(i=>st.gallery[i]).filter(Boolean):st.gallery;
   const timelineLabels=scrollMode?[st.title].concat(orderedGallery.map(g=>g.title)):null;
   const introLay=isWelcome?buildWelcomeLayout():isContact?buildContactLayout(k):buildStopLayout(k);
-  if(scrollMode) addTimelineNav(introLay,timelineLabels,0);
+  if(scrollMode) shiftLayoutX(introLay,3.0);
   const defs=[{lay:introLay, dy:0, dist:ASM_DIST, hFit:isWelcome?1.0:isContact?0.92:0.60, sizeMul:isWelcome?WELCOME_SIZE:1, clearM:isWelcome?WELCOME_HALO:0.15, photoKey:isWelcomeImg?'ghcal':null, pdf:null, g:null, scrollSlot:0}];
   if(st.gallery){ // facets ring the visitor at even 360/(n+1) spacing (intro holds the 0° slot)
     // spacing must exceed 2×F_GAZE_IN (~46°) so fire windows never overlap → max 6 gallery facets
@@ -3180,11 +3198,13 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       if(photoKey) getPhotoTex(photoKey); // warm the texture decode before the first develop
       const dy=scrollMode?0:((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step; // timeline stacks dead ahead; panorama alternates -1,+1,-2,+2,…
       const coverLay=buildCoverLayout(g, st.id==='cases');
-      if(scrollMode) addTimelineNav(coverLay,timelineLabels,i+1);
+      if(scrollMode) shiftLayoutX(coverLay,3.0);
       defs.push({lay:coverLay, dy:dy*Math.PI/180,
         dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:g.hFit||1.25, photoKey, pdf:g.pdf||null, g,
-        vids:g.vids||null, games:g.games||null, scrollSlot:i+1}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
+         vids:g.vids||null, games:g.games||null, scrollSlot:i+1}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
   }
+  if(scrollMode) defs.push({lay:buildTimelineNavLayout(timelineLabels),dy:0,dist:ASM_DIST,hFit:0.60,
+    clearM:0.04,photoKey:null,pdf:null,g:null,timelineNav:true,scrollSlot:-1});
   /* rotation-hint arrows (v61, covers-everywhere v62): every facet of a multi-facet stop
      gets a flanking pair — welcome and contact are single-facet (nothing to rotate to) so
      they skip by the same rule. The case-studies COVERS carry the COMPACT pair
@@ -3220,7 +3240,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, cbDis:0, // in-scene chess board (v66)
                  elist:(d.g&&d.g.list)||null, eIdx:0, // v68: highlight list (volunteering)
                  pdfEntry:(d.g&&d.g.pdfEntry!==undefined)?d.g.pdfEntry:null, // v69: DOWNLOAD only shows while THIS list entry is highlighted
-                  pdf:d.pdf, g:d.g, holdT0:0, fields:d.lay.fields||null, scrollSlot:d.scrollSlot||0, scrollMove:null, scrollExit:0,
+                  pdf:d.pdf, g:d.g, holdT0:0, fields:d.lay.fields||null, scrollSlot:d.scrollSlot||0, timelineNav:!!d.timelineNav, scrollMove:null, scrollExit:0,
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
                  state:'home', items:[], extras:[], fades:[], t0:0});
   }
@@ -3255,7 +3275,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         s1:li.s*F.f, geoA:li.tf?glyphGeoT(li.ch):glyphGeo(li.ch), L:li.L!==undefined?li.L:null, dev:li.dev||undefined, // tf (v70): typeset text renders in the active UI font
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
         wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr, vcap:li.vcap,
-        gcap:li.gcap, en:li.en, eh:li.eh, gh:li.gh, pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined};
+        gcap:li.gcap, en:li.en, eh:li.eh, gh:li.gh, timelineCaret:li.timelineCaret,
+        pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined};
       F.items.push(rec);
       if(li.btn){ const b=F.btns.find(bb=>bb.kind===li.btn); if(b) b.items.push(rec); } // button glyphs: pulsed/hover-lit each frame while assembled
     }
@@ -3273,6 +3294,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      and arbitrates every conflict (owners claim their letters back by clearing it in
      facetIn). Only budget overflow falls back to the old fade-in-place. */
   const nf=facets.length, byMesh=new Map(); // mesh -> its absorb records across all facets (handoff lookup)
+  const viewHalfP=THREE.MathUtils.degToRad(JOURNEY_FOV/2);
+  const viewHalfY=Math.atan(Math.tan(viewHalfP)*camera.aspect);
   for(let i=0;i<N;i++){
     if(reserved&&reserved.has(i)) continue; // banner glyphs are the welcome subsystem's — never absorb them
     if(ovr.get(i)==='scene') continue;      // force-kept: never enters any facet's absorb set — stays as scene
@@ -3291,8 +3314,9 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       const dy=Math.abs(wrapAng(gy-F.yaw))*Math.cos(gp), dp=Math.abs(gp-F.pitch);
       const e=Math.hypot(dy/F.Ry,dp/F.Rp);
       const cone=depth<F.dist+2&&dy<F.coneY&&dp<F.coneP;  // in front of the content AND inside its footprint
-      if(!cone&&e>=rim) continue;
-      if(cone||F.extras.length<F_EXTRA_MAX){
+      const fullView=absorbView&&dy<viewHalfY&&dp<viewHalfP; // optional clean-screen mode: the whole visible terrain flies into the faced scene
+      if(!fullView&&!cone&&e>=rim) continue;
+      if(fullView||cone||F.extras.length<F_EXTRA_MAX){ // view/cone members are correctness claims, never budget-overflow fades
         const rec={m, F, home:m.position.clone(), g0:m.geometry, own:ownF,
           to:null, from:null, ctrl:null, st:0, mode:null, s0:1, swapped:false, done:false};
         F.extras.push(rec);
@@ -3313,7 +3337,10 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       to:null, from:null, ctrl:null, st:0, mode:null, s0:1, swapped:false, done:false};
     bF.extras.push(rec); byMesh.set(m,[rec]);
   }
-  stopFacets={k, facets, yaw0, pitch0, byMesh, scrollMode, scrollIndex:0, scrollBusyUntil:0, scrollWheel:0};
+  const scrollFacets=scrollMode?facets.filter(F=>!F.timelineNav):null;
+  const timelineFacet=scrollMode?facets.find(F=>F.timelineNav):null;
+  if(timelineFacet) timelineFacet.timelineCaret=timelineFacet.items.find(it=>it.timelineCaret)||null;
+  stopFacets={k, facets, yaw0, pitch0, byMesh, scrollMode, scrollFacets, timelineFacet, scrollIndex:0, scrollBusyUntil:0, scrollWheel:0};
   // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
   // frame()), so set BOTH current and target to level: docking involves zero re-aim
   freeYaw=freeYawT=0;
@@ -3435,9 +3462,10 @@ function facetGaze(cy,cp,dt){ // fire/release facets by YAW ONLY — each facet 
   if(!stopFacets) return;     // so looking anywhere in its compass direction activates it (pitch never gates)
   const now=performance.now();
   if(stopFacets.scrollMode){
-    const active=stopFacets.facets[stopFacets.scrollIndex];
+    const active=stopFacets.scrollFacets[stopFacets.scrollIndex], nav=stopFacets.timelineFacet;
     if(active&&(active.state==='home'||active.state==='out')) facetIn(active,now);
-    for(const F of stopFacets.facets) if(F!==active&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
+    if(nav&&(nav.state==='home'||nav.state==='out')) facetIn(nav,now);
+    for(const F of stopFacets.scrollFacets) if(F!==active&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
     return;
   }
   for(const F of stopFacets.facets){
@@ -3482,6 +3510,12 @@ function rotateDock(dir){ // rotation-hint arrows: turn the docked view one face
 }
 function updateTimelineMotion(now){
   if(!stopFacets||!stopFacets.scrollMode) return;
+  const nav=stopFacets.timelineFacet, cm=nav&&nav.caretMove, caret=nav&&nav.timelineCaret;
+  if(cm&&caret){
+    const p=Math.min(1,Math.max(0,(now-cm.t0)/TL_MS));
+    caret.to.lerpVectors(cm.from,cm.to,easeInOut(p)); caret.baseTo.copy(caret.to);
+    if(p>=1) nav.caretMove=null;
+  }
   for(const F of stopFacets.facets){
     const M=F.scrollMove; if(!M) continue;
     const p=Math.min(1,Math.max(0,(now-M.t0)/TL_MS)), off=M.from*(1-easeInOut(p));
@@ -3491,14 +3525,20 @@ function updateTimelineMotion(now){
 }
 function timelineTo(idx){
   const S=stopFacets; if(!S||!S.scrollMode) return false;
-  const n=S.facets.length, now=performance.now();
+  const n=S.scrollFacets.length, now=performance.now();
   if(idx<0||idx>=n){ departTo(dockIdx+(idx<0?-1:1)); return true; }
   if(idx===S.scrollIndex||now<S.scrollBusyUntil) return true;
-  const old=S.facets[S.scrollIndex], next=S.facets[idx], dir=idx>S.scrollIndex?1:-1;
+  const old=S.scrollFacets[S.scrollIndex], next=S.scrollFacets[idx], dir=idx>S.scrollIndex?1:-1;
   next.scrollMove={from:-dir*TL_SLIDE,t0:now};
   for(const it of next.items) it.to.copy(it.baseTo).addScaledVector(next.up,next.scrollMove.from*next.f);
   facetIn(next,now); // receiver becomes active first, so terrain glyphs hand straight across
   old.scrollExit=dir; facetOut(old,now); old.scrollExit=0;
+  const nav=S.timelineFacet, caret=nav&&nav.timelineCaret;
+  if(nav&&caret&&nav.lay.timelineY){
+    const target=new THREE.Vector3().copy(nav.anchor).addScaledVector(nav.right,caret.lx*nav.f)
+      .addScaledVector(nav.up,nav.lay.timelineY[idx]*nav.f);
+    nav.caretMove={from:caret.to.clone(),to:target,t0:now};
+  }
   S.scrollIndex=idx; S.scrollBusyUntil=now+TL_MS; S.scrollWheel=0;
   dockZoomT=1; renderDirty=true; glyphsDirty=true;
   return true;
@@ -4384,7 +4424,7 @@ function tourDwell(yawOff){ // how long to hold on whatever hangs at this gaze o
 }
 function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet around the panorama
   if(!stopFacets||stopInfoMode!=='assemble') return;
-  const n=stopFacets.facets.length;
+  const n=stopFacets.scrollMode?stopFacets.scrollFacets.length:stopFacets.facets.length;
   if(n<2) return; // single-facet stop (welcome): nothing to sweep
   if(stopFacets.scrollMode){
     if(tour.k!==stopFacets.k){ tour.k=stopFacets.k; tour.holdUntil=now+tourDwell(0)+800; }
@@ -4402,7 +4442,7 @@ function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet a
 function beginEnter(toIdx){
   if(!FONT) return; // portrait not built yet — nothing to land on
   const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=false;
-  applyRaw(false); // the overview is the untouched Grainrad view; the journey uses the authored treatment
+  beginProcessingFade(); // processing now rides the same eased entry as the camera instead of appearing in one frame
   tourReset(); // a manual Enter mid-sweep must not leave stale tour progress behind
   uiState='entering'; enterT0=performance.now(); enterToIdx=toIdx; journeyFrom=journeyT;
   dockZoom=dockZoomT=1; // a fresh entry never inherits a stale scroll-zoom
@@ -4643,6 +4683,7 @@ function buildFlight(s0,s1,toIdx,mode){
 function beginExit(){
   if(uiState==='overview'||uiState==='exiting') return;
   uiState='exiting'; exitT0=performance.now(); flight=null; jMode='docked'; journeyFrom=journeyT;
+  processingAuto=true; // reverse the same raw/processed blend while the camera returns to free roam
   dockZoomT=1; // the scroll-zoom eases out with the exit
   tourReset(); // the guided sweep re-arms at the overview framing (exact pose the exit lands on)
   exitFromPos.copy(camera.position); exitFromQuat.copy(camera.quaternion);
@@ -5242,9 +5283,25 @@ function frame(){
   dockZoom+=(dockZoomT-dockZoom)*Math.min(1,dt*7);
   if(Math.abs(dockZoom-dockZoomT)<1e-4) dockZoom=dockZoomT; // settle exactly (idle-skip needs a stable FOV)
   camera.fov=(BASE_FOV+(JOURNEY_FOV-BASE_FOV)*journeyT+fovBoost)/dockZoom; camera.updateProjectionMatrix();
-  bloom.strength=baseBloom.strength*(1-journeyT);
+  bloom.strength=baseBloom.strength*(1-journeyT)*(processingAuto?Math.max(0,journeyT):processingBlend);
   bloom.radius=baseBloom.radius*(1-journeyT);
   bloom.threshold=baseBloom.threshold*(1-journeyT);
+
+  /* Raw/processed lifecycle: use journeyT as the single transition clock. Fog, vignette,
+     palette and tone response ease together while the camera moves; the binary composer
+     route changes only underneath a visually raw-equivalent first/last frame. */
+  if(processingAuto){
+    processingBlend=Math.min(1,Math.max(0,journeyT));
+    if(processingBlend>=0.999&&uiState!=='exiting') processingAuto=false;
+  }
+  PROCESS_UNIFORM.value=processingBlend;
+  if(!rawMode){
+    scene.fog=sceneFog;
+    sceneFog.near=baseFog.near+(1-processingBlend)*spanY*4;
+    sceneFog.far=baseFog.far+(1-processingBlend)*spanY*6;
+    renderer.toneMappingExposure=1+(1-processingBlend)*0.35;
+  }
+  if(vignetteEl) vignetteEl.style.opacity=String(processingBlend);
 
   updateAssembly(now,dt); // stop-text glyph flights (instance buffers sync just below)
   updateContactForm();    // embedded contact inputs ride the final camera pose (no-op elsewhere)
@@ -5272,7 +5329,6 @@ frame();
 
 
 /* dev tools */
-const vignetteEl=document.getElementById('vignette');
 const devToggle=document.getElementById('dev-toggle'), devPanel=document.getElementById('dev-panel');
 devToggle.addEventListener('click',()=>devPanel.classList.toggle('open'));
 /* collapsible topic sections — each header toggles its body; open/closed state persists */
@@ -5295,8 +5351,8 @@ bindRange('bloomStrength','valBloomStrength',v=>baseBloom.strength=v); // frame 
 bindRange('bloomRadius','valBloomRadius',v=>baseBloom.radius=v);
 bindRange('bloomThreshold','valBloomThreshold',v=>baseBloom.threshold=v);
 bindRange('fov','valFov',v=>BASE_FOV=v,v=>String(v));
-bindRange('fogNear','valFogNear',v=>sceneFog.near=spanY*v);
-bindRange('fogFar','valFogFar',v=>{ sceneFog.far=spanY*v; controls.maxDistance=sceneFog.far*0.97; });
+bindRange('fogNear','valFogNear',v=>{ baseFog.near=spanY*v; sceneFog.near=baseFog.near; });
+bindRange('fogFar','valFogFar',v=>{ baseFog.far=spanY*v; sceneFog.far=baseFog.far; controls.maxDistance=baseFog.far*0.97; });
 bindRange('jHeight','valJHeight',v=>{ JCLEAR=v; buildJourney(JCLEAR); },v=>v.toFixed(1));
 const vignetteCheck=document.getElementById('toggleVignette');
 function syncVignette(){ vignetteEl.style.display=(vignetteCheck.checked&&!rawMode)?'':'none'; }
@@ -5356,6 +5412,9 @@ cursorSwayCheck.addEventListener('change',e=>{
 function reassembleDocked(){ // live-rebuild whatever assembled stop is currently docked
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&dockIdx>=0) assembleStop(dockIdx);
 }
+const absorbViewCheck=document.getElementById('toggleAbsorbView');
+absorbViewCheck.checked=absorbView;
+absorbViewCheck.addEventListener('change',()=>{ absorbView=absorbViewCheck.checked; reassembleDocked(); });
 const timelineNavSelect=document.getElementById('timelineNavSelect');
 timelineNavSelect.value=timelineNav;
 timelineNavSelect.addEventListener('change',()=>{ timelineNav=timelineNavSelect.value; reassembleDocked(); });
@@ -5450,7 +5509,7 @@ const CTRL_DEF={
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',true],
   uiFontSelect:['select','mono'],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
-  toggleAutoTour:['check',false], toggleCursorSway:['check',false], timelineNavSelect:['select','scroll'], arrowSelect:['select','stream'],
+  toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true], timelineNavSelect:['select','scroll'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
@@ -5458,7 +5517,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','timelineNavSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welSize','welHalo']
 };

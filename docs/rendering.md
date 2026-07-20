@@ -2,11 +2,15 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v73: eased Raw-to-journey processing
+
+Entering no longer flips **Raw (no processing)** in one rendered frame. `beginProcessingFade()` unchecks the control but drives `processingBlend` from the same eased `journeyT` as the camera. A shared glyph-shader uniform blends raw white into the authored palette; fog range, vignette opacity, tone-mapping exposure, and bloom participation ease on the same clock. Exit reverses the blend before `applyRaw(true)` restores the exact renderer-only overview. Manual Raw changes remain immediate and exact.
+
 ## v72: overview distance and Raw lifecycle
 
 The overview camera starts exactly 20% farther from the face than the previous framing: `frontPos2.z = midZ + (farDist*0.55-midZ)*1.20`. This is derived from the real portrait bounds, so future portrait swaps retain the ratio rather than inheriting a fixed world-space offset.
 
-**Raw (no processing)** is now a state convention as well as a dev toggle. It is checked/applied on initial overview and whenever the visitor exits or replays the intro; `beginEnter()` unchecks it and calls `applyRaw(false)` before the journey transition. Thus free roam shows the raw Grainrad portrait, while Welcome and all journey stops use the processed journey rendering. `CTRL_DEF.toggleRaw` is `true`, matching the overview factory state.
+**Raw (no processing)** is now a state convention as well as a dev toggle. It is checked/applied on initial overview and whenever the visitor exits or replays the intro; `beginEnter()` unchecks it and starts the v73 processing fade with the journey transition. Thus free roam shows the raw Grainrad portrait, while Welcome and all journey stops use the processed journey rendering. `CTRL_DEF.toggleRaw` is `true`, matching the overview factory state.
 
 ## Portrait data and glyph geometry
 

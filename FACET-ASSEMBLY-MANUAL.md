@@ -7,9 +7,15 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v73 addendum: full-view absorption + persistent timeline index
+
+`toggleAbsorbView` (Journey dev tools, factory ON) expands pass 3 from the ellipse/cone to the active facet's complete 80° camera frustum. `viewHalfP=JOURNEY_FOV/2`; `viewHalfY=atan(tan(viewHalfP)*camera.aspect)`. Full-view members are correctness claims like cone members and therefore bypass `F_EXTRA_MAX` rather than falling into the fade fallback. Turning the setting off restores the v43 ellipse + exact-content-cone behavior. Real-data sampling at the six waypoint cameras measured 311–11,656 visible members out of 13,268; the record count is intentionally allowed to exceed the old ~9k corridor budget.
+
+Scroll-mode Work/Education now build the left index once as `timelineFacet`; `scrollFacets` contains only the overview/cards that swap. `facetGaze()` keeps the index active while `timelineTo()` hands terrain between content facets, and a single caret record eases between `lay.timelineY` rows. Do not duplicate the index into each card again: that makes the same list assemble twice from two exclusive owner sets. `shiftLayoutX()` gives the changing content a truthful rightward composition while updating image/button coordinates and fit/cone width.
+
 ## v72 addendum: linear timeline facets
 
-Work experience and Education have a second navigation presentation selected by `timelineNav` (factory `scroll`; classic `rotate` remains available). Scroll mode does **not** create a separate content system: it builds the normal intro/gallery facets, orders them with the stop's explicit `scrollOrder`, gives every facet the same yaw, and moves only the active facet through the shared forward reading plane. `addTimelineNav()` duplicates a small ASCII index into every layout and registers `timelineN` hit rectangles.
+Work experience and Education have a second navigation presentation selected by `timelineNav` (factory `scroll`; classic `rotate` remains available). Scroll mode does **not** create a separate content system: it builds the normal intro/gallery facets, orders them with the stop's explicit `scrollOrder`, gives every content facet the same yaw, and moves only the active facet through the shared forward reading plane. As of v73, one persistent `timelineFacet` owns the clickable ASCII index; the v72 per-layout duplication was removed.
 
 The handoff invariant still applies. `timelineTo()` activates the receiver before calling `facetOut()` on the sender; `facetOut()` remains the sole transfer point through `byMesh`/`hold`. Each item keeps an immutable `baseTo`; `updateTimelineMotion()` adds the temporary vertical offset and never overwrites the canonical target. Departure still sets `noHand=true`. Test overview -> adjacent -> non-adjacent click in both directions, plus switching the dev control between scroll and rotate while docked.
 

@@ -2,6 +2,12 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v73: processing handoff and full-view assembly setting
+
+Entry/exit now use `journeyT` for both camera/FOV movement and the Raw/processed visual blend, removing the one-frame processing switch at Enter. Journey dev tools also add **Absorb full field of view** (factory ON, user-default aware): ON recruits the active camera frustum into the faced facet; OFF restores the narrower ellipse + content cone. The setting live-reassembles a docked stop.
+
+The Work/Education scroll presentation keeps its left index as a persistent facet. `scrollFacets` alone participate in `timelineTo()`; `timelineFacet` stays active and moves one caret, so the list does not rebuild on every step.
+
 ## v72: left-side Welcome and linear timeline navigation
 
 The Welcome waypoint moved to `xf:-0.58, yf:0.82`, putting the assembled composition on the portrait's left while preserving the surrounding terrain as the visible scene. Welcome is a deliberate camera exception: `welcomeLookQuat(pos,out)` points horizontally at `faceCenter`, and it is used by direct entry, flight touchdown, and `assembleStop()`. `buildWelcomeLayout()` uses `cx=0`, so the seated figure and central spine are exactly on that camera axis rather than merely centered inside an asymmetric authored layout.
