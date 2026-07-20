@@ -608,24 +608,12 @@
         </label>
         <label>Title reveal
           <select id="welTitleSelect">
-            <option value="type">Typewriter (Hi, &hellip; I'm Thomas.)</option>
+            <option value="type">Keyboard typewriter</option>
             <option value="assemble">Assemble (classic)</option>
-          </select>
-        </label>
-        <label>Title position
-          <select id="welTitlePosSelect">
-            <option value="figure">Above the figure</option>
-            <option value="calendar">Above the calendar (classic)</option>
           </select>
         </label>
         <label>Panorama Size <span id="valWelSize">0.90</span>
           <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.90">
-        </label>
-        <label>Section list delay <span id="valWelNavDelay">1.0s</span>
-          <input type="range" id="welNavDelay" min="0" max="8" step="0.5" value="1.0">
-        </label>
-        <label>Section list pace <span id="valWelNavStep">0.9s</span>
-          <input type="range" id="welNavStep" min="0.2" max="2.5" step="0.1" value="0.9">
         </label>
         <label>Clearing Halo <span id="valWelHalo">0.05</span>
           <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
@@ -2195,21 +2183,15 @@ let stopInfoMode=ud('stopInfoSelect','assemble'); // 'assemble' | 'panel'
 // below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
 // halo (rad past the content) — see the assembleStop def note.
 let WELCOME_SIZE=ud('welSize',0.90), WELCOME_HALO=ud('welHalo',0.05);
-/* welcome section list (v60): stencil-bitmap labels of the OTHER stops, hung left of the
-   figure. They assemble invisibly with the facet (so nothing sits still in the corridor),
-   then WRITE themselves in banner-style — glyphs stream from their terrain homes into the
-   letters — one section after another, WNAV_DELAY ms after the facet settles and WNAV_STEP
-   apart (dev panel > Welcome Stop). Each label is a click target (departTo its stop) and
-   swells slightly on hover. Factory WELCOME_SIZE moved 0.80→0.90 with the list's ~11u of
-   extra width, so the pre-existing content keeps (within ~9%) its old on-screen size. */
-let WNAV_DELAY=ud('welNavDelay',1.0)*1000, WNAV_STEP=ud('welNavStep',0.9)*1000; // v63: delay 2.5→1.0 — the section list shows up sooner
+/* Welcome side groups: real stop links flank the central figure, with temporary project
+   names filling the Portfolio column. Every line is part of the main facet assembly; the
+   old delayed section-by-section rewrite is gone. Real links still swell on hover. */
 const WNAV_CELL=0.15, WNAV_MAXW=9.0;   // stencil cell size / max label width (long labels shrink to fit)
-const WNAV_GAP=2.0, WNAV_ROWGAP=0.55;  // column gap to the figure / vertical gap between labels
-const WNAV_FLY=520, WNAV_SWEEP=420;    // one glyph's write flight / L→R sweep across a label
+const WNAV_ROWGAP=0.78;                // extra breathing room between side-column labels
 const WNAV_POP=1.13;                   // hover: the label swells to this factor about its centre
-/* welcome-title typewriter (v63): per-column write pace, the beat between "HI," and
-   "I'M THOMAS.", the delay after the facet settles, and one cell's write flight. */
-const WTW_COL=30, WTW_GAP=650, WTW_DELAY=450, WTW_FLY=340;
+/* keyboard-style greeting: fresh stencil cells (never terrain claims) appear one key at
+   a time, with a short punctuation beat and a quick mechanical key-pop. */
+const WTW_KEY=105, WTW_GAP=380, WTW_DELAY=260, WTW_POP=100;
 // welcome contribution-calendar version (dev panel > Welcome Stop > GitHub calendar):
 //  'blocks' — in-scene glyph grid, uniform solid '#' per day + Less→More legend (GitHub-like, default)
 //  'classic' — the original in-scene grid (per-level ASCII char)
@@ -2217,13 +2199,9 @@ const WTW_COL=30, WTW_GAP=650, WTW_DELAY=450, WTW_FLY=340;
 //           in this mode buildWelcomeLayout omits the glyph calendar (title/figure/banner stay).
 let welcomeCal=localStorage.getItem('pf_welcome_cal')||'blocks';
 /* welcome title (v63, dev panel > Welcome Stop):
-   'type' (default) — the typewriter reveal: "HI," writes first, a beat, then "I'M THOMAS.",
-     each cell streaming in from the terrain swept left→right (banner-style);
-   'assemble' — the classic reveal, the title flying in with the rest of the facet.
-   Position 'figure' (default) hangs the title directly above the mini-me; 'calendar' is
-   the classic placement centred over the contribution grid. */
+   'type' (default) — an independent keyboard reveal that allocates fresh stencil cells;
+   'assemble' — the classic terrain-glyph reveal. Both sit directly above the figure. */
 let welcomeTitle=localStorage.getItem('pf_welcome_title')||'type';
-let welcomeTitlePos=localStorage.getItem('pf_welcome_titlepos')||'figure';
 function reassembleWelcome(){ // live-rebuild the welcome facet if currently docked there
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
@@ -2771,119 +2749,106 @@ const WCAL_CW=0.40, WCAL_CH=0.44, WCAL_S=0.34;      // calendar column/row pitch
 const WLBL_S=0.30;                                  // month / weekday label scale
 const WBANNER_S=0.6;                                // commit-banner half-extent for the layout bounds (the stream sizes its own stencil cells)
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function buildWelcomeTypeSpec(t,cell,x0,yTop){
+  const cells=[], cursorX=[x0]; let cx0=0;
+  for(let key=0;key<t.length;key++){
+    const g=stGlyph(t[key]);
+    for(let r=0;r<7;r++) for(let c=0;c<g[r].length;c++) if(g[r][c]==='#')
+      cells.push({x:x0+(cx0+c+0.5)*cell, y:yTop-(r+0.5)*cell, s:cell*1.15, key});
+    cx0+=g[0].length+1; cursorX.push(x0+cx0*cell);
+  }
+  return {text:t, cells, cursorX, yTop, cell, w:stCols(t)*cell, h:7*cell};
+}
 function buildWelcomeLayout(){
   const items=[], calCells=[];
   const cal=statsReady()?GH_STATS.calendar:null;
-  const cols=[]; // cols[c] = the days in week-column c (rows 0=Sun … 6=Sat)
+  const cols=[];
   if(cal){ let c=0;
     for(const d of cal){ (cols[c]||(cols[c]=[])).push({r:d.weekday,level:CAL_LEVELS[d.level]||0,date:d.date,count:d.count}); if(d.weekday===6) c++; }
   } else { for(let c=0;c<53;c++){ cols[c]=[]; for(let r=0;r<7;r++) cols[c].push({r,level:0,date:null,count:0}); } }
   const ncol=cols.length;
-  // 'blocks' & 'html' (exact) both lay one solid '#' per day (colour carries the level, like
-  // the real thing); 'glyph' uses the density ramp char. In 'html' mode the day cells are
-  // flagged dev:true — once they assemble they dissolve into a crisp textured IMAGE of the
-  // calendar (the develop, just like the case-studies covers turning into a photo); the labels
-  // and legend stay as glyphs around it, and calCells still drive the hover tooltip.
   const isHtmlCal=(welcomeCal==='html'||welcomeCal==='html2'), blockCal=(welcomeCal==='blocks'), solidCal=(blockCal||isHtmlCal);
   const cellS=solidCal?0.42:WCAL_S;
-  // grid: column 0 centre at x=0, Sun row at y=0 (top), rows descend
   for(let c=0;c<ncol;c++) for(const cell of cols[c]){
     const x=c*WCAL_CW, y=-cell.r*WCAL_CH;
     items.push({ch:solidCal?'#':CAL_CHARS[cell.level], x, y, s:cellS, L:{cal:cell.level}, dev:isHtmlCal||undefined});
     if(cell.date) calCells.push({cx:x, cy:y, date:cell.date, count:cell.count});
   }
   const calW=(ncol-1)*WCAL_CW, calCX=calW/2, calTop=0, calBot=-6*WCAL_CH;
-  // month labels above the grid, at each column where the month first changes
   let lastM=-1;
   for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
     const m=+first.date.slice(5,7)-1;
     if(m!==lastM&&c<ncol-1){ lastM=m; const t=MONTHS[m], adv=ASM_ADV*WLBL_S;
       for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6+chBase(t[i])*WLBL_S, s:WLBL_S, L:null, tf:1}); } }
-  // weekday labels left of the grid (GitHub shows Mon / Wed / Fri)
   [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
     for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH+chBase(t[i])*WLBL_S, s:WLBL_S, L:null, tf:1}); });
-  const calEnd=items.length; // everything so far is the calendar column (cells + labels) — see the calUp shift below
-  let bannerCY=calBot-WCAL_CH*0.5-1.9; // a touch more air under the calendar for the taller stencil banner
-  /* the title (v63): TWO stencil segments — "HI," and "I'M THOMAS." — so the typewriter
-     reveal can write them as two beats. welcomeTitlePos 'figure' (default) hangs it
-     directly above the mini-me; 'calendar' is the classic centred-over-the-grid spot.
-     With the typewriter on (welcomeTitle 'type') every cell carries tw + its whole write
-     schedule in wd (per-column sweep; segment 2 waits out segment 1 + WTW_GAP) and lands
-     INVISIBLE with the assembly, exactly like the nav labels — updateWelcomeTitle then
-     writes the cells in from the terrain once the facet holds. */
-  const t1='HI,', t2="I'M THOMAS.", tCell=0.20;
-  const c1=stCols(t1), c2=stCols(t2), cSp=stGlyph(' ')[0].length+2; // the inter-segment space, in stencil cols
-  const tW=(c1+cSp+c2)*tCell, typeOn=(welcomeTitle==='type'), overFig=(welcomeTitlePos==='figure');
-  const stackTop=calTop+WCAL_CH*0.5+WLBL_S*1.6; // the month-label line over the grid
-  const titleTopCal=stackTop+1.4+7*tCell;       // classic band top (position 'calendar')
-  // the figure (mini-me) to the LEFT of the whole right-hand stack. Grid + pitch come from
-  // the selected WFIG entry; wave-region cells are flagged for updateWelcomeWave. Title over
-  // the calendar: the figure centres between title and banner (classic). Title over the
-  // figure: it centres between the month labels and the banner, and the title crowns it.
+
+  /* Central spine: greeting, figure, calendar, commit stream. The calendar is centred
+     beneath the figure instead of occupying a separate right-hand column. */
+  const calEnd=items.length, calDX=-calCX, calDY=-1.35;
+  for(let i=0;i<calEnd;i++){ items[i].x+=calDX; items[i].y+=calDY; }
+  for(const cc of calCells){ cc.cx+=calDX; cc.cy+=calDY; }
+  let bannerCY=calBot+calDY-WCAL_CH*0.5-1.45;
+
   const fig=WFIG[welcomeFigure]||WFIG.scene, G=fig.grid, cwP=fig.cw, chP=fig.ch, sP=fig.s, wv=fig.wave;
-  const miW=(G.cols-1)*cwP, miH=(G.rows-1)*chP;
-  const miTop=((overFig?stackTop+0.4:titleTopCal)+bannerCY)/2+miH/2, miX0=-3.4-miW;
-  const titleTop=overFig?miTop+0.9+7*tCell:titleTopCal;
-  const tX0=(overFig?miX0+miW/2:calCX)-tW/2;
-  layStencilLine(items,t1,tCell,tX0,titleTop, typeOn?{tw:1,wd:c1*WTW_COL}:undefined);
-  const s2i=items.length;
-  layStencilLine(items,t2,tCell,tX0+(c1+cSp)*tCell,titleTop, typeOn?{tw:1,wd:c2*WTW_COL}:undefined);
-  if(typeOn) for(let i=s2i;i<items.length;i++) items[i].wd=(items[i].wd||0)+c1*WTW_COL+WTW_GAP; // segment 2 waits for "HI," + a beat
-  /* calUp (v63): with the title off the calendar the user wanted the grid a touch higher —
-     raise the whole right-hand stack (day cells, labels, banner) relative to the figure.
-     Applied after miTop so the figure column stays put; the recentre spreads the rest. */
-  const calUp=overFig?0.6:0;
-  if(calUp){ for(let i=0;i<calEnd;i++) items[i].y+=calUp; for(const cc of calCells) cc.cy+=calUp; bannerCY+=calUp; }
+  const miW=(G.cols-1)*cwP, miH=(G.rows-1)*chP, miTop=10.20, miX0=-miW/2;
+  const titleText="HI, I'M THOMAS.", tCell=0.20, tW=stCols(titleText)*tCell, titleTop=12.35, tX0=-tW/2;
+  let typeTitle=null;
+  if(welcomeTitle==='type') typeTitle=buildWelcomeTypeSpec(titleText,tCell,tX0,titleTop);
+  else layStencilLine(items,titleText,tCell,tX0,titleTop);
+
   let waveS=null, waveE=null, waveB1=0, waveB2=0;
   if(wv){ waveS={x:miX0+wv.sc*cwP, y:miTop-wv.sr*chP}; waveE={x:miX0+wv.ec*cwP, y:miTop-wv.er*chP}; waveB1=wv.b1; waveB2=wv.b2; }
   const inWv=(b,c,r)=>c>=b.c0&&c<=b.c1&&r>=b.r0&&r<=b.r1;
   for(let r=0;r<G.rows;r++){ const row=G.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
     const it={ch, x:miX0+c*cwP, y:miTop-r*chP, s:sP, L:COVER_RAMP.indexOf(ch)/9};
-    if(wv){ if(inWv(wv.up,c,r)) it.wave=1; else for(const b of wv.lo) if(inWv(b,c,r)){ it.wave=2; break; } } // 1 = upper arm (shoulder), 2 = forearm+hand (elbow)
+    if(wv){ if(inWv(wv.up,c,r)) it.wave=1; else for(const b of wv.lo) if(inWv(b,c,r)){ it.wave=2; break; } }
     items.push(it); } }
-  /* the section list (v60): the other stops as stencil-bitmap labels (letters MADE of
-     '#' glyphs, like the marks — the positive of the punched-out buttons), left-aligned
-     in a column left of the figure, vertically centred on it. Each item carries nav:k
-     (write-wave index; 0 = the plain-text header) and wd (its L→R sweep delay within the
-     label); each label registers a padded 'nav' hit rect (data = its STOPS index) that
-     departTo flies on click. updateWelcomeNav stages the writes after the facet settles. */
-  const btns=[];
-  {
-    const navStops=[]; STOPS.forEach((s,i)=>{ if(!s.github) navStops.push({t:s.label.toUpperCase(),i}); });
-    const navX0=miX0-WNAV_GAP-WNAV_MAXW;
-    const listH=navStops.length*(7*WNAV_CELL+WNAV_ROWGAP)-WNAV_ROWGAP;
-    // v61: no SECTIONS header (the stencil labels ARE the affordance) — the list rides a
-    // touch above centre on the figure
-    let ny=(miTop-miH/2)+listH/2+0.5;
-    navStops.forEach((ns,k)=>{
-      const cols=stCols(ns.t);
-      const cell=Math.min(WNAV_CELL, WNAV_MAXW/cols), lw=cols*cell, kind='nav'+k;
-      layStencilLine(items,ns.t,cell,navX0,ny,{btn:kind, nav:k, wd:WNAV_SWEEP});
-      btns.push({kind, nav:k, data:ns.i, cx:navX0+lw/2, cy:ny-7*cell/2, hw:lw/2+0.45, hh:7*cell/2+0.30});
-      ny-=7*cell+WNAV_ROWGAP;
-    });
-  }
-  // recentre the whole block on (0,0), banner line included in the vertical extent
+
+  /* Wide side groups echo the reference without pretending placeholder projects are live.
+     Only real journey destinations register hit targets; every line is an ordinary facet
+     item and therefore arrives in the same assembly wave as the figure and calendar. */
+  const btns=[], leftX=-18.0, rightX=11.5, sideTop=8.90;
+  const addStencil=(t,x0,y,cellMax,maxW,extra,L)=>{
+    const start=items.length, cell=Math.min(cellMax,maxW/stCols(t)), w=layStencilLine(items,t,cell,x0,y,extra);
+    if(L!==undefined) for(let i=start;i<items.length;i++) items[i].L=L;
+    return {w,cell};
+  };
+  addStencil('ABOUT ME',leftX,10.75,0.12,WNAV_MAXW);
+  const leftIds=['work','edu','interests','contact'];
+  leftIds.forEach((id,row)=>{ const si=STOPS.findIndex(s=>s.id===id), t=STOPS[si].label.toUpperCase(), kind='nav'+btns.length;
+    const y=sideTop-row*(7*WNAV_CELL+WNAV_ROWGAP), q=addStencil(t,leftX,y,WNAV_CELL,WNAV_MAXW,{btn:kind});
+    btns.push({kind,nav:btns.length,data:si,cx:leftX+q.w/2,cy:y-7*q.cell/2,hw:q.w/2+0.45,hh:7*q.cell/2+0.30}); });
+
+  addStencil('PORTFOLIO',rightX,10.75,0.12,WNAV_MAXW);
+  const caseIdx=STOPS.findIndex(s=>s.id==='cases'), caseKind='nav'+btns.length;
+  const caseQ=addStencil(STOPS[caseIdx].label.toUpperCase(),rightX,sideTop,WNAV_CELL,WNAV_MAXW,{btn:caseKind});
+  btns.push({kind:caseKind,nav:btns.length,data:caseIdx,cx:rightX+caseQ.w/2,cy:sideTop-7*caseQ.cell/2,hw:caseQ.w/2+0.45,hh:7*caseQ.cell/2+0.30});
+  ['PROJECT NORTH','PROJECT STATIC','PROJECT AFTERGLOW'].forEach((t,row)=>
+    addStencil(t,rightX,sideTop-(row+1)*(7*WNAV_CELL+WNAV_ROWGAP),0.12,WNAV_MAXW,null,0.58));
+
   let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
   for(const it of items){ const h=it.s*0.5; minX=Math.min(minX,it.x-h); maxX=Math.max(maxX,it.x+h); minY=Math.min(minY,it.y-h); maxY=Math.max(maxY,it.y+h); }
+  if(typeTitle){ minX=Math.min(minX,tX0); maxX=Math.max(maxX,tX0+tW); minY=Math.min(minY,titleTop-7*tCell); maxY=Math.max(maxY,titleTop); }
   minY=Math.min(minY,bannerCY-WBANNER_S);
   const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
   for(const it of items){ it.x-=cx; it.y-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
   for(const b of btns){ b.cx-=cx; b.cy-=cy; }
+  if(typeTitle){ for(const c of typeTitle.cells){ c.x-=cx; c.y-=cy; } typeTitle.cursorX=typeTitle.cursorX.map(x=>x-cx); typeTitle.yTop-=cy; }
   if(waveS){ waveS.x-=cx; waveS.y-=cy; waveE.x-=cx; waveE.y-=cy; }
   const ret={items, w:maxX-minX, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
-          bannerCX:calCX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns,
+          bannerCX:-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns, typeTitle,
           waveS, waveE, waveB1, waveB2};
-  if(isHtmlCal){ // the develop image covers exactly the grid glyph cells (full-cell extent, recentred)
-    ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=calCX-cx; ret.imgCY=(calTop+calBot)/2+calUp-cy;
+  if(isHtmlCal){
+    ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=-cx; ret.imgCY=(calTop+calBot)/2+calDY-cy;
   }
   return ret;
 }
 /* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
    scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
-const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, navT0:null, twItems:null, twT0:null};
+const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, typeTitle:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
 /* ── exact GitHub calendar as an in-scene image (welcomeCal==='html') ──────────────────
    Rendered to a canvas → CanvasTexture (no DOM overlay), so the develop machinery can fade
@@ -3046,94 +3011,66 @@ function updateWelcomeWave(now){
     it.m.position.copy(F.anchor).addScaledVector(F.right,px*f).addScaledVector(F.up,py*f);
   }
 }
-/* the section list writes (v60): once the facet settles ('hold'), the nav labels — whose
-   glyphs landed INVISIBLE at their letters during the assembly — write themselves in one
-   wave at a time: wave k (v61: 0 = the first label, the header is gone) launches WNAV_DELAY + k·WNAV_STEP ms
-   after holdT0, each glyph flying banner-style from its terrain home into its letter,
-   swept L→R across the label (it.wd). Self-clocked per glyph, so it survives held frames;
-   a fresh facetIn (look-away/back, re-dock) is detected by F.t0 changing, which resets
-   every shown/write flag — the whole sequence replays on the new schedule. Delay/pace are
-   the dev sliders (WNAV_DELAY/WNAV_STEP), read live, so pending waves follow a tweak. */
-function updateWelcomeNav(now){
+/* Side-column links are normal facet items now. They become clickable as soon as the main
+   assembly reaches hold; there is no slower second write pass. */
+function updateWelcomeNav(){
   const F=welcome.F;
-  if(welcome.navT0!==F.t0){ welcome.navT0=F.t0;
-    for(const b of F.btns){ if(b.nav===undefined) continue; b.shown=false; b.sc=1;
-      for(const it of b.items){ it.shown=false; it.wOn=false; it.wSw=false; } } }
-  if(F.state!=='hold') return; // writes only stage once the assembly has settled
+  const shown=F.state==='hold';
   for(const b of F.btns){
     if(b.nav===undefined) continue;
-    const t0=F.holdT0+WNAV_DELAY+b.nav*WNAV_STEP;
-    if(now<t0) continue;
-    b.shown=true;
-    for(const it of b.items){
-      if(it.shown) continue;
-      const lt=now-t0-(it.wd||0); if(lt<=0) continue;
-      const m=it.m;
-      if(!it.wOn){ it.wOn=true; it.wSw=false; // launch: back to its terrain-home form, then fly in
-        it.wCtrl=new THREE.Vector3().lerpVectors(it.home,it.to,0.5)
-          .addScaledVector(F.right,(Math.random()-0.5)*3).addScaledVector(F.up,0.8+Math.random()*1.2);
-        m.geometry=it.geo0; m.material.color.set(asmRestColor()); m.userData.asm=false; m.userData.asmL=null; }
-      let p=lt/WNAV_FLY; if(p>1) p=1;
-      if(!it.wSw&&p>=0.5){ m.geometry=it.geoA; setImgColor(m.material.color,it.L); m.userData.asm=true; m.userData.asmL=it.L; it.wSw=true; }
-      if(p===1){ m.geometry=it.geoA; m.position.copy(it.to); m.scale.setScalar(it.s1);
-        m.material.opacity=1; m.visible=true; setImgColor(m.material.color,it.L);
-        m.userData.asm=true; m.userData.asmL=it.L; it.shown=true; continue; }
-      const e=easeInOut(p), ie=1-e;
-      m.visible=true;
-      m.position.set(ie*ie*it.home.x+2*ie*e*it.wCtrl.x+e*e*it.to.x,
-                     ie*ie*it.home.y+2*ie*e*it.wCtrl.y+e*e*it.to.y,
-                     ie*ie*it.home.z+2*ie*e*it.wCtrl.z+e*e*it.to.z);
-      m.scale.setScalar(1+(it.s1-1)*e);
-      m.material.opacity=Math.min(1,p*2);
-    }
+    b.shown=shown;
+    for(const it of b.items) it.shown=shown;
   }
 }
-/* the title typewriter (v63): once the facet settles, "HI," writes itself in, a beat
-   passes, then "I'M THOMAS." follows — each cell a banner-style flight from its terrain
-   home into its stencil cell, swept left→right (it.wd carries the whole schedule,
-   segment offset included; the cells landed INVISIBLE with the assembly). Self-clocked
-   per cell; a fresh facetIn (look-away/back, re-dock) is detected by F.t0 changing,
-   which replays the sequence. The classic 'assemble' reveal lays the title without tw,
-   so this whole pass is a no-op there. */
+function releaseWelcomeTypeTitle(){
+  const T=welcome.typeTitle; if(!T) return;
+  for(const r of T.cells) releaseGlyph(r.m);
+  for(const r of T.cursor) releaseGlyph(r.m);
+  welcome.typeTitle=null; glyphsDirty=true;
+}
+function initWelcomeTypeTitle(){
+  const F=welcome.F, spec=F&&F.lay.typeTitle; if(!spec) return;
+  const cells=spec.cells.map(c=>{ const m=acquireGlyph('#');
+    const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,c.x*F.f).addScaledVector(F.up,c.y*F.f);
+    m.position.copy(to); m.scale.setScalar(0.01); m.material.opacity=0; m.material.color.set(inverted?GLYPH_DARK:'#ffffff'); m.visible=false;
+    return {m,to,s:c.s*F.f,key:c.key}; });
+  const cursor=[];
+  for(let r=0;r<7;r++){ const m=acquireGlyph('#'); m.scale.setScalar(0.01); m.material.opacity=0; m.visible=false; cursor.push({m,r}); }
+  welcome.typeTitle={F,holdT0:F.holdT0,spec,cells,cursor}; glyphsDirty=true;
+}
+function welcomeKeyAt(key){ return key*WTW_KEY+(key>=3?WTW_GAP:0); }
+/* Independent keyboard reveal: every key makes one complete stencil character pop into
+   place. These glyphs are freshly allocated and never leave holes in the portrait. */
 function updateWelcomeTitle(now){
-  const F=welcome.F;
-  if(welcome.twT0!==F.t0){ welcome.twT0=F.t0; welcome.twItems=null; }
-  if(welcome.twItems==null){
-    welcome.twItems=F.items.filter(it=>it.tw);
-    for(const it of welcome.twItems){ it.shown=false; it.wOn=false; it.wSw=false; }
+  const F=welcome.F, spec=F&&F.lay.typeTitle;
+  if(!spec||F.state!=='hold'){ releaseWelcomeTypeTitle(); return; }
+  if(!welcome.typeTitle||welcome.typeTitle.F!==F||welcome.typeTitle.holdT0!==F.holdT0){ releaseWelcomeTypeTitle(); initWelcomeTypeTitle(); }
+  const T=welcome.typeTitle, elapsed=now-(F.holdT0+WTW_DELAY), ink=inverted?GLYPH_DARK:'#ffffff';
+  let typed=0;
+  for(let key=0;key<spec.text.length;key++) if(elapsed>=welcomeKeyAt(key)) typed=key+1;
+  for(const r of T.cells){
+    const p=Math.max(0,Math.min(1,(elapsed-welcomeKeyAt(r.key))/WTW_POP)), m=r.m;
+    if(p<=0){ m.visible=false; m.material.opacity=0; continue; }
+    m.visible=true; m.position.copy(r.to); m.material.color.set(ink); m.material.opacity=p;
+    m.scale.setScalar(r.s*(0.72+0.28*easeOutCubic(p)+0.14*Math.sin(Math.PI*p)));
   }
-  if(!welcome.twItems.length||F.state!=='hold') return; // classic reveal, or still assembling
-  for(const it of welcome.twItems){
-    if(it.shown) continue;
-    const lt=now-(F.holdT0+WTW_DELAY+(it.wd||0)); if(lt<=0) continue;
-    const m=it.m;
-    if(!it.wOn){ it.wOn=true; it.wSw=false; // launch: back to its terrain-home form, then fly in
-      it.wCtrl=new THREE.Vector3().lerpVectors(it.home,it.to,0.5)
-        .addScaledVector(F.right,(Math.random()-0.5)*3).addScaledVector(F.up,0.8+Math.random()*1.2);
-      m.geometry=it.geo0; m.material.color.set(asmRestColor()); m.userData.asm=false; m.userData.asmL=null; }
-    let p=lt/WTW_FLY; if(p>1) p=1;
-    if(!it.wSw&&p>=0.5){ m.geometry=it.geoA; setImgColor(m.material.color,it.L); m.userData.asm=true; m.userData.asmL=it.L; it.wSw=true; }
-    if(p===1){ m.geometry=it.geoA; m.position.copy(it.to); m.scale.setScalar(it.s1);
-      m.material.opacity=1; m.visible=true; setImgColor(m.material.color,it.L);
-      m.userData.asm=true; m.userData.asmL=it.L; it.shown=true; continue; }
-    const e=easeInOut(p), ie=1-e;
-    m.visible=true;
-    m.position.set(ie*ie*it.home.x+2*ie*e*it.wCtrl.x+e*e*it.to.x,
-                   ie*ie*it.home.y+2*ie*e*it.wCtrl.y+e*e*it.to.y,
-                   ie*ie*it.home.z+2*ie*e*it.wCtrl.z+e*e*it.to.z);
-    m.scale.setScalar(1+(it.s1-1)*e);
-    m.material.opacity=Math.min(1,p*2);
-  }
+  const lastAt=welcomeKeyAt(spec.text.length-1)+WTW_POP, cursorOn=elapsed>=0&&elapsed<lastAt+650&&((elapsed/230)|0)%2===0;
+  const cursorX=spec.cursorX[Math.min(typed,spec.cursorX.length-1)]+spec.cell*0.25;
+  for(const r of T.cursor){ const m=r.m;
+    m.position.copy(F.anchor).addScaledVector(F.right,cursorX*F.f).addScaledVector(F.up,(spec.yTop-(r.r+0.5)*spec.cell)*F.f);
+    m.scale.setScalar(spec.cell*0.58*F.f); m.material.color.set(ink); m.material.opacity=cursorOn?0.9:0; m.visible=cursorOn; }
+  glyphsDirty=true;
 }
 function updateWelcome(now,dt){
   if(!welcome.active||!welcome.F) return;
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
   if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now); updateWelcomeTitle(now); }
-  else if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; hideCalTip(); }
+  else { releaseWelcomeTypeTitle(); if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; } hideCalTip(); }
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
+  releaseWelcomeTypeTitle();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null; welcome.navT0=null; welcome.twItems=null; welcome.twT0=null; hideCalTip(); glyphsDirty=true; }
+  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
   const n=cc.count, d=new Date(cc.date+'T00:00:00');
   calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -3232,7 +3169,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      facet partition, so pass 2/3 leave them alone (the banner animates them itself) */
   let reserved=null;
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null; welcome.navT0=null;
+  welcome.waveItems=null; welcome.waveT0=null;
   if(isWelcome){ const F0=facets[0]; const rb=reserveWelcomeBanner(F0);
     reserved=rb.reserved; welcome.pool=rb.pool; welcome.active=true; welcome.F=F0;
     welcome.calCells=F0.lay.calCells; welcome.calHW=F0.lay.calHW; welcome.calHH=F0.lay.calHH; }
@@ -3933,11 +3870,9 @@ function updateFacet(F,now,dt){
           m.geometry=it.geoA; m.position.copy(it.to); m.scale.setScalar(it.s1);
           setImgColor(m.material.color,it.L);
           m.userData.asm=true; m.userData.asmL=it.L;
-          // nav labels (welcome section list) and typewriter title cells (v63) land
-          // INVISIBLE, like extras — updateWelcomeNav / updateWelcomeTitle write them in later.
-          // v69: so do slide-union ghost cells (gh — no ink on the CURRENT slide) and a
-          // gated DOWNLOAD (pg) while its list entry isn't the highlighted one
-          if(it.nav!==undefined||it.tw||it.gh||(it.pg&&F.eIdx!==F.pdfEntry)){ m.material.opacity=0; m.visible=false; }
+          // Slide-union ghost cells (gh — no ink on the CURRENT slide) and a gated
+          // DOWNLOAD (pg) land invisible while their current entry is inactive.
+          if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)){ m.material.opacity=0; m.visible=false; }
           else m.material.opacity=1;
         } else {
           m.geometry=it.geo0; m.position.copy(it.home); m.scale.setScalar(1);
@@ -3953,7 +3888,7 @@ function updateFacet(F,now,dt){
         ie*ie*it.from.z+2*ie*e*it.ctrl.z+e*e*to.z);
       m.scale.setScalar(Math.max(0.05,it.s0+((dirIn?it.s1:1)-it.s0)*(dirIn?easeOutBack(p):e)));
       if(dirIn){
-        if(it.nav!==undefined||it.tw||it.gh||(it.pg&&F.eIdx!==F.pdfEntry)) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
+        if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
         else{
           m.material.opacity=Math.min(1,Math.max(m.material.opacity,p*2));
           if(it.swapped&&!inverted) m.material.color.copy(INTRO_FLASH).lerp(setImgColor(_cc,it.L),(p-0.5)*2);
@@ -5319,20 +5254,12 @@ const welTitleSelect=document.getElementById('welTitleSelect');
 welTitleSelect.value=welcomeTitle;
 welTitleSelect.addEventListener('change',()=>{ // typewriter vs classic reveal; live-rebuilds if docked there
   welcomeTitle=welTitleSelect.value; localStorage.setItem('pf_welcome_title',welcomeTitle); reassembleWelcome(); });
-const welTitlePosSelect=document.getElementById('welTitlePosSelect');
-welTitlePosSelect.value=welcomeTitlePos;
-welTitlePosSelect.addEventListener('change',()=>{ // title over the figure vs over the calendar
-  welcomeTitlePos=welTitlePosSelect.value; localStorage.setItem('pf_welcome_titlepos',welcomeTitlePos); reassembleWelcome(); });
 const welWaveSelect=document.getElementById('welWaveSelect');
 welWaveSelect.value=welcomeWave;
 welWaveSelect.addEventListener('change',()=>{ // swap the greeting-wave style; read live each frame by updateWelcomeWave
   welcomeWave=welWaveSelect.value; localStorage.setItem('pf_welcome_wave',welcomeWave); welcome.waveT0=null; }); // reset the clock so the new style starts clean
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
-// section-list timing: read live at wave-launch time, so no reassemble — pending waves
-// (and the next look-back replay) just follow the new values
-bindRange('welNavDelay','valWelNavDelay',v=>{ WNAV_DELAY=v*1000; },v=>v.toFixed(1)+'s');
-bindRange('welNavStep','valWelNavStep',v=>{ WNAV_STEP=v*1000; },v=>v.toFixed(1)+'s');
 /* v70: UI font switcher (dev tools ▸ Render). Swaps the HTML/UI body font only — the 3D
    scene glyphs draw from their own geometry/atlas and never follow CSS. Google Fonts
    stylesheets are injected lazily the first time a webfont is picked (nothing external
@@ -5405,14 +5332,13 @@ const CTRL_DEF={
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
-  welTitleSelect:['select','type'], welTitlePosSelect:['select','figure'],
-  welNavDelay:['range',1.0], welNavStep:['range',0.9]
+  welTitleSelect:['select','type']
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
   journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
-  welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welTitlePosSelect','welSize','welHalo','welNavDelay','welNavStep']
+  welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welSize','welHalo']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.text,SECT_CTRLS.welcome);
 function ctrlGet(id){ const el=document.getElementById(id), k=CTRL_DEF[id][0]; return k==='check'?el.checked : k==='range'?parseFloat(el.value) : el.value; }

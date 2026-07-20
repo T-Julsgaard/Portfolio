@@ -1,5 +1,9 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v71: welcome side groups assemble normally; greeting types independently
+
+The welcome stop was recomposed into a central greeting → figure → GitHub-calendar → commit-stream spine with ABOUT ME and PORTFOLIO columns on the flanks. Its real navigation labels are ordinary facet items now: the v60/v63 invisible landing plus delayed `updateWelcomeNav` terrain rewrite was removed, so the links share the same `F_IN_MS` assembly as the rest of the facet. `b.nav` remains only for hover/click behavior after `hold`. The default greeting is the explicit welcome-only exception to terrain recruitment: `buildWelcomeTypeSpec` keeps it out of `lay.items`, and `updateWelcomeTitle` reveals newly allocated `'#'` pool proxies one stencil character at a time, then `releaseWelcomeTypeTitle` detaches them. The classic assembled-title option remains. Full layout, lifecycle, and timing details are in `docs/welcome-stop.md`.
+
 Deep reference for the assembled-stop system. **Read FACET-ASSEMBLY-MANUAL.md (repo root) FIRST** for the architecture/validation methodology; this doc holds the accumulated per-version behavior on top of it. Read both before touching facets, covers, stencil buttons, overlay cards, the in-scene video, or stop content.
 
 ## Stop info display: assemble mode, facets, covers, buttons, READ MORE (v23-v46)

@@ -13,7 +13,10 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
    the portrait's characters *become* the content. A character that merely fades — or
    flies home and *then* fades — breaks the story. Any clearing mechanic must absorb
    glyphs into flights toward the content. Fade-in-place may exist only as an
-   unreachable overflow fallback.
+   unreachable overflow fallback. **Explicit welcome exception (v71):** the default
+   keyboard-style greeting is not facet content and does not clear or borrow terrain
+   glyphs; it allocates temporary `'#'` proxies and releases them on look-away/departure.
+   All other welcome content, including both side groups, follows the normal rule.
 2. **Nothing may sit still between the visitor and the content.** The test is a *cone*
    from the eye through the content rectangle (text/image/buttons) out to the content
    plane — everything inside it joins the assembly. But do NOT clear the whole field of
