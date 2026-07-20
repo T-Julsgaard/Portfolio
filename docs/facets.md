@@ -73,7 +73,7 @@ Headless-verified end-to-end (CDP screenshots): ←/→ rotate at Experience (OW
 1. **Match-list captions name the time control, not the result**: all three `CHESS_GAMES` caps are now `vs <opponent> (<rating>) - Bullet` (results still live in the code comments + the PGNs themselves).
 2. **The tilted club mark is caption-first**: in `buildCoverLayout`'s `mark.side` branch the wrapped `cap` lines now lay out ABOVE the pawn (block-local layout swapped; the `bH` accounting is order-independent so total height/rotation/hit-rect math is untouched). The `cap2` ("chess.com ->") line is gone from the config — the whole block is still one `link` hit rect, so the affordance survives. The mark itself renders smaller via `mark.s:0.24` (default 0.34).
 
-(v70 also added the dev-panel **UI font** switcher — HTML/UI text only, scene glyphs unaffected — see `docs/rendering.md`.)
+3. **Typeset items carry `tf:1`** (same round, second pass): every prose push site (both `addLine`s, tracklists, the chess match list, highlight-list entries, mark captions, contact labels/field frames, welcome calendar labels) flags its items, and the partition funnel picks `glyphGeoT` (the active UI font's geometry) for them — the dev-panel **UI font** switcher now restyles the assembled 3D text too, not just the HTML. Layout metrics are font-independent by construction (same monospace advances, same glyph counts — no budget impact anywhere). Full mechanics in `docs/rendering.md`; the TTF subsets live in `fonts/`.
 
 ## Contact stop: one flipped facet (v59; camera swivel + embedded form v64)
 
