@@ -1,5 +1,13 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v74 - quiet headings, scrollable columns, CV, and banner variants
+
+ABOUT ME and PORTFOLIO are now small typeset labels with dim dotted rules, not stencil buttons, so they read as column headings rather than clickable choices. Each column is a four-row viewport with its own compact ASCII scrollbar. Wheel over a column or click its end characters to scroll; the rail, dot, and bracket designs are selectable in Welcome settings. Rows retain normal terrain ownership and handoff, while off-window rows are invisible/non-interactive. ABOUT ME adds a `DOWNLOAD CV` row opening `pdfs/CV - Thomas Julsgaard.pdf` in a new tab. PORTFOLIO keeps Case studies live and includes named placeholders for future work.
+
+The commit banner has three selectable motion grammars: **Stream** (the familiar lateral waterfall), **Scan** (centre-out with depth), and **Cascade** (stable row/column scatter from above). The Banner animation setting is persisted and can rebuild the active Welcome presentation immediately.
+
+Welcome-to-processing handoff now begins at dock rather than during the entry flight, so the first assembled glyphs and the processed rendering arrive together.
+
 ## v72 - left-side scene framing and under-calendar commit stream
 
 Welcome now assembles over the portrait's left side (`xf:-0.58, yf:0.82`) instead of near the middle. The authored content is unchanged in scale and structure, but `buildWelcomeLayout()` fixes its central spine at local `cx=0`; `welcomeLookQuat()` aims the camera horizontally at `faceCenter` for entry, arrival, and the docked facet. The figure therefore stays dead center while the portrait terrain remains visible around the entire composition. The Welcome bounds were validated against the embedded portrait: the waypoint lies inside the data bounds and the nearest real terrain glyph is 0.601 units away in XY.

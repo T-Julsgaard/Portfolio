@@ -1,5 +1,13 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v74: shared develop speed, contact optical bounds, and square-by-square chess reveal
+
+The Journey **Image develop speed** setting drives every cover/video/calendar/chess development through `photoStagger()` and `photoTileMs()`; factory 1.5x is the requested 50% speed-up. The chess DOM no longer appears as one opaque layer after its ASCII cover dissolves: a stable shuffled order assigns a delay to each of the 64 `.cb-sq` elements, while player bars and controls follow as chrome. `cbHide()` resets those square transforms so looking away and returning replays the reveal.
+
+Contact marks now trim each authored grid to its visible-ink bounds before row sizing, placement, and hit-rectangle calculation. Discord's padded source cells therefore no longer bias the apparent centre, and all marks share one optically centred row. Education's ITU specialization sets `blurbOneLine`; `buildCoverLayout()` collapses whitespace and shrinks that sentence to the available width instead of wrapping after "big".
+
+Welcome's two side columns are normal facet items with four-row scroll windows. Dynamic row targets preserve `baseTo`, hidden rows cede visibility/hit testing, and the compact rail glyphs remain part of the same assembly rather than a DOM overlay.
+
 ## v73: full-view absorption, stable timeline index, and content spacing
 
 The Journey setting **Absorb full field of view** is factory ON. Pass 3 now records every terrain glyph inside the active 80° camera frustum (`viewHalfP`, aspect-derived `viewHalfY`) in addition to the established ellipse/content cone. Full-view and cone records bypass `F_EXTRA_MAX`; OFF is the exact prior corridor behavior. A real-portrait waypoint sample measured 311–11,656 view members of 13,268, so the exemption is required to preserve the no-fade invariant.

@@ -2,6 +2,14 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v74: continuous Welcome arrivals, dock-time processing, timeline drag-look
+
+Every stop-to-stop travel style now calls `arrivalQuat(toIdx,pos,pathQuat,out)` for its final gaze. Ordinary stops still level out with `levelQuat`; Welcome instead converges on the exact position-dependent `welcomeLookQuat`. Cruise/classic recompute that target through deceleration and all swoop variants use it for their terminal quaternion, so the touchdown callback no longer replaces a path-facing quaternion with the horizontal face-centre gaze (the reported 90-degree cut). Roam-to-Welcome keeps the established direct target.
+
+Entry remains Raw for the entire descent. `dock()` now starts the processed-render fade immediately before stop assembly, so fog, palette, bloom, vignette, tone mapping, and the arriving facet come in together after the camera reaches the journey stop. Exit still reverses processing into Raw.
+
+Pointer drag-look is no longer suppressed when the active facet uses `scrollMode`. Work and Education retain wheel/click timeline navigation, but dragging the canvas now changes `freeYawT/freePitchT` exactly as it does at the other assembled stops.
+
 ## v73: processing handoff and full-view assembly setting
 
 Entry/exit now use `journeyT` for both camera/FOV movement and the Raw/processed visual blend, removing the one-frame processing switch at Enter. Journey dev tools also add **Absorb full field of view** (factory ON, user-default aware): ON recruits the active camera frustum into the faced facet; OFF restores the narrower ellipse + content cone. The setting live-reassembles a docked stop.

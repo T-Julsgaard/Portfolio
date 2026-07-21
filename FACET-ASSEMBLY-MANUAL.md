@@ -7,6 +7,14 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v74 addendum: scrolled Welcome facets and unified development clocks
+
+Welcome's ABOUT ME and PORTFOLIO columns may contain more authored rows than are visible. Every row is still partitioned once as ordinary `F.items`; `ws/wsr/wsBaseY/wsDY` metadata lets `updateWelcomeNav()` move the active four-row window without reallocating or changing ownership. Off-window items must stay invisible and their `b.shown` flag must stay false, or button pulse/hit testing will fight the scroll window. `baseTo` is updated alongside `to` after a scroll so hover/swell and departure restore remain coherent. The ASCII scrollbar itself is facet content (`wsBar/wsThumb/wsControl`), not a DOM layer.
+
+Photo-like reveals must use `photoStagger()` and `photoTileMs()` rather than hard-coded timing. They are the shared user-adjustable clock for developed covers, calendar tiles, video stills, and the chess square reveal. The fixed `PHOTO_DELAY` is intentionally separate.
+
+Contact marks are laid out from visible-ink bounds, not padded author grids. If a mark is replaced, keep the trim step for row width, draw origin, and hit rectangles; otherwise asymmetric padding reintroduces optical miscentring.
+
 ## v73 addendum: full-view absorption + persistent timeline index
 
 `toggleAbsorbView` (Journey dev tools, factory ON) expands pass 3 from the ellipse/cone to the active facet's complete 80° camera frustum. `viewHalfP=JOURNEY_FOV/2`; `viewHalfY=atan(tan(viewHalfP)*camera.aspect)`. Full-view members are correctness claims like cone members and therefore bypass `F_EXTRA_MAX` rather than falling into the fade fallback. Turning the setting off restores the v43 ellipse + exact-content-cone behavior. Real-data sampling at the six waypoint cameras measured 311–11,656 visible members out of 13,268; the record count is intentionally allowed to exceed the old ~9k corridor budget.

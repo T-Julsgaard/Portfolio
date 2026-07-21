@@ -2,6 +2,12 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v74: dock-time processing and adjustable develop speed
+
+Roam-to-journey travel now stays completely Raw. `dock()` clears the Raw control and calls `beginProcessingFade()` only at touchdown; `processingBlend` then uses its own 900 ms eased clock while the stop assembles. This avoids making the processed portrait appear abruptly during the visible descent while preserving processed typography and imagery throughout journey mode. The exit blend remains tied to `journeyT` before exact Raw restoration.
+
+All tile-development effects share **Image develop speed** (`coverSpeed`, factory **1.5x**, range 0.5x-3x). `photoStagger()` and `photoTileMs()` scale the base 550/260 ms timings for cover photos, GitHub calendar development, video stills, and both halves of the chess reveal. `PHOTO_DELAY` remains a fixed reading pause; the control changes the reveal itself, not when it begins.
+
 ## v73: eased Raw-to-journey processing
 
 Entering no longer flips **Raw (no processing)** in one rendered frame. `beginProcessingFade()` unchecks the control but drives `processingBlend` from the same eased `journeyT` as the camera. A shared glyph-shader uniform blends raw white into the authored palette; fog range, vignette opacity, tone-mapping exposure, and bloom participation ease on the same clock. Exit reverses the blend before `applyRaw(true)` restores the exact renderer-only overview. Manual Raw changes remain immediate and exact.

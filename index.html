@@ -100,9 +100,10 @@
      theme; only the control buttons take pointer events (drag-look works over the
      board itself). */
   #cboard { position:fixed; left:0; top:0; width:360px; z-index:4; pointer-events:none;
-    transform-origin:top left; will-change:transform; visibility:hidden; opacity:0; transition:opacity 0.45s; }
+    transform-origin:top left; will-change:transform; visibility:hidden; opacity:0; transition:opacity 0.16s; }
   #cboard.on { visibility:visible; opacity:1; }
   #cboard .cb-bar { height:38px; display:flex; align-items:center; justify-content:space-between; } /* v68: taller bars, bigger names/clocks */
+  #cboard .cb-bar, #cb-ctl { opacity:0; }
   #cboard .cb-bar .nm { color:#fff; font-size:17px; letter-spacing:0.04em; white-space:nowrap; overflow:hidden; }
   #cboard .cb-bar .nm .rt { color:rgba(255,255,255,0.55); }
   #cboard .cb-bar .ck { font-size:17px; line-height:1; padding:6px 10px; border-radius:3px;
@@ -111,7 +112,7 @@
   #cboard .cb-bar .ck.b { background:#262421; color:#eee; box-shadow:inset 0 0 0 1px #3a3a3a; }
   #cboard .cb-bar .ck.on { opacity:1; }
   #cb-board { position:relative; width:360px; height:360px; }
-  #cb-board .sq { position:absolute; width:45px; height:45px; overflow:hidden; }
+  #cb-board .sq { position:absolute; width:45px; height:45px; overflow:hidden; opacity:0; transform:scale(0.84); }
   #cb-board .sq.l { background:#ebecd0; }
   #cb-board .sq.d { background:#739552; }
   #cb-board .sq.hl::after { content:''; position:absolute; inset:0; background:rgba(255,255,51,0.5); }
@@ -238,6 +239,11 @@
   #dev-panel input[type="range"] { width:100%; accent-color:#fff; }
   #dev-panel select { width:100%; background:rgba(0,0,0,0.5); color:rgba(255,255,255,0.9); border:1px solid rgba(255,255,255,0.3); padding:4px 6px; font-size:11px; font-family:inherit; }
   #dev-panel .row { display:flex; align-items:center; justify-content:space-between; font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.7); }
+  #dev-tip { position:fixed; z-index:30; width:210px; padding:8px 10px; pointer-events:none;
+    background:rgba(4,6,8,0.96); border:1px solid rgba(255,255,255,0.28); color:rgba(255,255,255,0.88);
+    font-size:10px; line-height:1.45; letter-spacing:0.035em; text-transform:none;
+    opacity:0; transform:translateY(4px); transition:opacity 0.14s ease, transform 0.14s ease; }
+  #dev-tip.on { opacity:1; transform:none; }
   #dev-panel button.reset {
     margin-top:2px; background:transparent; border:1px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.75);
     font-family:inherit; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:6px; cursor:pointer;
@@ -529,6 +535,9 @@
             <option value="panel">Overlay panel</option>
           </select>
         </label>
+        <label>Image develop speed <span id="valCoverSpeed">1.50x</span>
+          <input type="range" id="coverSpeed" min="0.5" max="3" step="0.05" value="1.5">
+        </label>
         <div class="row"><span>Absorb full field of view</span><input type="checkbox" id="toggleAbsorbView" checked></div>
         <label>Travel — Adjacent stops
           <select id="travelAdjSelect">
@@ -617,6 +626,20 @@
           <select id="welTitleSelect">
             <option value="type">Keyboard typewriter</option>
             <option value="assemble">Assemble (classic)</option>
+          </select>
+        </label>
+        <label>Commit banner
+          <select id="welBannerSelect">
+            <option value="stream">Understream</option>
+            <option value="scan">Center scan</option>
+            <option value="cascade">Pixel cascade</option>
+          </select>
+        </label>
+        <label>Side scrollbars
+          <select id="welScrollSelect">
+            <option value="rail">Rail &middot; |#|</option>
+            <option value="dots">Signal &middot; .@.</option>
+            <option value="brackets">Brackets &middot; [=]</option>
           </select>
         </label>
         <label>Panorama Size <span id="valWelSize">0.90</span>
@@ -1238,7 +1261,7 @@ function applyInvert(on){
    composer), ACES tone mapping, distance fog, the vignette overlay, and the off-white glyph tint —
    so the portrait renders exactly like the raw generator scene: plain antialiased renderer,
    pure #ffffff glyphs on black. The frame loop switches to renderer.render() while this is on. */
-let rawMode=true, processingBlend=0, processingAuto=false;
+let rawMode=true, processingBlend=0, processingAuto=false, processingT0=0;
 function applyRaw(on){
   rawMode=on; processingAuto=false; processingBlend=on?0:1; renderDirty=true;
   scene.fog=on?null:sceneFog;
@@ -1249,9 +1272,9 @@ function applyRaw(on){
   applyInvert(inverted); // re-tints every existing glyph with the raw-aware palette
 }
 function beginProcessingFade(){
-  rawMode=false; processingAuto=true; processingBlend=journeyT;
+  rawMode=false; processingAuto=true; processingBlend=0; processingT0=performance.now();
   scene.fog=sceneFog; renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  INTRO_STEADY.set(GLYPH_LIGHT); applyInvert(inverted); renderDirty=true;
+  INTRO_STEADY.set(GLYPH_LIGHT); suppressWelcomeReassemble=true; applyInvert(inverted); suppressWelcomeReassemble=false; renderDirty=true;
 }
 let FONT=null;
 let introMode=ud('introSelect','progressive-soft'); // which load animation plays: 'progressive-soft' (resolution ramp, per-glyph dissolve at the end) | 'progressive' (resolution ramp, hard final cut) | 'surface' (embers)
@@ -1657,7 +1680,7 @@ const JOURNEY=[
   {xf: 0.36, yf: 0.22, stop:{id:'edu', label:'Education', title:'Education', body:'Diplomas are available upon request.', media:[], links:[{href:'pdfs/Tutor certificate 2023.pdf',label:'Tutor certificate'}], scrollOrder:[0,2,3,1],
     gallery:[
       {img:'itu', title:'IT University of Copenhagen', sub:'MSc, Software Design', meta:'Aug 2026 – 2028',
-        blurb:'Specializing in Artificial intelligence and big data.'},
+        blurb:'Specializing in artificial intelligence and big data.', blurbOneLine:true},
       {img:'ibg', title:'Ikast-Brande Gymnasium', sub:'Democracy & Globalization', meta:'2017 – 2020'},
       {img:'aau', title:'Aalborg University', sub:'BSc, Techno-Anthropology', meta:'Copenhagen · 2022 – 2025',
         blurb:'Graduated with a Danish grade average of 11.3\nEquivalent to a weighted GPA of 3.9/4.0',
@@ -1834,6 +1857,11 @@ function welcomeLookQuat(pos,out){ // the left-side Welcome stop looks back acro
   _pd.position.copy(pos); _pd.up.set(0,0,1);
   _pv.set(faceCenter.x,faceCenter.y,pos.z); _pd.lookAt(_pv); _pd.updateMatrixWorld();
   return out.copy(_pd.quaternion);
+}
+function arrivalQuat(toIdx,pos,pathQuat,out){ // one source of truth for every travel style's touchdown gaze
+  if(stopInfoMode!=='assemble') return out.copy(pathQuat);
+  if(STOPS[toIdx]&&STOPS[toIdx].github) return welcomeLookQuat(pos,out);
+  return levelQuat(pathQuat,out);
 }
 const _dummy=new THREE.PerspectiveCamera();
 _dummy.position.copy(frontPos2); _dummy.up.set(0,1,0); _dummy.lookAt(faceCenter); _dummy.updateMatrixWorld();
@@ -2208,8 +2236,13 @@ let WELCOME_SIZE=ud('welSize',0.90), WELCOME_HALO=ud('welHalo',0.05);
    names filling the Portfolio column. Every line is part of the main facet assembly; the
    old delayed section-by-section rewrite is gone. Real links still swell on hover. */
 const WNAV_CELL=0.15, WNAV_MAXW=9.0;   // stencil cell size / max label width (long labels shrink to fit)
-const WNAV_ROWGAP=0.78;                // extra breathing room between side-column labels
+const WNAV_ROWGAP=0.78, WNAV_VISIBLE=4;// extra breathing room; each side column exposes four rows at a time
+const WNAV_PITCH=7*WNAV_CELL+WNAV_ROWGAP;
 const WNAV_POP=1.13;                   // hover: the label swells to this factor about its centre
+let welcomeBannerStyle=localStorage.getItem('pf_welcome_banner')||ud('welBannerSelect','stream');
+let welcomeScrollStyle=localStorage.getItem('pf_welcome_scroll')||ud('welScrollSelect','rail');
+const welcomeScrollPos={about:0,portfolio:0};
+const welcomeScrollWheel={about:0,portfolio:0};
 /* keyboard-style greeting: fresh stencil cells (never terrain claims) appear one key at
    a time, with a short punctuation beat and a quick mechanical key-pop. */
 const WTW_KEY=105, WTW_GAP=380, WTW_DELAY=260, WTW_POP=100;
@@ -2222,9 +2255,9 @@ let welcomeCal=localStorage.getItem('pf_welcome_cal')||'blocks';
 /* welcome title (v63, dev panel > Welcome Stop):
    'type' (default) — an independent keyboard reveal that allocates fresh stencil cells;
    'assemble' — the classic terrain-glyph reveal. Both sit directly above the figure. */
-let welcomeTitle=localStorage.getItem('pf_welcome_title')||'type';
+let welcomeTitle=localStorage.getItem('pf_welcome_title')||'type', suppressWelcomeReassemble=false;
 function reassembleWelcome(){ // live-rebuild the welcome facet if currently docked there
-  if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
+  if(!suppressWelcomeReassemble&&uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
 // stop-to-stop flight style, split by hop length (dev panel > Travel): neighbouring stops
 // (index diff 1) use travelAdjacent, jumps across the path use travelFar. Each 'classic'|'cruise'|'swoop'|'swoop2'|'swoop3'|'swoop4'|'swoop5'.
@@ -2274,7 +2307,10 @@ const F_EXTRA_MAX=9000;                              // absorb-record budget per
                                                      // axis, checked against the real asciiData) so in practice NOTHING fades — every
                                                      // cleared glyph flies into the content, which is the whole point
 const PHOTO_DELAY=450;                               // pause after assembly before the photo develops
-const PHOTO_STAGGER=550, PHOTO_TILE_MS=260;          // tile reveal: stagger window / one tile's fade
+const PHOTO_STAGGER_BASE=550, PHOTO_TILE_MS_BASE=260;// factory reveal timing; the dev slider scales every image/chess develop
+let coverDevelopSpeed=ud('coverSpeed',1.5);           // 1.5x factory default: requested 50% faster develop
+const photoStagger=()=>PHOTO_STAGGER_BASE/coverDevelopSpeed;
+const photoTileMs=()=>PHOTO_TILE_MS_BASE/coverDevelopSpeed;
 const COVER_RAMP=' .:-=+*#%@';                       // luminance ramp used by the offline cover generator
 /* v40 buttons: solid ASCII stencil blocks — a rectangle of white '#' glyphs with the
    label punched out as HOLES, so the black letters are the background showing through.
@@ -2345,8 +2381,9 @@ function layStencilLine(items,t,cell,x0,yTop,extra){
     for(let r=0;r<7;r++)for(let c=0;c<g[r].length;c++) if(g[r][c]==='#'){
       const it={ch:'#', x:x0+(cx0+c+0.5)*cell, y:yTop-(r+0.5)*cell, s:cell*1.15, L:null};
       if(extra){ if(extra.btn!==undefined) it.btn=extra.btn; if(extra.nav!==undefined) it.nav=extra.nav;
-                 if(extra.tw!==undefined) it.tw=extra.tw;
-                 if(extra.wd) it.wd=((cx0+c)/cols)*extra.wd; }
+                  if(extra.tw!==undefined) it.tw=extra.tw;
+                  if(extra.ws!==undefined){ it.ws=extra.ws; it.wsr=extra.wsr; it.wsBaseY=extra.wsBaseY; }
+                  if(extra.wd) it.wd=((cx0+c)/cols)*extra.wd; }
       items.push(it);
     }
     cx0+=g[0].length+1; }
@@ -2601,7 +2638,13 @@ function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional meta
     btns.push({kind:'link', data:g.href, cx:0, cy:(imgTop+y)/2, hw:Math.max(iw/2,(g.cap?layoutLine(asciiSafe(g.cap),0.5).w:0)/2)+0.4, hh:(imgTop-y)/2+0.2});
     y-=0.3;
   }
-  if(g.blurb) for(const line of wrapText(asciiSafe(g.blurb),48)) addLine(line,0.55,0.30);
+  if(g.blurb){
+    const blurb=asciiSafe(g.blurb);
+    if(g.blurbOneLine){ // deliberate one-line descriptor: shrink to the available reading width instead of wrapping
+      const one=blurb.replace(/\s+/g,' ').trim(), s=Math.min(0.55,22/Math.max(1,layoutLine(one,1).w));
+      addLine(one,s,0.30);
+    } else for(const line of wrapText(blurb,48)) addLine(line,0.55,0.30);
+  }
   if(g.list){ // v68: highlight list (Volunteering) — every entry assembled, the CURRENT one bright
     // (updateFacet recolors); the flanking up/down pair, ↑/↓, or a click move the highlight
     y-=0.35; const eTop=y+0.35; let eW=0;
@@ -2774,19 +2817,23 @@ function buildContactLayout(k){
   fields.push({id:'cf-note', cx:0, cy:r.y-0.45, hw:W/2, hh:0.45}); // status line under SEND
   y=r.y-1.3;
   /* the social marks, smaller than v59 (0.40 of cover pitch ≈ 3.6 units tall) */
-  const marks=st.contact.marks.map(mk=>({A:ASCII_COVERS[mk.img], href:mk.href, copy:mk.copy}));
-  const rowW=marks.reduce((a,m)=>a+m.A.cols*m.A.cw*CONTACT_MARK_S,0)+CONTACT_MARK_GAP*(marks.length-1);
-  const rowH=Math.max(...marks.map(m=>m.A.rows*m.A.ch*CONTACT_MARK_S));
+  const marks=st.contact.marks.map(mk=>{ const A=ASCII_COVERS[mk.img];
+    let c0=A.cols,c1=-1,r0=A.rows,r1=-1;
+    for(let r=0;r<A.rows;r++)for(let c=0;c<A.cols;c++) if(A.g[r][c]!==' '){ c0=Math.min(c0,c); c1=Math.max(c1,c); r0=Math.min(r0,r); r1=Math.max(r1,r); }
+    return {A,href:mk.href,copy:mk.copy,c0,c1,r0,r1,cols:Math.max(1,c1-c0+1),rows:Math.max(1,r1-r0+1)}; });
+  const rowW=marks.reduce((a,m)=>a+m.cols*m.A.cw*CONTACT_MARK_S,0)+CONTACT_MARK_GAP*(marks.length-1);
+  const rowH=Math.max(...marks.map(m=>m.rows*m.A.ch*CONTACT_MARK_S));
   if(rowW+1>maxW) maxW=rowW+1;
   let x0=-rowW/2; const rowTop=y;
   for(const m of marks){
-    const A=m.A, cw=A.cw*CONTACT_MARK_S, ch=A.ch*CONTACT_MARK_S, mw=A.cols*cw, mh=A.rows*ch;
-    for(let r2=0;r2<A.rows;r2++)for(let c=0;c<A.cols;c++){ const a=A.g[r2][c];
+    const A=m.A, cw=A.cw*CONTACT_MARK_S, ch=A.ch*CONTACT_MARK_S, mw=m.cols*cw, mh=m.rows*ch;
+    const markTop=rowTop-(rowH-mh)/2; // visible-ink bounds, not padded source grids, define the optical centre
+    for(let r2=m.r0;r2<=m.r1;r2++)for(let c=m.c0;c<=m.c1;c++){ const a=A.g[r2][c];
       if(a===' ') continue;
-      items.push({ch:a, x:x0+(c+0.5)*cw, y:rowTop-(r2+0.5)*ch, s:ch*1.05, L:COVER_RAMP.indexOf(a)/9});
+      items.push({ch:a, x:x0+(c-m.c0+0.5)*cw, y:markTop-(r2-m.r0+0.5)*ch, s:ch*1.05, L:COVER_RAMP.indexOf(a)/9});
     }
-    btns.push(m.copy?{kind:'copy', data:m.copy, cx:x0+mw/2, cy:rowTop-mh/2, hw:mw/2+0.3, hh:mh/2+0.3}
-                    :{kind:'link', data:m.href, cx:x0+mw/2, cy:rowTop-mh/2, hw:mw/2+0.3, hh:mh/2+0.3});
+    btns.push(m.copy?{kind:'copy', data:m.copy, cx:x0+mw/2, cy:markTop-mh/2, hw:mw/2+0.3, hh:mh/2+0.3}
+                    :{kind:'link', data:m.href, cx:x0+mw/2, cy:markTop-mh/2, hw:mw/2+0.3, hh:mh/2+0.3});
     x0+=mw+CONTACT_MARK_GAP;
   }
   y=rowTop-rowH;
@@ -2860,27 +2907,51 @@ function buildWelcomeLayout(){
     if(wv){ if(inWv(wv.up,c,r)) it.wave=1; else for(const b of wv.lo) if(inWv(b,c,r)){ it.wave=2; break; } }
     items.push(it); } }
 
-  /* Wide side groups echo the reference without pretending placeholder projects are live.
-     Only real journey destinations register hit targets; every line is an ordinary facet
-     item and therefore arrives in the same assembly wave as the figure and calendar. */
-  const btns=[], leftX=-18.0, rightX=11.5, sideTop=8.90;
+  /* Side groups: quiet typeset headings deliberately differ from the stencil links below.
+     Four-row windows keep the composition airy; compact ASCII rails expose the longer lists. */
+  const btns=[], leftX=-18.0, rightX=11.5, sideTop=8.90, wsRects={}, wsBars={};
   const addStencil=(t,x0,y,cellMax,maxW,extra,L)=>{
     const start=items.length, cell=Math.min(cellMax,maxW/stCols(t)), w=layStencilLine(items,t,cell,x0,y,extra);
     if(L!==undefined) for(let i=start;i<items.length;i++) items[i].L=L;
     return {w,cell};
   };
-  addStencil('ABOUT ME',leftX,10.75,0.12,WNAV_MAXW);
-  const leftIds=['work','edu','interests','contact'];
-  leftIds.forEach((id,row)=>{ const si=STOPS.findIndex(s=>s.id===id), t=STOPS[si].label.toUpperCase(), kind='nav'+btns.length;
-    const y=sideTop-row*(7*WNAV_CELL+WNAV_ROWGAP), q=addStencil(t,leftX,y,WNAV_CELL,WNAV_MAXW,{btn:kind});
-    btns.push({kind,nav:btns.length,data:si,cx:leftX+q.w/2,cy:y-7*q.cell/2,hw:q.w/2+0.45,hh:7*q.cell/2+0.30}); });
+  const addQuietHeader=(t,x,y)=>{ const s=0.48, q=layoutLine(t,s);
+    for(let i=0;i<t.length;i++) if(t[i]!==' ') items.push({ch:t[i],x:x+q.xs[i],y:y+chBase(t[i])*s,s,L:0.42,tf:1});
+    const dots='.................', d=layoutLine(dots,0.25); for(let i=0;i<dots.length;i++) items.push({ch:'.',x:x+d.xs[i],y:y-0.72,s:0.25,L:0.18,tf:1}); };
+  addQuietHeader('ABOUT ME',leftX,10.72); addQuietHeader('PORTFOLIO',rightX,10.72);
 
-  addStencil('PORTFOLIO',rightX,10.75,0.12,WNAV_MAXW);
-  const caseIdx=STOPS.findIndex(s=>s.id==='cases'), caseKind='nav'+btns.length;
-  const caseQ=addStencil(STOPS[caseIdx].label.toUpperCase(),rightX,sideTop,WNAV_CELL,WNAV_MAXW,{btn:caseKind});
-  btns.push({kind:caseKind,nav:btns.length,data:caseIdx,cx:rightX+caseQ.w/2,cy:sideTop-7*caseQ.cell/2,hw:caseQ.w/2+0.45,hh:7*caseQ.cell/2+0.30});
-  ['PROJECT NORTH','PROJECT STATIC','PROJECT AFTERGLOW'].forEach((t,row)=>
-    addStencil(t,rightX,sideTop-(row+1)*(7*WNAV_CELL+WNAV_ROWGAP),0.12,WNAV_MAXW,null,0.58));
+  const about=[
+    {id:'work'},{id:'edu'},{id:'interests'},{id:'contact'},
+    {t:'DOWNLOAD CV',href:'pdfs/CV - Thomas Julsgaard.pdf'}
+  ];
+  const portfolio=[
+    {id:'cases'}, {t:'PROJECT NORTH'}, {t:'PROJECT STATIC'}, {t:'AFTERGLOW'},
+    {t:'SIGNAL'}, {t:'ATLAS'}, {t:'RELAY'}, {t:'LATTICE'}
+  ];
+  const addWelcomeRows=(group,x,rows)=>rows.forEach((entry,row)=>{
+    const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;
+    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), y=sideTop-Math.min(row,WNAV_VISIBLE-1)*WNAV_PITCH;
+    const live=si>=0||entry.href, kind=live?(entry.href?'wcv':'nav'+btns.length):null;
+    const extra={ws:group,wsr:row,wsBaseY:y}; if(kind) extra.btn=kind;
+    const q=addStencil(t,x,y,live?WNAV_CELL:0.12,WNAV_MAXW,extra,live?undefined:0.48);
+    if(live) btns.push({kind,nav:btns.length,data:entry.href||si,ws:group,wsr:row,wsBaseY:y,
+      cx:x+q.w/2,cy:y-7*q.cell/2,wsDY:-7*q.cell/2,hw:q.w/2+0.45,hh:7*q.cell/2+0.30});
+  });
+  addWelcomeRows('about',leftX,about); addWelcomeRows('portfolio',rightX,portfolio);
+
+  const barArt={rail:{track:'|',thumb:'#',up:'^',down:'v'},dots:{track:'.',thumb:'@',up:':',down:':'},brackets:{track:']',thumb:'=',up:'[',down:']'}};
+  const art=barArt[welcomeScrollStyle]||barArt.rail;
+  const addScrollBar=(group,x,count)=>{
+    const bx=x+WNAV_MAXW+1.05, top=sideTop-0.25, bot=sideTop-(WNAV_VISIBLE-1)*WNAV_PITCH-0.80, n=10;
+    for(let i=0;i<n;i++) items.push({ch:art.track,x:bx,y:top+(bot-top)*i/(n-1),s:0.30,L:0.20,wsBar:group});
+    items.push({ch:art.thumb,x:bx,y:top,s:0.34,L:0.88,wsThumb:group});
+    const ku='wscroll-'+group+'-up', kd='wscroll-'+group+'-down', yu=top+0.72, yd=bot-0.72;
+    items.push({ch:art.up,x:bx,y:yu,s:0.42,L:0.58,btn:ku}); items.push({ch:art.down,x:bx,y:yd,s:0.42,L:0.58,btn:kd});
+    btns.push({kind:ku,wsControl:true,ws:group,wsDir:-1,data:group,cx:bx,cy:yu,hw:0.55,hh:0.48},
+              {kind:kd,wsControl:true,ws:group,wsDir: 1,data:group,cx:bx,cy:yd,hw:0.55,hh:0.48});
+    wsBars[group]={top,bot,count}; wsRects[group]={cx:x+(WNAV_MAXW+1.7)/2,cy:(top+bot)/2,hw:(WNAV_MAXW+1.7)/2,hh:(top-bot)/2+1.0};
+  };
+  addScrollBar('about',leftX,about.length); addScrollBar('portfolio',rightX,portfolio.length);
 
   let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
   for(const it of items){ const h=it.s*0.5; minX=Math.min(minX,it.x-h); maxX=Math.max(maxX,it.x+h); minY=Math.min(minY,it.y-h); maxY=Math.max(maxY,it.y+h); }
@@ -2889,14 +2960,17 @@ function buildWelcomeLayout(){
   /* Keep the figure exactly on the camera axis. The side groups are intentionally
      asymmetric; centring their combined bounds nudged the character off-axis. */
   const cx=0, cy=(minY+maxY)/2, fullW=2*Math.max(Math.abs(minX),Math.abs(maxX));
-  for(const it of items){ it.x-=cx; it.y-=cy; }
+  for(const it of items){ it.x-=cx; it.y-=cy; if(it.wsBaseY!==undefined) it.wsBaseY-=cy; }
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
-  for(const b of btns){ b.cx-=cx; b.cy-=cy; }
+  for(const b of btns){ b.cx-=cx; b.cy-=cy; if(b.wsBaseY!==undefined) b.wsBaseY-=cy; }
+  for(const r of Object.values(wsRects)){ r.cx-=cx; r.cy-=cy; }
+  for(const b of Object.values(wsBars)){ b.top-=cy; b.bot-=cy; }
   if(typeTitle){ for(const c of typeTitle.cells){ c.x-=cx; c.y-=cy; } typeTitle.cursorX=typeTitle.cursorX.map(x=>x-cx); typeTitle.yTop-=cy; }
   if(waveS){ waveS.x-=cx; waveS.y-=cy; waveE.x-=cx; waveE.y-=cy; }
   const ret={items, w:fullW, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
           bannerCX:-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns, typeTitle,
-          waveS, waveE, waveB1, waveB2};
+          waveS, waveE, waveB1, waveB2, wsRects, wsBars, wsTop:sideTop-cy,
+          wsCounts:{about:about.length,portfolio:portfolio.length}};
   if(isHtmlCal){
     ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=-cx; ret.imgCY=(calTop+calBot)/2+calDY-cy;
   }
@@ -2971,20 +3045,32 @@ function startBannerWrite(now){
       const to=new THREE.Vector3().copy(F.anchor)
         .addScaledVector(F.right,(x0+(cx0+c+0.5)*cell)*F.f)
         .addScaledVector(F.up,(yTop-(r+0.5)*cell)*F.f);
-      letters.push({to, col:cx0+c});
+      letters.push({to, col:cx0+c, row:r});
     }
     cx0+=g[0].length+1; }
   hideBannerGlyphs();
   if(letters.length>b.pool.length) letters.length=b.pool.length; // never in practice — the reserve is sized from the messages
+  const style=welcomeBannerStyle, mid=cols/2;
   letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=geoT; L.swapped=false; L.held=false; L.out=false; L.done=false;
-    /* Reveal from a narrow strip immediately under the calendar, curl below the
-       baseline, then settle upward into the banner. The reverse returns to that
-       strip before the now-invisible proxy snaps home, so neither leg crosses the view. */
-    L.from=L.to.clone().addScaledVector(F.up,1.15+Math.random()*0.45).addScaledVector(F.right,(Math.random()-0.5)*0.8);
-    L.sink=L.from.clone();
-    L.wctrl=L.to.clone().addScaledVector(F.up,-(0.65+Math.random()*0.55)).addScaledVector(F.right,(Math.random()-0.5)*1.8);
-    L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.5).addScaledVector(F.up,-(0.5+Math.random()*0.45)).addScaledVector(F.right,(Math.random()-0.5)*1.4); });
-  b.letters=letters; b.s=cell*1.15; b.phase='stream'; b.t0=now;
+    if(style==='scan'){ // a narrow pulse opens from the centre and resolves outward
+      L.delay=Math.abs(L.col-mid)*13+L.row*9;
+      L.from=L.to.clone().addScaledVector(F.right,(mid-L.col)*cell*0.72).addScaledVector(F.up,(3-L.row)*cell*0.28).addScaledVector(F.dir,-0.9);
+      L.sink=L.from.clone(); L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.5).addScaledVector(F.dir,-1.4);
+      L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.5).addScaledVector(F.dir,-1.1);
+    } else if(style==='cascade'){ // shuffled square-by-square rain, echoing the site's image development
+      L.delay=L.row*34+((L.col*17)%Math.max(1,cols))*7;
+      L.from=L.to.clone().addScaledVector(F.up,2.0+Math.random()*1.0).addScaledVector(F.right,(Math.random()-0.5)*0.5);
+      L.sink=L.to.clone().addScaledVector(F.up,-(1.6+Math.random()*0.8));
+      L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.55).addScaledVector(F.right,(Math.random()-0.5)*1.1);
+      L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.45).addScaledVector(F.right,(Math.random()-0.5)*0.9);
+    } else { // compact under-calendar stream: the original refined motion
+      L.delay=L.col*WB_COL;
+      L.from=L.to.clone().addScaledVector(F.up,1.15+Math.random()*0.45).addScaledVector(F.right,(Math.random()-0.5)*0.8);
+      L.sink=L.from.clone();
+      L.wctrl=L.to.clone().addScaledVector(F.up,-(0.65+Math.random()*0.55)).addScaledVector(F.right,(Math.random()-0.5)*1.8);
+      L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.5).addScaledVector(F.up,-(0.5+Math.random()*0.45)).addScaledVector(F.right,(Math.random()-0.5)*1.4);
+    } });
+  b.letters=letters; b.s=cell*1.15; b.fly=style==='cascade'?285:style==='scan'?320:WB_FLY; b.phase='stream'; b.t0=now;
 }
 function animateBanner(L,p,writing){
   const b=welcome.banner, F=welcome.F, rec=L.rec, m=rec.m, sc=b.s*F.f;
@@ -3015,14 +3101,14 @@ function updateWelcomeBanner(now){
   let done=true;
   for(const L of b.letters){
     if(L.done) continue;
-    const lt=now-b.t0-L.col*WB_COL;
+    const lt=now-b.t0-L.delay;
     if(lt<=0){ done=false; continue; }
-    if(lt<WB_FLY){ done=false; animateBanner(L,lt/WB_FLY,true); continue; }
+    if(lt<b.fly){ done=false; animateBanner(L,lt/b.fly,true); continue; }
     if(!L.held){ L.held=true; animateBanner(L,1,true); } // settle byte-exact once
-    const ot=lt-WB_FLY-WB_LINGER;
+    const ot=lt-b.fly-WB_LINGER;
     if(ot<=0){ done=false; continue; }
     if(!L.out){ L.out=true; L.swapped=false; } // the same cell now streams home
-    const p=ot/WB_FLY;
+    const p=ot/b.fly;
     if(p<1){ done=false; animateBanner(L,p,false); }
     else { animateBanner(L,1,false); L.done=true; }
   }
@@ -3082,14 +3168,53 @@ function updateWelcomeWave(now){
 }
 /* Side-column links are normal facet items now. They become clickable as soon as the main
    assembly reaches hold; there is no slower second write pass. */
-function updateWelcomeNav(){
-  const F=welcome.F;
-  const shown=F.state==='hold';
+function welcomeScrollHidden(it){
+  if(!it||!it.ws) return false;
+  const o=welcomeScrollPos[it.ws]||0;
+  return it.wsr<o||it.wsr>=o+WNAV_VISIBLE;
+}
+function welcomeScrollBy(group,dir){
+  const F=welcome.F, count=F&&F.lay.wsCounts&&F.lay.wsCounts[group]; if(!count) return;
+  const next=Math.max(0,Math.min(Math.max(0,count-WNAV_VISIBLE),(welcomeScrollPos[group]||0)+dir));
+  if(next!==welcomeScrollPos[group]){ welcomeScrollPos[group]=next; glyphsDirty=true; renderDirty=true; }
+}
+function welcomeScrollHit(x,y){
+  const F=welcome.F; if(!F||F.state!=='hold'||!F.lay.wsRects) return null;
+  _hRay.set((x/innerWidth)*2-1,-(y/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
+  const denom=_hRay.dot(F.dir); if(denom<1e-4) return null;
+  const t=_hP.copy(F.anchor).sub(camera.position).dot(F.dir)/denom; if(t<=0) return null;
+  _hP.copy(camera.position).addScaledVector(_hRay,t).sub(F.anchor);
+  const u=_hP.dot(F.right)/F.f, v=_hP.dot(F.up)/F.f;
+  for(const group in F.lay.wsRects){ const r=F.lay.wsRects[group]; if(Math.abs(u-r.cx)<=r.hw&&Math.abs(v-r.cy)<=r.hh) return group; }
+  return null;
+}
+function updateWelcomeNav(now,dt){
+  const F=welcome.F, holding=F.state==='hold', hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
   for(const b of F.btns){
-    if(b.nav===undefined) continue;
-    b.shown=shown;
-    for(const it of b.items) it.shown=shown;
+    if(b.nav!==undefined){
+      const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+WNAV_VISIBLE));
+      b.shown=visible;
+      if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws]; b.cy=F.lay.wsTop-slot*WNAV_PITCH+b.wsDY; }
+      for(const it of b.items) it.shown=visible;
+    }
   }
+  if(!holding) return;
+  for(const it of F.items){
+    if(it.ws){
+      const off=welcomeScrollPos[it.ws]||0, visible=!welcomeScrollHidden(it), slot=Math.max(-1,Math.min(WNAV_VISIBLE,it.wsr-off));
+      const ly=F.lay.wsTop-slot*WNAV_PITCH+it.wsDY;
+      it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to);
+      if(it.wsAlpha===undefined) it.wsAlpha=visible?1:0;
+      it.wsAlpha+=((visible?1:0)-it.wsAlpha)*Math.min(1,dt*9);
+      if(it.wsAlpha<0.015){ it.wsAlpha=0; it.m.material.opacity=0; it.m.visible=false; }
+      else { it.m.visible=true; it.m.material.opacity=it.wsAlpha; if(!hoverKinds.has(it.btnKind)) it.m.position.lerp(it.to,Math.min(1,dt*11)); }
+    } else if(it.wsThumb){
+      const bar=F.lay.wsBars[it.wsThumb], max=Math.max(1,bar.count-WNAV_VISIBLE), p=Math.min(1,(welcomeScrollPos[it.wsThumb]||0)/max);
+      const ly=bar.top+(bar.bot-bar.top)*p;
+      it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to); it.m.position.lerp(it.to,Math.min(1,dt*12));
+    }
+  }
+  glyphsDirty=true;
 }
 function releaseWelcomeTypeTitle(){
   const T=welcome.typeTitle; if(!T) return;
@@ -3133,7 +3258,7 @@ function updateWelcomeTitle(now){
 function updateWelcome(now,dt){
   if(!welcome.active||!welcome.F) return;
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
-  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now); updateWelcomeTitle(now); }
+  if(showing){ glyphsDirty=true; if(!welcome.banner) initBanner(now); updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now,dt); updateWelcomeTitle(now); }
   else { releaseWelcomeTypeTitle(); if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; } hideCalTip(); }
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
@@ -3275,6 +3400,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         s1:li.s*F.f, geoA:li.tf?glyphGeoT(li.ch):glyphGeo(li.ch), L:li.L!==undefined?li.L:null, dev:li.dev||undefined, // tf (v70): typeset text renders in the active UI font
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
         wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr, vcap:li.vcap,
+        ws:li.ws, wsr:li.wsr, wsBaseY:li.wsBaseY, wsDY:li.wsBaseY!==undefined?li.y-li.wsBaseY:0,
+        wsBar:li.wsBar, wsThumb:li.wsThumb, btnKind:li.btn,
         gcap:li.gcap, en:li.en, eh:li.eh, gh:li.gh, timelineCaret:li.timelineCaret,
         pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined};
       F.items.push(rec);
@@ -3793,8 +3920,8 @@ function facetChessGame(F,gi){ // a digit stencil button (or the auto-develop): 
   if(!F.games||!F.games[gi]) return;
   if(cv.gi!==gi) cvLoad(gi); // same game keeps its position — a look-away/return resumes where you were
   F.cbIdx=gi; F.cbOn=true;
-  if(!F.cbDis){ F.cbDis=performance.now(); // the ascii cover dissolves under the developing board (once per hold)
-    for(const it of F.items) if(it.dev) it.pD=Math.random()*PHOTO_STAGGER*0.5; }
+  if(!F.cbDis){ F.cbDis=performance.now(); F.cbRevealDone=false; // the ASCII cover dissolves while board squares develop individually
+    for(const it of F.items) if(it.dev) it.pD=Math.random()*photoStagger()*0.5; }
 }
 function chessBoardActive(){ // the journey arrow keys defer to the board while one is up
   if(uiState!=='journey'||jMode!=='docked'||stopInfoMode!=='assemble'||!stopFacets) return false;
@@ -3816,7 +3943,10 @@ function facedSwitchFacet(){ // v68: the facet the visitor faces, if it has a ve
   return best;
 }
 let cbOnDom=false;
-function cbHide(){ if(cbOnDom){ cbOnDom=false; cbWrap.classList.remove('on'); } }
+const CB_REVEAL_D=Array.from({length:64},(_,i)=>((i*37)%64)/63); // stable shuffled square order, like photo-tile development
+function cbHide(){ if(cbOnDom){ cbOnDom=false; cbWrap.classList.remove('on');
+    for(const sq of cbSquares){ sq.style.opacity='0'; sq.style.transform='scale(0.84)'; }
+    for(const el of cbBars) el.style.opacity='0'; cbWrap.querySelector('#cb-ctl').style.opacity='0'; } }
 const _cbP0={x:0,y:0}, _cbP1={x:0,y:0}, _cbP2={x:0,y:0}, _cbP3={x:0,y:0};
 function cbQuadTransform(p0,p1,p2,p3){ // CSS matrix3d mapping the CB_W×CB_H box onto the projected
   // corner quad (TL,TR,BR,BL, screen px) — the classic square→quad homography (Heckbert),
@@ -3838,8 +3968,8 @@ function updateChessBoard(){ // per-frame, camera final: position the board over
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets)
     for(const c of stopFacets.facets) if(c.games&&c.state==='hold'){ F=c; break; }
   if(!F){ cbHide(); return; }
+  const now=performance.now();
   if(!F.cbOn){ // auto-develop: the cover opens the (last viewed) game by itself, like a photo cover
-    const now=performance.now();
     if(!F.cbT0){ F.cbT0=now+PHOTO_DELAY; cbHide(); return; }
     if(now<F.cbT0){ cbHide(); return; }
     facetChessGame(F,Math.max(0,F.cbIdx));
@@ -3864,6 +3994,14 @@ function updateChessBoard(){ // per-frame, camera final: position the board over
   const tf=cbQuadTransform(_cbP0,_cbP1,_cbP2,_cbP3);
   if(!tf){ cbHide(); return; }
   cbWrap.style.transform=tf;
+  if(!F.cbRevealDone){
+    let all=true; const stagger=photoStagger()*0.68, tile=photoTileMs();
+    for(let i=0;i<64;i++){ const p=Math.min(1,Math.max(0,(now-F.cbDis-CB_REVEAL_D[i]*stagger)/tile));
+      cbSquares[i].style.opacity=String(easeInOut(p)); cbSquares[i].style.transform='scale('+(0.84+0.16*easeOutCubic(p))+')'; if(p<1) all=false; }
+    const chrome=easeInOut(Math.min(1,Math.max(0,(now-F.cbDis-stagger*0.28)/tile)));
+    for(const el of cbBars) el.style.opacity=String(chrome); cbWrap.querySelector('#cb-ctl').style.opacity=String(chrome);
+    F.cbRevealDone=all&&chrome>=1; renderDirty=true;
+  }
   if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); }
 }
 /* (v61: the piano video overlay is gone — the recordings play INSIDE the scene on the
@@ -4006,7 +4144,7 @@ function updateFacet(F,now,dt){
           m.userData.asm=true; m.userData.asmL=it.L;
           // Slide-union ghost cells (gh — no ink on the CURRENT slide) and a gated
           // DOWNLOAD (pg) land invisible while their current entry is inactive.
-          if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)){ m.material.opacity=0; m.visible=false; }
+          if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)||welcomeScrollHidden(it)){ m.material.opacity=0; m.visible=false; }
           else m.material.opacity=1;
         } else {
           m.geometry=it.geo0; m.position.copy(it.home); m.scale.setScalar(1);
@@ -4022,7 +4160,7 @@ function updateFacet(F,now,dt){
         ie*ie*it.from.z+2*ie*e*it.ctrl.z+e*e*to.z);
       m.scale.setScalar(Math.max(0.05,it.s0+((dirIn?it.s1:1)-it.s0)*(dirIn?easeOutBack(p):e)));
       if(dirIn){
-        if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
+        if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)||welcomeScrollHidden(it)) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
         else{
           m.material.opacity=Math.min(1,Math.max(m.material.opacity,p*2));
           if(it.swapped&&!inverted) m.material.color.copy(INTRO_FLASH).lerp(setImgColor(_cc,it.L),(p-0.5)*2);
@@ -4042,7 +4180,7 @@ function updateFacet(F,now,dt){
       // arrow art (rotation hints / next-video chevron) is luminance-SHADED like the marks —
       // the stencil-button gray→white pulse would flatten it, so it gets its own treatment:
       // base shade with a gentle glow, hover lifts it well toward white
-      const isArt=b.kind==='rotl'||b.kind==='rotr'||b.kind==='vnext'||b.kind==='vprev'||b.kind==='eprev'||b.kind==='enext';
+      const isArt=b.kind==='rotl'||b.kind==='rotr'||b.kind==='vnext'||b.kind==='vprev'||b.kind==='eprev'||b.kind==='enext'||b.wsControl;
       // rotation arrows get the section-list hover swell too (v63) — but only the stream
       // design (the user's pick); wedge/dart keep the plain colour lift
       const isRot=(b.kind==='rotl'||b.kind==='rotr')&&ARROW_STYLE==='stream';
@@ -4094,7 +4232,7 @@ function updateFacet(F,now,dt){
       if(!F.pT0) F.pT0=now+PHOTO_DELAY;
       else if(now>=F.pT0){
         F.pOn=true; F.pStart=now; buildPhotoTiles(F);
-        for(const it of F.items) it.pD=Math.random()*PHOTO_STAGGER;
+        for(const it of F.items) it.pD=Math.random()*photoStagger();
       }
     }
     if(F.tiles){
@@ -4102,13 +4240,13 @@ function updateFacet(F,now,dt){
         if(!F.pDone){
           let all=true;
           for(const tl of F.tiles){
-            const p=Math.min(1,Math.max(0,(now-F.pStart-tl.userData.d)/PHOTO_TILE_MS));
+            const p=Math.min(1,Math.max(0,(now-F.pStart-tl.userData.d)/photoTileMs()));
             if(p>0){ tl.visible=true; tl.material.opacity=p; const s=0.7+0.3*easeOutCubic(p); tl.scale.set(s,s,1); }
             if(p<1) all=false;
           }
           for(const it of F.items){ // image/day cells hand over to the developed picture; text (no dev) stays
             if(!it.dev||!it.done||it.gh) continue; // gh (v69): ghost cells are already invisible — never re-lit
-            const p=Math.min(1,Math.max(0,(now-F.pStart-it.pD)/PHOTO_TILE_MS));
+            const p=Math.min(1,Math.max(0,(now-F.pStart-it.pD)/photoTileMs()));
             it.m.material.opacity=1-p; it.m.visible=p<1;
             if(p<1) all=false;
           }
@@ -4171,10 +4309,10 @@ function updateFacet(F,now,dt){
   // the chess cover's cells dissolve under the auto-developed board (v66) — same move
   // as the photo develop, but the "photo" is the projected DOM board in #cboard
   if(F.games&&F.cbOn&&F.state==='hold'&&F.cbDis){
-    if(now-F.cbDis<PHOTO_STAGGER*0.5+PHOTO_TILE_MS+120) renderDirty=true; // in 'hold' nothing else keeps frames coming
+    if(now-F.cbDis<photoStagger()*0.5+photoTileMs()+120) renderDirty=true; // in 'hold' nothing else keeps frames coming
     for(const it of F.items){
       if(!it.dev||!it.done) continue;
-      const q=Math.min(1,Math.max(0,(now-F.cbDis-it.pD)/PHOTO_TILE_MS));
+      const q=Math.min(1,Math.max(0,(now-F.cbDis-it.pD)/photoTileMs()));
       it.m.material.opacity=Math.min(it.m.material.opacity,1-q); it.m.visible=q<1;
     }
   }
@@ -4207,7 +4345,7 @@ function buildPhotoTiles(F){ // a grid of textured tiles over the image area, ea
       .addScaledVector(F.right,(c+0.5)*tw-lay.imgW*F.f/2)
       .addScaledVector(F.up,lay.imgH*F.f/2-(r+0.5)*th);
     m.setRotationFromMatrix(rot);
-    m.visible=false; m.userData.d=Math.random()*PHOTO_STAGGER;
+    m.visible=false; m.userData.d=Math.random()*photoStagger();
     scene.add(m); F.tiles.push(m);
   }
 }
@@ -4254,7 +4392,7 @@ function facetPlayVideo(F){ // PLAY: starts the current recording (or toggles pa
   else if(F.vSrc!==F.vids[F.vIdx].src) bindVideoTex(F);
   if(F.vEl.ended) F.vEl.currentTime=0;
   F.vOn=true; F.vEnded=false; F.vT0=performance.now();
-  for(const it of F.items) if(it.dev) it.pD=Math.random()*PHOTO_STAGGER*0.5; // the still dissolves under the developing video
+  for(const it of F.items) if(it.dev) it.pD=Math.random()*photoStagger()*0.5; // the still dissolves under the developing video
   musicHold();
   F.vEl.play().catch(()=>{});
 }
@@ -4327,7 +4465,7 @@ function updateFacetVideo(F,now,dt){ // per-frame: develop-in, fold-out, end-of-
       F.vPlane.visible=true; F.vPlane.material.opacity=Math.max(F.vPlane.material.opacity,p);
       if(!F.vSwap) for(const it of F.items){ // the still's cells dissolve under the video
         if(!it.dev||!it.done) continue;
-        const q=Math.min(1,Math.max(0,(now-F.vT0-it.pD)/PHOTO_TILE_MS));
+        const q=Math.min(1,Math.max(0,(now-F.vT0-it.pD)/photoTileMs()));
         it.m.material.opacity=Math.min(it.m.material.opacity,1-q); it.m.visible=q<1;
       }
     } else if(F.vPlane.visible){ // paused-and-released / folding after next/look-away
@@ -4441,8 +4579,6 @@ function tourLook(now){ // docked, autoTour on: rotate the gaze facet-to-facet a
 
 function beginEnter(toIdx){
   if(!FONT) return; // portrait not built yet — nothing to land on
-  const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=false;
-  beginProcessingFade(); // processing now rides the same eased entry as the camera instead of appearing in one frame
   tourReset(); // a manual Enter mid-sweep must not leave stale tour progress behind
   uiState='entering'; enterT0=performance.now(); enterToIdx=toIdx; journeyFrom=journeyT;
   dockZoom=dockZoomT=1; // a fresh entry never inherits a stale scroll-zoom
@@ -4462,6 +4598,10 @@ function dock(k){
   // instead of cutting over — no discontinuity of any kind at flight end (v41)
   dockT0=performance.now(); dockPos.copy(camera.position); dockQuat.copy(camera.quaternion);
   freeYaw=freeYawT=freePitch=freePitchT=0; // arrive facing down-path, where the first facet hangs
+  if(rawMode){ // overview -> journey: keep the flight raw, then reveal processing with the assembling stop
+    const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=false;
+    beginProcessingFade();
+  }
   syncInspectScene(); // the glyph inspector auto-follows the stop you land on
   showStop(k);
   if(stopInfoMode==='assemble') assembleStop(k);
@@ -4562,7 +4702,7 @@ function buildFlight(s0,s1,toIdx,mode){
     // "lands staring into the ground, then cranes up" arrival.
     const B=new THREE.Vector3(); poseAt(s1,B,_lq);
     const qEnd=new THREE.Quaternion();
-    if(stopInfoMode==='assemble') levelQuat(_lq,qEnd); else qEnd.copy(_lq);
+    arrivalQuat(toIdx,B,_lq,qEnd);
     const hd=Math.max(1e-6,Math.hypot(B.x-A.x,B.y-A.y));
     let hump=3+hd*0.09;                    // aesthetic floor: longer hops rise higher
     const N=Math.max(40,Math.ceil(hd*2));  // ~0.5-unit steps — dense enough to catch terrain spikes
@@ -4579,7 +4719,7 @@ function buildFlight(s0,s1,toIdx,mode){
     const A=camera.position.clone();       // launch from the exact current pose — no snap
     const B=new THREE.Vector3(); poseAt(s1,B,_lq); // own vector, NOT _pv — see the aliasing note in the swoop branch
     const qEnd=new THREE.Quaternion();
-    if(stopInfoMode==='assemble') levelQuat(_lq,qEnd); else qEnd.copy(_lq);
+    arrivalQuat(toIdx,B,_lq,qEnd);
     const hd=Math.max(1e-6,Math.hypot(B.x-A.x,B.y-A.y));
     // lateral bow: quadratic-bezier control point pushed perpendicular to the hop, on the
     // side AWAY from the face center — the flight sweeps around the portrait, not a ruler line
@@ -4936,6 +5076,11 @@ addEventListener('wheel',e=>{
     return;
   }
   if(uiState!=='journey'||jMode!=='docked'||performance.now()<dockCool) return;
+  if(welcome.active){ const group=welcomeScrollHit(e.clientX,e.clientY); if(group){
+    welcomeScrollWheel[group]+=e.deltaY;
+    if(Math.abs(welcomeScrollWheel[group])>=55){ welcomeScrollBy(group,welcomeScrollWheel[group]>0?1:-1); welcomeScrollWheel[group]=0; }
+    return;
+  } }
   if(stopInfoMode==='assemble'&&stopFacets&&stopFacets.scrollMode){
     stopFacets.scrollWheel+=e.deltaY;
     if(Math.abs(stopFacets.scrollWheel)>=70) timelineStep(stopFacets.scrollWheel>0?1:-1);
@@ -4975,6 +5120,8 @@ addEventListener('pointerup',e=>{
       else if(hit.b.timeline!==undefined) timelineTo(hit.b.data);
       else if(hit.b.kind==='rotl'||hit.b.kind==='rotr') rotateDock(hit.b.data); // rotation-hint arrows: turn one facet step
       else if(hit.b.kind==='send') cformSubmit(); // the embedded contact form's stencil SEND
+      else if(hit.b.wsControl) welcomeScrollBy(hit.b.ws,hit.b.wsDir);
+      else if(hit.b.kind==='wcv') window.open(hit.b.data,'_blank','noopener');
       else if(hit.b.kind==='copy'){ // Discord mark: no public profile URLs — copy the username
         const u=hit.b.data;
         (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject())
@@ -5002,7 +5149,6 @@ addEventListener('pointermove',e=>{
   }
   if(!dragging) return;
   if(stopInfoMode==='assemble'){ // drag to look around: the world follows the pointer, street-view style
-    if(stopFacets&&stopFacets.scrollMode){ lastX=e.clientX; lastY=e.clientY; return; }
     // (drag rate divides by the scroll-zoom so a zoomed-in look pans at the same feel)
     freeYawT+=(e.clientX-lastX)*0.0032/dockZoom;
     freePitchT=Math.max(-1.5,Math.min(1.5,freePitchT+(e.clientY-lastY)*0.0026/dockZoom));
@@ -5193,8 +5339,8 @@ function frame(){
         else if(t<=T-F.tA){ d=F.dA+F.vc*(t-F.tA); v=F.vc; }
         else { const r=T-t, u=r/F.tA; d=F.D-F.vc*(r/2-(F.tA/(2*Math.PI))*Math.sin(Math.PI*u)); v=F.vc*Math.pow(Math.sin(Math.PI*u/2),2); }
         poseAt(F.s0+F.dir*d/pathTotal,_jPos,_jQuat,LOOK_AHEAD_U+v*0.55); // faster ⇒ gaze further ahead: skips the spline wiggle
-        if(stopInfoMode==='assemble'&&t>T-F.tA){ // level out with the deceleration, so docking needs no re-aim
-          levelQuat(_jQuat,_lq);
+        if(stopInfoMode==='assemble'&&t>T-F.tA){ // blend onto the destination's authored gaze during deceleration
+          arrivalQuat(F.toIdx,_jPos,_jQuat,_lq);
           _jQuat.slerp(_lq,Math.min(1,(t-(T-F.tA))/F.tA));
         }
         camera.position.copy(_jPos);
@@ -5217,8 +5363,8 @@ function frame(){
         if(k>=1){ k=1; done=true; }
         const ek=easeInOut(k);
         poseAt(flight.s0+(flight.s1-flight.s0)*ek,_jPos,_jQuat);
-        if(stopInfoMode==='assemble'&&ek>0.7){ // approach pull-up: blend the down-gaze to the horizon
-          levelQuat(_jQuat,_lq);               // over the last stretch, so docking needs no re-aim
+        if(stopInfoMode==='assemble'&&ek>0.7){ // approach pull-up / Welcome look-back happens before touchdown
+          arrivalQuat(flight.toIdx,_jPos,_jQuat,_lq);
           _jQuat.slerp(_lq,Math.min(1,(ek-0.7)/0.3));
         }
         camera.position.copy(_jPos);
@@ -5291,7 +5437,8 @@ function frame(){
      palette and tone response ease together while the camera moves; the binary composer
      route changes only underneath a visually raw-equivalent first/last frame. */
   if(processingAuto){
-    processingBlend=Math.min(1,Math.max(0,journeyT));
+    processingBlend=uiState==='exiting' ? Math.min(1,Math.max(0,journeyT))
+      : easeInOut(Math.min(1,Math.max(0,(now-processingT0)/900)));
     if(processingBlend>=0.999&&uiState!=='exiting') processingAuto=false;
   }
   PROCESS_UNIFORM.value=processingBlend;
@@ -5331,6 +5478,33 @@ frame();
 /* dev tools */
 const devToggle=document.getElementById('dev-toggle'), devPanel=document.getElementById('dev-panel');
 devToggle.addEventListener('click',()=>devPanel.classList.toggle('open'));
+/* Every setting explains itself on hover. The tooltip lives outside the scrolling panel,
+   so it never gets clipped by a collapsed section or the panel's overflow. */
+const DEV_TIPS={
+  bloomStrength:'How strongly bright glyphs glow in free roam.', bloomRadius:'How widely bloom spreads around bright glyphs.',
+  bloomThreshold:'Brightness required before a glyph contributes to bloom.', fov:'Base free-roam field of view; journey framing widens automatically.',
+  fogNear:'Where distance fog begins, relative to portrait height.', fogFar:'Where distance fog fully hides the scene.',
+  toggleVignette:'Darkens the outer frame to focus attention toward the centre.', toggleFullscreen:'Requests fullscreen on the visitor\'s first interaction.',
+  toggleInvert:'Switches between the dark and light scene palettes.', toggleRaw:'Bypasses fog, tone mapping, vignette and post-processing.',
+  uiFontSelect:'Changes both interface text and the assembled scene typography.', jHeight:'Minimum camera clearance above the ASCII terrain.',
+  introSelect:'Chooses how the portrait resolves when the page opens.', stopInfoSelect:'Switches between in-scene assembled content and the classic overlay.',
+  coverSpeed:'Controls every ASCII-to-image, video-still and chess-board develop animation.', toggleAbsorbView:'Pulls the entire visible glyph field into the active facet for a clean reading plane.',
+  travelAdjSelect:'Camera style used when moving to the neighbouring stop.', travelFarSelect:'Camera style used when jumping across several stops.',
+  toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.', toggleCursorSway:'Adds a subtle passive camera response to pointer position while docked.',
+  timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
+  welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
+  welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
+  welScrollSelect:'Chooses the ASCII scrollbar design for About me and Portfolio.', welSize:'Scales the complete Welcome composition inside the camera view.',
+  welHalo:'Adds breathing room to the Welcome clearing around its content.', toggleInspect:'Colour-codes terrain glyphs by their assembly role.',
+  inspectScene:'Selects which stop the glyph inspector is auditing.', inspectRole:'Shows only one assembly role in the inspector.', inspectHard:'Controls what fraction of a marquee selection is affected.'
+};
+const devTip=document.createElement('div'); devTip.id='dev-tip'; document.body.appendChild(devTip);
+for(const el of devPanel.querySelectorAll('input,select')){ const host=el.closest('label,.row'); if(host) host.dataset.tip=DEV_TIPS[el.id]||'Adjusts '+el.id+'.'; }
+function moveDevTip(e){ const w=210, x=Math.min(innerWidth-w-12,e.clientX+16), y=Math.min(innerHeight-70,e.clientY+14); devTip.style.left=Math.max(8,x)+'px'; devTip.style.top=Math.max(8,y)+'px'; }
+devPanel.addEventListener('pointerover',e=>{ const h=e.target.closest('[data-tip]'); if(!h) return; devTip.textContent=h.dataset.tip; moveDevTip(e); devTip.classList.add('on'); });
+devPanel.addEventListener('pointermove',e=>{ if(devTip.classList.contains('on')) moveDevTip(e); });
+devPanel.addEventListener('pointerout',e=>{ const h=e.target.closest('[data-tip]'); if(h&&(!e.relatedTarget||!h.contains(e.relatedTarget))) devTip.classList.remove('on'); });
 /* collapsible topic sections — each header toggles its body; open/closed state persists */
 (function(){
   let saved={}; try{ saved=JSON.parse(localStorage.getItem('pf_dev_sections')||'{}')||{}; }catch(e){}
@@ -5354,6 +5528,7 @@ bindRange('fov','valFov',v=>BASE_FOV=v,v=>String(v));
 bindRange('fogNear','valFogNear',v=>{ baseFog.near=spanY*v; sceneFog.near=baseFog.near; });
 bindRange('fogFar','valFogFar',v=>{ baseFog.far=spanY*v; sceneFog.far=baseFog.far; controls.maxDistance=baseFog.far*0.97; });
 bindRange('jHeight','valJHeight',v=>{ JCLEAR=v; buildJourney(JCLEAR); },v=>v.toFixed(1));
+bindRange('coverSpeed','valCoverSpeed',v=>{ coverDevelopSpeed=v; },v=>v.toFixed(2)+'x');
 const vignetteCheck=document.getElementById('toggleVignette');
 function syncVignette(){ vignetteEl.style.display=(vignetteCheck.checked&&!rawMode)?'':'none'; }
 vignetteCheck.addEventListener('change',syncVignette);
@@ -5435,6 +5610,17 @@ const welTitleSelect=document.getElementById('welTitleSelect');
 welTitleSelect.value=welcomeTitle;
 welTitleSelect.addEventListener('change',()=>{ // typewriter vs classic reveal; live-rebuilds if docked there
   welcomeTitle=welTitleSelect.value; localStorage.setItem('pf_welcome_title',welcomeTitle); reassembleWelcome(); });
+const welBannerSelect=document.getElementById('welBannerSelect');
+welBannerSelect.value=welcomeBannerStyle;
+welBannerSelect.addEventListener('change',()=>{
+  welcomeBannerStyle=welBannerSelect.value; localStorage.setItem('pf_welcome_banner',welcomeBannerStyle);
+  if(welcome.active&&welcome.banner){ hideBannerGlyphs(); welcome.banner=null; }
+});
+const welScrollSelect=document.getElementById('welScrollSelect');
+welScrollSelect.value=welcomeScrollStyle;
+welScrollSelect.addEventListener('change',()=>{
+  welcomeScrollStyle=welScrollSelect.value; localStorage.setItem('pf_welcome_scroll',welcomeScrollStyle); reassembleWelcome();
+});
 const welWaveSelect=document.getElementById('welWaveSelect');
 welWaveSelect.value=welcomeWave;
 welWaveSelect.addEventListener('change',()=>{ // swap the greeting-wave style; read live each frame by updateWelcomeWave
@@ -5508,18 +5694,18 @@ const CTRL_DEF={
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',true],
   uiFontSelect:['select','mono'],
-  jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'],
+  jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true], timelineNavSelect:['select','scroll'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
-  welTitleSelect:['select','type']
+  welTitleSelect:['select','type'], welBannerSelect:['select','stream'], welScrollSelect:['select','rail']
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
-  welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welSize','welHalo']
+  welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welScrollSelect','welSize','welHalo']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.text,SECT_CTRLS.welcome);
 function ctrlGet(id){ const el=document.getElementById(id), k=CTRL_DEF[id][0]; return k==='check'?el.checked : k==='range'?parseFloat(el.value) : el.value; }
