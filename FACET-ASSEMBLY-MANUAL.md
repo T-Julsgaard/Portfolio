@@ -7,6 +7,20 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v77 addendum: Welcome row pitches and direct scrollbar input
+
+Welcome row spacing is now per group (`lay.wsPitch`), because a no-scroll five-row
+ABOUT ME column must fit the same vertical span as PORTFOLIO's four visible rows.
+Every target rewrite in `updateWelcomeNav()` must use that metadata; falling back to
+the global `WNAV_PITCH` would make the compact rows jump apart after the first
+interaction.
+
+The in-scene bars remain ordinary facet items, but `lay.wsBars.xs` records their
+track positions for pointer hit testing. Track click/drag maps the pointer's
+facet-plane Y coordinate through `welcomeScrollTo()` and temporarily owns the drag,
+so camera look cannot compete with thumb movement. Arrow glyph controls and wheel
+scrolling still use `welcomeScrollBy()` and the same integer scroll positions.
+
 ## v76 addendum: detail morphs are shared, timeline skins are layout-only
 
 `more` is no longer a Case-studies-only switch in assemble mode. Every gallery cover

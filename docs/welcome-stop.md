@@ -1,5 +1,20 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v77 - compact About column and direct scrollbar manipulation
+
+The greeting sits 0.70 layout units higher above the figure. The ABOUT ME scrollbar
+is now factory-off, matching the expanded five-row presentation. In that mode its
+five live rows use an 18% smaller stencil cell and a
+compressed per-group pitch, so EXPERIENCE through DOWNLOAD CV occupy the same
+top-to-bottom span as the four-row PORTFOLIO viewport. `wsPitch` is layout metadata
+and must be used for both the initial targets and `updateWelcomeNav()` motion.
+
+Welcome scrollbars are now direct controls, not arrow-only decoration. Clicking a
+track maps its facet-plane coordinate to the nearest scroll index; pressing and
+dragging either track or thumb keeps updating that index and suppresses camera
+drag-look until release. `wsBars.xs` stores every authored bar side so left, right,
+and both-side variants share the same hit testing.
+
 ## v76 - optical centring and configurable headings / scrollbars / banner motion
 
 The factory GitHub-calendar choice is now **Exact · darker empty cells** (`html2`). The
@@ -10,8 +25,8 @@ figure and greeting remain on the camera axis.
 Welcome settings now expose four heading treatments (quiet left, quiet centred,
 centred stencil, and centred brackets), plus independent scrollbar design and
 position controls. Scrollbars may sit right, left, or on both sides. **About Me
-scrollbar** remains on by default for symmetry; turning it off expands ABOUT ME from
-four visible rows to all five, including DOWNLOAD CV, with no overlap or hidden row.
+scrollbar** is factory-off as of v77; turning it on collapses ABOUT ME from all five
+rows to the same four-row scroll window as Portfolio.
 The per-group `wsVisible` count is now layout metadata and must be used by visibility,
 hit-testing, target motion, wheel bounds, and thumb travel instead of assuming the
 global four-row window.
@@ -44,7 +59,7 @@ Deep reference for the first journey stop: the contribution calendar, the commit
 
 ## v71 — reference-led composition and an independent greeting
 
-The welcome panorama now follows a wide, symmetrical composition: **"HI, I'M THOMAS." sits directly above the centred figure**, the GitHub calendar sits below the figure, and the commit stream remains below the calendar. Two generously separated side groups flank that central spine. **ABOUT ME** contains the live Experience, Education, Interests, and Contact journey links; **PORTFOLIO** contains the live Case studies link plus the deliberately non-interactive placeholder names PROJECT NORTH / PROJECT STATIC / PROJECT AFTERGLOW until real projects are supplied. Placeholder cells use luminance `0.58`, so they read quieter than the white live links. `buildWelcomeLayout()` owns the coordinates; the current main anchors are `leftX=-18`, `rightX=11.5`, `miTop=10.20`, `titleTop=12.35`, and `calDY=-1.35`. Its usual final recentre still converts the authored layout into the facet-local coordinate system.
+The welcome panorama now follows a wide, symmetrical composition: **"HI, I'M THOMAS." sits directly above the centred figure**, the GitHub calendar sits below the figure, and the commit stream remains below the calendar. Two generously separated side groups flank that central spine. **ABOUT ME** contains the live Experience, Education, Interests, and Contact journey links; **PORTFOLIO** contains the live Case studies link plus the deliberately non-interactive placeholder names PROJECT NORTH / PROJECT STATIC / PROJECT AFTERGLOW until real projects are supplied. Placeholder cells use luminance `0.58`, so they read quieter than the white live links. `buildWelcomeLayout()` owns the coordinates; the current main anchors are `leftX=-18`, `rightX=11.5`, `miTop=10.20`, `titleTop=13.05`, and `calDY=-1.35`. Its usual final recentre still converts the authored layout into the facet-local coordinate system.
 
 The old v60 section rewrite is removed. Side-link stencil cells no longer carry per-item `nav`/`wd` launch metadata, do not land invisible, and do not fly a second time from their terrain homes. They are ordinary facet items and therefore assemble in the same `F_IN_MS` window as the calendar and figure. `updateWelcomeNav()` now only gates link hit-testing until the facet reaches `hold`; `b.nav` remains button metadata for hover styling and `departTo()` dispatch. The obsolete Section list delay/pace controls and defaults were deleted from the welcome dev panel.
 

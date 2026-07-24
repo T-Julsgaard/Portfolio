@@ -2,6 +2,19 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v77: Welcome-only re-entry and masked Raw handoff
+
+The Enter button always calls `beginEnter(0)`. Returning to free roam no longer
+turns the last `dockIdx` into an implicit resume point, so every new journey begins
+at Welcome while normal rail travel still remembers the current stop inside the
+active journey.
+
+On exit, the continuously eased processed-to-Raw blend is unchanged. Once its
+remaining processed contribution falls below 3.5%, `applyRaw(true)` now performs
+the binary composer bypass during the final trace of camera motion rather than on
+the first completely stationary overview frame. The checkbox and renderer route
+therefore settle before the camera does, masking the last handoff.
+
 ## v76: split About / Portfolio rails
 
 The one right-side journey rail is now two linked rails revealed by the existing

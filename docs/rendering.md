@@ -2,6 +2,15 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v77: Raw route settles before exit motion ends
+
+Exit still drives palette, fog, vignette, exposure, and bloom from the eased
+`journeyT` clock. At `journeyT <= 0.035`, the renderer now calls `applyRaw(true)`
+while the overview camera has a small amount of easing left. The visual blend is
+already effectively Raw, but the remaining motion masks the final binary switch
+from the composer route to the exact raw renderer. The completion branch retains a
+guarded fallback so interruptions or unusual `journeyFrom` values still finish Raw.
+
 ## v76: Raw remains a roam-state invariant
 
 Saved dev defaults are applied after the control bindings initialise. A previously

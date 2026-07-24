@@ -676,7 +676,7 @@
             <option value="both">Both sides</option>
           </select>
         </label>
-        <div class="row"><span>About Me scrollbar</span><input type="checkbox" id="toggleWelAboutScroll" checked></div>
+        <div class="row"><span>About Me scrollbar</span><input type="checkbox" id="toggleWelAboutScroll"></div>
         <label>Panorama Size <span id="valWelSize">0.90</span>
           <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.90">
         </label>
@@ -2288,7 +2288,7 @@ let welcomeScrollStyle=localStorage.getItem('pf_welcome_scroll')||ud('welScrollS
 let welcomeScrollSide=localStorage.getItem('pf_welcome_scroll_side')||ud('welScrollSideSelect','right');
 let welcomeHeadingStyle=localStorage.getItem('pf_welcome_heading')||ud('welHeadingSelect','quiet-left');
 const _welcomeAboutSaved=localStorage.getItem('pf_welcome_about_scroll');
-let welcomeAboutScroll=_welcomeAboutSaved==null?ud('toggleWelAboutScroll',true):_welcomeAboutSaved==='1';
+let welcomeAboutScroll=_welcomeAboutSaved==null?ud('toggleWelAboutScroll',false):_welcomeAboutSaved==='1';
 const welcomeScrollPos={about:0,portfolio:0};
 const welcomeScrollWheel={about:0,portfolio:0};
 /* keyboard-style greeting: fresh stencil cells (never terrain claims) appear one key at
@@ -3021,7 +3021,7 @@ function buildWelcomeLayout(){
 
   const fig=WFIG[welcomeFigure]||WFIG.scene, G=fig.grid, cwP=fig.cw, chP=fig.ch, sP=fig.s, wv=fig.wave;
   const miW=(G.cols-1)*cwP, miH=(G.rows-1)*chP, miTop=10.20, miX0=-miW/2;
-  const titleText="HI, I'M THOMAS.", tCell=0.20, tW=stCols(titleText)*tCell, titleTop=12.35, tX0=-tW/2;
+  const titleText="HI, I'M THOMAS.", tCell=0.20, tW=stCols(titleText)*tCell, titleTop=13.05, tX0=-tW/2;
   let typeTitle=null;
   if(welcomeTitle==='type') typeTitle=buildWelcomeTypeSpec(titleText,tCell,tX0,titleTop);
   else layStencilLine(items,titleText,tCell,tX0,titleTop);
@@ -3067,13 +3067,18 @@ function buildWelcomeLayout(){
     {t:'SIGNAL'}, {t:'ATLAS'}, {t:'RELAY'}, {t:'LATTICE'}
   ];
   const wsVisible={about:welcomeAboutScroll?WNAV_VISIBLE:about.length,portfolio:WNAV_VISIBLE};
+  const wsPitch={
+    about:welcomeAboutScroll?WNAV_PITCH:WNAV_PITCH*(WNAV_VISIBLE-1)/(about.length-1),
+    portfolio:WNAV_PITCH
+  };
   if(!welcomeAboutScroll) welcomeScrollPos.about=0;
   const addWelcomeRows=(group,x,rows)=>rows.forEach((entry,row)=>{
     const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;
-    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), y=sideTop-Math.min(row,wsVisible[group]-1)*WNAV_PITCH;
+    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), y=sideTop-Math.min(row,wsVisible[group]-1)*wsPitch[group];
     const live=si>=0||entry.href, kind=live?(entry.href?'wcv':'nav'+btns.length):null;
     const extra={ws:group,wsr:row,wsBaseY:y}; if(kind) extra.btn=kind;
-    const q=addStencil(t,x,y,live?WNAV_CELL:0.12,WNAV_MAXW,extra,live?undefined:0.48);
+    const rowCell=group==='about'&&!welcomeAboutScroll?WNAV_CELL*0.82:WNAV_CELL;
+    const q=addStencil(t,x,y,live?rowCell:Math.min(0.12,rowCell),WNAV_MAXW,extra,live?undefined:0.48);
     if(live) btns.push({kind,nav:btns.length,data:entry.href||si,ws:group,wsr:row,wsBaseY:y,
       cx:x+q.w/2,cy:y-7*q.cell/2,wsDY:-7*q.cell/2,hw:q.w/2+0.45,hh:7*q.cell/2+0.30});
   });
@@ -3085,8 +3090,10 @@ function buildWelcomeLayout(){
     const vis=wsVisible[group]; if(count<=vis) return;
     const top=sideTop-0.25, bot=sideTop-(vis-1)*WNAV_PITCH-0.80, n=10;
     const sides=welcomeScrollSide==='both'?['left','right']:[welcomeScrollSide];
+    const xs=[];
     for(const side of sides){
       const bx=side==='left'?x-1.05:x+WNAV_MAXW+1.05;
+      xs.push(bx);
       for(let i=0;i<n;i++) items.push({ch:art.track,x:bx,y:top+(bot-top)*i/(n-1),s:0.30,L:0.20,wsBar:group});
       items.push({ch:art.thumb,x:bx,y:top,s:0.34,L:0.88,wsThumb:group});
       const ku='wscroll-'+group+'-'+side+'-up', kd='wscroll-'+group+'-'+side+'-down', yu=top+0.72, yd=bot-0.72;
@@ -3095,7 +3102,7 @@ function buildWelcomeLayout(){
                 {kind:kd,wsControl:true,ws:group,wsDir: 1,data:group,cx:bx,cy:yd,hw:0.55,hh:0.48});
     }
     const x0=x+(sides.includes('left')?-1.7:0), x1=x+WNAV_MAXW+(sides.includes('right')?1.7:0);
-    wsBars[group]={top,bot,count,visible:vis}; wsRects[group]={cx:(x0+x1)/2,cy:(top+bot)/2,hw:(x1-x0)/2,hh:(top-bot)/2+1.0};
+    wsBars[group]={top,bot,count,visible:vis,xs}; wsRects[group]={cx:(x0+x1)/2,cy:(top+bot)/2,hw:(x1-x0)/2,hh:(top-bot)/2+1.0};
   };
   addScrollBar('about',leftX,about.length); addScrollBar('portfolio',rightX,portfolio.length);
 
@@ -3110,13 +3117,13 @@ function buildWelcomeLayout(){
   for(const cc of calCells){ cc.cx-=cx; cc.cy-=cy; }
   for(const b of btns){ b.cx-=cx; b.cy-=cy; if(b.wsBaseY!==undefined) b.wsBaseY-=cy; }
   for(const r of Object.values(wsRects)){ r.cx-=cx; r.cy-=cy; }
-  for(const b of Object.values(wsBars)){ b.top-=cy; b.bot-=cy; }
+  for(const b of Object.values(wsBars)){ b.top-=cy; b.bot-=cy; b.xs=b.xs.map(x=>x-cx); }
   if(typeTitle){ for(const c of typeTitle.cells){ c.x-=cx; c.y-=cy; } typeTitle.cursorX=typeTitle.cursorX.map(x=>x-cx); typeTitle.yTop-=cy; }
   if(waveS){ waveS.x-=cx; waveS.y-=cy; waveE.x-=cx; waveE.y-=cy; }
   const ret={items, w:fullW, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
           bannerCX:calShiftX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns, typeTitle,
           waveS, waveE, waveB1, waveB2, wsRects, wsBars, wsTop:sideTop-cy,
-          wsCounts:{about:about.length,portfolio:portfolio.length}, wsVisible};
+          wsCounts:{about:about.length,portfolio:portfolio.length}, wsVisible, wsPitch};
   if(isHtmlCal){
     ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=calShiftX-cx; ret.imgCY=(calTop+calBot)/2+calDY-cy;
   }
@@ -3348,6 +3355,11 @@ function welcomeScrollBy(group,dir){
   const next=Math.max(0,Math.min(Math.max(0,count-visible),(welcomeScrollPos[group]||0)+dir));
   if(next!==welcomeScrollPos[group]){ welcomeScrollPos[group]=next; glyphsDirty=true; renderDirty=true; }
 }
+function welcomeScrollTo(group,p){
+  const F=welcome.F, bar=F&&F.lay.wsBars&&F.lay.wsBars[group]; if(!bar) return;
+  const next=Math.round(Math.max(0,Math.min(1,p))*Math.max(0,bar.count-bar.visible));
+  if(next!==welcomeScrollPos[group]){ welcomeScrollPos[group]=next; glyphsDirty=true; renderDirty=true; }
+}
 function welcomeScrollHit(x,y){
   const F=welcome.F; if(!F||F.state!=='hold'||!F.lay.wsRects) return null;
   _hRay.set((x/innerWidth)*2-1,-(y/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
@@ -3358,6 +3370,21 @@ function welcomeScrollHit(x,y){
   for(const group in F.lay.wsRects){ const r=F.lay.wsRects[group]; if(Math.abs(u-r.cx)<=r.hw&&Math.abs(v-r.cy)<=r.hh) return group; }
   return null;
 }
+function welcomeScrollBarHit(x,y,onlyGroup,draggingBar){
+  const F=welcome.F; if(!F||F.state!=='hold'||!F.lay.wsBars) return null;
+  _hRay.set((x/innerWidth)*2-1,-(y/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
+  const denom=_hRay.dot(F.dir); if(denom<1e-4) return null;
+  const t=_hP.copy(F.anchor).sub(camera.position).dot(F.dir)/denom; if(t<=0) return null;
+  _hP.copy(camera.position).addScaledVector(_hRay,t).sub(F.anchor);
+  const u=_hP.dot(F.right)/F.f, v=_hP.dot(F.up)/F.f;
+  for(const group in F.lay.wsBars){
+    if(onlyGroup&&group!==onlyGroup) continue;
+    const bar=F.lay.wsBars[group], nearX=bar.xs&&bar.xs.some(bx=>Math.abs(u-bx)<=(draggingBar?2.2:0.65));
+    if(!nearX||(!draggingBar&&(v>bar.top+0.45||v<bar.bot-0.45))) continue;
+    return {group,p:Math.max(0,Math.min(1,(v-bar.top)/(bar.bot-bar.top)))};
+  }
+  return null;
+}
 function updateWelcomeNav(now,dt){
   const F=welcome.F, holding=F.state==='hold', hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
   for(const b of F.btns){
@@ -3365,7 +3392,7 @@ function updateWelcomeNav(now,dt){
       const count=b.ws&&F.lay.wsVisible?F.lay.wsVisible[b.ws]:WNAV_VISIBLE;
       const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+count));
       b.shown=visible;
-      if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws]; b.cy=F.lay.wsTop-slot*WNAV_PITCH+b.wsDY; }
+      if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws], pitch=F.lay.wsPitch?F.lay.wsPitch[b.ws]:WNAV_PITCH; b.cy=F.lay.wsTop-slot*pitch+b.wsDY; }
       for(const it of b.items) it.shown=visible;
     }
   }
@@ -3374,7 +3401,8 @@ function updateWelcomeNav(now,dt){
     if(it.ws){
       const off=welcomeScrollPos[it.ws]||0, count=F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
       const visible=!welcomeScrollHidden(it), slot=Math.max(-1,Math.min(count,it.wsr-off));
-      const ly=F.lay.wsTop-slot*WNAV_PITCH+it.wsDY;
+      const pitch=F.lay.wsPitch?F.lay.wsPitch[it.ws]:WNAV_PITCH;
+      const ly=F.lay.wsTop-slot*pitch+it.wsDY;
       it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to);
       if(it.wsAlpha===undefined) it.wsAlpha=visible?1:0;
       it.wsAlpha+=((visible?1:0)-it.wsAlpha)*Math.min(1,dt*9);
@@ -5096,8 +5124,8 @@ function beginExit(){
   exitFromPos.copy(camera.position); exitFromQuat.copy(camera.quaternion);
   hidePanel(); hideHint(); disassemble(false); syncButtons();
 }
-/* "Begin journey" resumes at the last visited stop; "Free roam" returns to orbiting */
-enterBtn.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(dockIdx>=0?dockIdx:0); });
+/* Every new journey begins at Welcome; "Free roam" returns to orbiting. */
+enterBtn.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(0); });
 exploreBtn.addEventListener('click',beginExit);
 syncButtons();
 
@@ -5362,14 +5390,26 @@ addEventListener('wheel',e=>{
   if(depart>=1) departTo(dockIdx+1);
   else if(depart<=-1) departTo(dockIdx-1);
 },{passive:true});
-let dragging=false,lastY=0,lastX=0,downX=0,downY=0;
+let dragging=false,lastY=0,lastX=0,downX=0,downY=0,welcomeScrollDrag=null,welcomeScrollPointer=-1;
 addEventListener('pointerdown',e=>{
   if(e.target&&e.target.tagName!=='CANVAS') return; // don't hijack clicks on the rail/panels
   if(inspectActive()){ inspectDown(e); return; } // inspector: drag paints a selection box, not a look-around
-  if(uiState==='journey'&&jMode==='docked'){ dragging=true; lastX=downX=e.clientX; lastY=downY=e.clientY; }
+  if(uiState==='journey'&&jMode==='docked'){
+    const bar=welcome.active&&stopInfoMode==='assemble'?welcomeScrollBarHit(e.clientX,e.clientY):null;
+    if(bar){
+      welcomeScrollDrag=bar.group; welcomeScrollPointer=e.pointerId; welcomeScrollTo(bar.group,bar.p);
+      if(e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId);
+      renderer.domElement.style.cursor='grabbing'; return;
+    }
+    dragging=true; lastX=downX=e.clientX; lastY=downY=e.clientY;
+  }
 });
 addEventListener('pointerup',e=>{
   if(inspectActive()){ inspectUp(e); return; }
+  if(welcomeScrollDrag){
+    if(e.target&&e.target.releasePointerCapture&&welcomeScrollPointer>=0&&(!e.target.hasPointerCapture||e.target.hasPointerCapture(welcomeScrollPointer))) e.target.releasePointerCapture(welcomeScrollPointer);
+    welcomeScrollDrag=null; welcomeScrollPointer=-1; renderer.domElement.style.cursor=''; return;
+  }
   // a press that never really moved is a CLICK: fire whichever button is under the pointer
   if(dragging&&stopInfoMode==='assemble'&&Math.hypot(e.clientX-downX,e.clientY-downY)<6){
     const hit=facetButtonHit(e.clientX,e.clientY);
@@ -5405,14 +5445,20 @@ addEventListener('pointerup',e=>{
   }
   dragging=false;
 });
-addEventListener('pointercancel',()=>{ dragging=false; inspect.dragging=false; inspect.boxOn=false; inspectBox.style.display='none'; });
+addEventListener('pointercancel',()=>{ dragging=false; welcomeScrollDrag=null; welcomeScrollPointer=-1; inspect.dragging=false; inspect.boxOn=false; inspectBox.style.display='none'; });
 addEventListener('pointermove',e=>{
   lookTX=(e.clientX/innerWidth)*2-1; lookTY=(e.clientY/innerHeight)*2-1;
   if(inspectActive()){ if(inspect.dragging) inspectMove(e); return; } // inspector owns the drag while it's on
+  if(welcomeScrollDrag){
+    const bar=welcomeScrollBarHit(e.clientX,e.clientY,welcomeScrollDrag,true);
+    if(bar) welcomeScrollTo(bar.group,bar.p);
+    renderer.domElement.style.cursor='grabbing'; return;
+  }
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets){
     const hit=dragging?null:facetButtonHit(e.clientX,e.clientY); // hover: pin the button bright + pointer cursor
+    const barHit=!dragging&&welcome.active?welcomeScrollBarHit(e.clientX,e.clientY):null;
     for(const F of stopFacets.facets) for(const b of F.btns) b.hover=!!(hit&&hit.b===b);
-    renderer.domElement.style.cursor=hit?'pointer':'';
+    renderer.domElement.style.cursor=(hit||barHit)?'pointer':'';
     if(welcome.active){ if(dragging) hideCalTip(); else welcomeCalTip(e.clientX,e.clientY); } // calendar hover tooltip
   }
   if(!dragging) return;
@@ -5518,8 +5564,15 @@ function frame(){
     camera.position.lerpVectors(exitFromPos,frontPos2,ek);
     camera.quaternion.slerpQuaternions(exitFromQuat,exploreQuat,ek);
     journeyT=journeyFrom*(1-ek); // eases back to 0 on the exit curve
+    /* Finish the binary composer -> Raw handoff while a trace of camera motion remains.
+       By this point the authored palette/fog/vignette blend is below 3.5%, so the route
+       change is visually masked by the final drift instead of flashing after it stops. */
+    if(!rawMode&&journeyT<=0.035){
+      const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=true; applyRaw(true);
+    }
     if(done){ camera.up.set(0,1,0); controls.target.copy(faceCenter); controls.enabled=true; controls.update(); uiState='overview';
-      const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=true; applyRaw(true); syncButtons(); }
+      if(!rawMode){ const raw=document.getElementById('toggleRaw'); if(raw) raw.checked=true; applyRaw(true); }
+      syncButtons(); }
   } else { /* journey: flying between stops, or docked at one */
     camera.up.set(0,0,1); journeyT=1;
     if(jMode==='flying'&&flight){
@@ -5997,7 +6050,7 @@ const CTRL_DEF={
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','html2'], welSize:['range',0.90], welHalo:['range',0.05],
   welTitleSelect:['select','type'], welBannerSelect:['select','stream'], welHeadingSelect:['select','quiet-left'],
-  welScrollSelect:['select','rail'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',true]
+  welScrollSelect:['select','rail'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',false]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
