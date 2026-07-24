@@ -1,5 +1,31 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v76 - optical centring and configurable headings / scrollbars / banner motion
+
+The factory GitHub-calendar choice is now **Exact · darker empty cells** (`html2`). The
+calendar and its commit banner shift 1.25 layout units right, which is the optical
+midpoint between the deliberately asymmetric ABOUT ME and PORTFOLIO columns; the
+figure and greeting remain on the camera axis.
+
+Welcome settings now expose four heading treatments (quiet left, quiet centred,
+centred stencil, and centred brackets), plus independent scrollbar design and
+position controls. Scrollbars may sit right, left, or on both sides. **About Me
+scrollbar** remains on by default for symmetry; turning it off expands ABOUT ME from
+four visible rows to all five, including DOWNLOAD CV, with no overlap or hidden row.
+The per-group `wsVisible` count is now layout metadata and must be used by visibility,
+hit-testing, target motion, wheel bounds, and thumb travel instead of assuming the
+global four-row window.
+
+Commit banner choices now include **Baseline rise**, **Orbital sweep**, and **Center
+burst** alongside Stream, Scan, and Cascade. They reuse the same reserved terrain
+pool, stencil messages, linger clock, and restore path; only per-cell delays and
+Bezier origins/controls differ.
+
+The post-Welcome journey rail is split by information architecture: Experience,
+Education, Interests, and Contact live on the left as ABOUT ME destinations, while
+Case studies lives on the right as PORTFOLIO. Hovering either side adds one shared
+`peek` state so both label sets reveal together.
+
 ## v74 - quiet headings, scrollable columns, CV, and banner variants
 
 ABOUT ME and PORTFOLIO are now small typeset labels with dim dotted rules, not stencil buttons, so they read as column headings rather than clickable choices. Each column is a four-row viewport with its own compact ASCII scrollbar. Wheel over a column or click its end characters to scroll; the rail, dot, and bracket designs are selectable in Welcome settings. Rows retain normal terrain ownership and handoff, while off-window rows are invisible/non-interactive. ABOUT ME adds a `DOWNLOAD CV` row opening `pdfs/CV - Thomas Julsgaard.pdf` in a new tab. PORTFOLIO keeps Case studies live and includes named placeholders for future work.

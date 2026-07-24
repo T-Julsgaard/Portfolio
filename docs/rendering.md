@@ -2,6 +2,15 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v76: Raw remains a roam-state invariant
+
+Saved dev defaults are applied after the control bindings initialise. A previously
+saved unchecked `toggleRaw` could therefore override the intended initial overview
+state even though exit and intro replay correctly restored Raw. Startup now
+reasserts `applyRaw(true)` after `applyUserDefaults()` whenever the UI is in overview.
+Manual changes still work for the current state, but an old saved journey-rendering
+preference can no longer make a fresh roam view processed.
+
 ## v74: dock-time processing and adjustable develop speed
 
 Roam-to-journey travel now stays completely Raw. `dock()` clears the Raw control and calls `beginProcessingFade()` only at touchdown; `processingBlend` then uses its own 900 ms eased clock while the stop assembles. This avoids making the processed portrait appear abruptly during the visible descent while preserving processed typography and imagery throughout journey mode. The exit blend remains tied to `journeyT` before exact Raw restoration.

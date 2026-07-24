@@ -7,6 +7,21 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v76 addendum: detail morphs are shared, timeline skins are layout-only
+
+`more` is no longer a Case-studies-only switch in assemble mode. Every gallery cover
+with authored detail sections builds `buildCaseDetailLayout()` and passes through
+`mergeCaseLayouts()`, still reserving `max(base.items, detail.items)` rather than
+their sum. Scroll-mode Work/Education must shift **both** layouts by the same x offset
+before merging; otherwise READ MORE visibly jumps across the persistent index.
+`toggleCaseMore()` / `resetCaseMore()` retain their historical names but are now the
+shared in-scene detail lifecycle. The HTML more-card is fallback only.
+
+Timeline list variants belong entirely inside `buildTimelineNavLayout()`. A variant
+may change type size, row pitch, separators, caret character, and hit rectangles, but
+must return one persistent facet with `timelineY` and `timeline`-tagged buttons.
+Never duplicate the list into content facets or alter `timelineTo()` handoff ownership.
+
 ## v75 addendum: case details reuse their cover glyphs
 
 Case-study READ MORE no longer opens `#more-card`. `buildCaseDetailLayout()` authors an

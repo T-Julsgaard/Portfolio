@@ -14,13 +14,17 @@
   #app { position:fixed; inset:0; }
   canvas#three { display:block; width:100%; height:100%; }
 
-  #rail {
-    position:fixed; right:22px; top:50%; transform:translateY(-50%);
-    z-index:5; display:flex; flex-direction:column; gap:9px; align-items:flex-end;
-    /* v69: hidden until the visitor first travels beyond Welcome (departTo adds .seen) */
-    opacity:0; pointer-events:none; transition:opacity 0.6s ease;
+  #journey-rails {
+    position:fixed; inset:0; z-index:5; opacity:0; pointer-events:none;
+    transition:opacity 0.6s ease;
   }
-  #rail.seen { opacity:1; pointer-events:auto; }
+  #journey-rails.seen { opacity:1; }
+  .journey-rail {
+    position:fixed; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:9px; pointer-events:auto;
+  }
+  #rail-about { left:22px; align-items:flex-start; }
+  #rail-portfolio { right:22px; align-items:flex-end; }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
     background:transparent; border:none; padding:2px; cursor:pointer;
@@ -36,7 +40,9 @@
     border:1px solid rgba(255,255,255,0.65); background:transparent;
     transition:background 0.25s ease, box-shadow 0.25s ease;
   }
-  #rail:hover .rail-stop .lbl { opacity:0.8; transform:none; }
+  #rail-about .rail-stop { flex-direction:row-reverse; }
+  #rail-about .rail-stop .lbl { transform:translateX(-6px); }
+  #journey-rails.peek .rail-stop .lbl { opacity:0.8; transform:none; }
   .rail-stop:hover .lbl { opacity:1; transform:none; color:#fff; }
   .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
   .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
@@ -470,7 +476,10 @@
   </div>
 
   <div id="hint"><span id="hint-text">Scroll to continue</span><div id="departbar"><div id="departfill"></div></div></div>
-  <nav id="rail" aria-label="Journey stops"></nav>
+  <div id="journey-rails">
+    <nav id="rail-about" class="journey-rail" aria-label="About me sections"></nav>
+    <nav id="rail-portfolio" class="journey-rail" aria-label="Portfolio sections"></nav>
+  </div>
 
   <button id="dev-toggle" title="Dev tools">&#9881;</button>
   <div id="dev-panel">
@@ -558,6 +567,13 @@
             <option value="rotate">Rotate panorama</option>
           </select>
         </label>
+        <label>Timeline list style
+          <select id="timelineStyleSelect">
+            <option value="index">Index (current)</option>
+            <option value="editorial">Editorial chapters</option>
+            <option value="milestones">Milestone rail</option>
+          </select>
+        </label>
         <label>Rotation arrows
           <select id="arrowSelect">
             <option value="stream">Stream (triple chevron)</option>
@@ -616,9 +632,9 @@
         </label>
         <label>GitHub calendar
           <select id="welCalSelect">
+            <option value="html2">Exact &middot; darker empty cells</option>
             <option value="blocks">Blocks (GitHub-style glyphs)</option>
             <option value="html">Exact (assembles, develops to image)</option>
-            <option value="html2">Exact &middot; darker empty cells</option>
             <option value="classic">Classic (original glyphs)</option>
           </select>
         </label>
@@ -633,15 +649,34 @@
             <option value="stream">Understream</option>
             <option value="scan">Center scan</option>
             <option value="cascade">Pixel cascade</option>
+            <option value="rise">Baseline rise</option>
+            <option value="orbit">Orbital sweep</option>
+            <option value="burst">Center burst</option>
           </select>
         </label>
-        <label>Side scrollbars
+        <label>Section headings
+          <select id="welHeadingSelect">
+            <option value="quiet-left">Quiet &middot; left aligned</option>
+            <option value="quiet-center">Quiet &middot; centered</option>
+            <option value="stencil-center">Stencil &middot; centered</option>
+            <option value="bracket-center">Bracketed &middot; centered</option>
+          </select>
+        </label>
+        <label>Scrollbar design
           <select id="welScrollSelect">
             <option value="rail">Rail &middot; |#|</option>
             <option value="dots">Signal &middot; .@.</option>
             <option value="brackets">Brackets &middot; [=]</option>
           </select>
         </label>
+        <label>Scrollbar position
+          <select id="welScrollSideSelect">
+            <option value="right">Right</option>
+            <option value="left">Left</option>
+            <option value="both">Both sides</option>
+          </select>
+        </label>
+        <div class="row"><span>About Me scrollbar</span><input type="checkbox" id="toggleWelAboutScroll" checked></div>
         <label>Panorama Size <span id="valWelSize">0.90</span>
           <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.90">
         </label>
@@ -2001,16 +2036,23 @@ const pKicker=panel.querySelector('.eyebrow'), pTitle=panel.querySelector('.titl
 const hint=document.getElementById('hint'), hintText=document.getElementById('hint-text'), departFill=document.getElementById('departfill');
 let _departW=''; // last departure-bar width actually written (v50: skip identical per-frame style writes)
 const enterBtn=document.getElementById('enter-btn'), exploreBtn=document.getElementById('explore-btn');
-const rail=document.getElementById('rail'); const railEls=[];
+const railWrap=document.getElementById('journey-rails');
+const railAbout=document.getElementById('rail-about'), railPortfolio=document.getElementById('rail-portfolio');
+const railEls=[];
 STOPS.forEach((st,k)=>{
+  if(st.id==='welcome') return;
   const b=document.createElement('button'); b.className='rail-stop'; b.title=st.title;
   b.innerHTML='<span class="lbl">'+st.label+'</span><span class="dot"></span>'; // v69: bare section names — the numbering is gone
   b.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(k); else if(uiState==='journey'&&jMode==='docked'&&k!==dockIdx) departTo(k); });
-  rail.appendChild(b); railEls.push(b);
+  (st.id==='cases'?railPortfolio:railAbout).appendChild(b); railEls.push({el:b,k});
 });
-function railSet(k){ railEls.forEach((e,i)=>{ e.classList.toggle('current',i===k); e.classList.toggle('done',k>=0&&i<k); }); }
+for(const r of [railAbout,railPortfolio]){
+  r.addEventListener('mouseenter',()=>railWrap.classList.add('peek'));
+  r.addEventListener('mouseleave',()=>railWrap.classList.remove('peek'));
+}
+function railSet(k){ railEls.forEach(r=>{ r.el.classList.toggle('current',r.k===k); r.el.classList.toggle('done',k>=0&&r.k<k); }); }
 let railSeen=false; // v69: the rail only appears once the visitor first travels beyond Welcome
-function railReveal(){ if(!railSeen){ railSeen=true; rail.classList.add('seen'); } }
+function railReveal(){ if(!railSeen){ railSeen=true; railWrap.classList.add('seen'); } }
 function setHint(t){ hintText.textContent=t; }
 function showHint(){ hint.classList.add('show'); }
 function hideHint(){ hint.classList.remove('show'); }
@@ -2243,6 +2285,10 @@ const WNAV_PITCH=7*WNAV_CELL+WNAV_ROWGAP;
 const WNAV_POP=1.13;                   // hover: the label swells to this factor about its centre
 let welcomeBannerStyle=localStorage.getItem('pf_welcome_banner')||ud('welBannerSelect','stream');
 let welcomeScrollStyle=localStorage.getItem('pf_welcome_scroll')||ud('welScrollSelect','rail');
+let welcomeScrollSide=localStorage.getItem('pf_welcome_scroll_side')||ud('welScrollSideSelect','right');
+let welcomeHeadingStyle=localStorage.getItem('pf_welcome_heading')||ud('welHeadingSelect','quiet-left');
+const _welcomeAboutSaved=localStorage.getItem('pf_welcome_about_scroll');
+let welcomeAboutScroll=_welcomeAboutSaved==null?ud('toggleWelAboutScroll',true):_welcomeAboutSaved==='1';
 const welcomeScrollPos={about:0,portfolio:0};
 const welcomeScrollWheel={about:0,portfolio:0};
 /* keyboard-style greeting: fresh stencil cells (never terrain claims) appear one key at
@@ -2253,7 +2299,7 @@ const WTW_KEY=105, WTW_GAP=380, WTW_DELAY=260, WTW_POP=100;
 //  'classic' — the original in-scene grid (per-level ASCII char)
 //  'html' — a faithful HTML/SVG recreation of react-github-calendar, overlaid while docked;
 //           in this mode buildWelcomeLayout omits the glyph calendar (title/figure/banner stay).
-let welcomeCal=localStorage.getItem('pf_welcome_cal')||'blocks';
+let welcomeCal=localStorage.getItem('pf_welcome_cal')||ud('welCalSelect','html2');
 /* welcome title (v63, dev panel > Welcome Stop):
    'type' (default) — an independent keyboard reveal that allocates fresh stencil cells;
    'assemble' — the classic terrain-glyph reveal. Both sit directly above the figure. */
@@ -2270,6 +2316,7 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    shaded ASCII arrows flanks every facet on multi-facet stops — the "there's more around
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
+let timelineStyle=ud('timelineStyleSelect','index'); // scroll-mode list presentation: index | editorial | milestones
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
 let absorbView=ud('toggleAbsorbView',true); // when on, every terrain glyph inside the active camera view joins that facet's assembly
 const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge and arrow
@@ -2698,7 +2745,7 @@ function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional meta
     const rw=(bW*ct+bH*Math.abs(st2))/2, rh=(bH*ct+bW*Math.abs(st2))/2; // rotated half-extents
     // the DOM board uniform-fits inside the grid rect, so its real half-width is known here:
     const bdW=A?Math.min(iw/CB_W, ih/CB_H)*CB_W:iw;
-    const cx0=bdW/2+1.1+rw, cy0=imgCY0+2.0; // v69: nudged up + right of the board's midline (user request)
+    const cx0=bdW/2+1.1+rw, cy0=imgTop-rh; // align the caption/pawn block's top edge with the embedded game's top edge
     for(let i=start;i<items.length;i++){ const it=items[i], x=it.x, yy=it.y;
       it.x=x*ct-yy*st2+cx0; it.y=x*st2+yy*ct+cy0; }
     btns.push({kind:'link', data:g.mark.href, cx:cx0, cy:cy0, hw:rw+0.3, hh:rh+0.3});
@@ -2776,25 +2823,54 @@ function mergeCaseLayouts(base,detail){
 /* Work/Education scroll mode: one persistent compact ASCII index sits beside the
    changing content facet. Keeping it as its own facet means a scroll only rebuilds the
    main card; the left list no longer flies out and assembles again from a second glyph set. */
-const TL_S=0.50, TL_LINE=0.96, TL_GAP=2.2, TL_SLIDE=5.5, TL_MS=900;
-function timelineText(t){
+const TL_GAP=2.2, TL_SLIDE=5.5, TL_MS=900;
+function timelineText(t,limit){
   t=asciiSafe(t).toUpperCase().replace(/[^\x20-\x7E]/g,'');
-  return t.length>24?t.slice(0,23)+'-':t;
+  limit=limit||28;
+  return t.length>limit?t.slice(0,limit-1)+'-':t;
 }
 function buildTimelineNavLayout(labels){
   const items=[], btns=[];
-  const lines=labels.map((t,i)=>(i<10?'0':'')+i+' '+timelineText(t));
-  let listW=0; for(const t of lines) listW=Math.max(listW,layoutLine(t,TL_S).w);
+  const style=timelineStyle, line=style==='editorial'?1.42:style==='milestones'?1.22:1.08;
+  const titleS=style==='editorial'?0.64:style==='milestones'?0.60:0.58;
+  const lines=labels.map((t,i)=>({i,title:timelineText(t,style==='editorial'?27:25),
+    text:(i<10?'0':'')+i+' '+timelineText(t,25)}));
+  let listW=0;
+  for(const d of lines){
+    const w=style==='editorial'?2.0+layoutLine(d.title,titleS).w
+      :style==='milestones'?1.55+layoutLine(d.title,titleS).w:layoutLine(d.text,titleS).w;
+    listW=Math.max(listW,w);
+  }
   const contentReserve=45, totalW=listW+TL_GAP+contentReserve+0.7;
-  const listLeft=-totalW/2+0.35, textLeft=listLeft+TL_S*2.0;
-  const listH=Math.max(TL_LINE,lines.length*TL_LINE), yTop=(lines.length-1)*TL_LINE/2;
-  lines.forEach((t,i)=>{
-    const kind='timeline'+i, y=yTop-i*TL_LINE, q=layoutLine(t,TL_S);
-    for(let c=0;c<t.length;c++){ const ch=t[c]; if(ch!==' ') items.push({ch,x:textLeft+q.xs[c],y:y+chBase(ch)*TL_S,s:TL_S,L:null,btn:kind,tf:1}); }
-    btns.push({kind,timeline:i,data:i,cx:textLeft+q.w/2,cy:y,hw:q.w/2+0.35,hh:TL_LINE*0.46});
+  const listLeft=-totalW/2+0.35, textLeft=listLeft+(style==='index'?titleS*2.0:1.25);
+  const listH=Math.max(line,lines.length*line), yTop=(lines.length-1)*line/2;
+  const addText=(t,s,x,y,kind,L)=>{ const q=layoutLine(t,s);
+    for(let c=0;c<t.length;c++){ const ch=t[c]; if(ch!==' ') items.push({ch,x:x+q.xs[c],y:y+chBase(ch)*s,s,L:L===undefined?null:L,btn:kind,tf:1}); }
+    return q.w;
+  };
+  lines.forEach((d,i)=>{
+    const kind='timeline'+i, y=yTop-i*line; let hitX=textLeft, hitW=0;
+    if(style==='editorial'){
+      addText((i<10?'0':'')+i,0.34,textLeft,y+0.13,kind,0.48);
+      hitW=addText(d.title,titleS,textLeft+1.85,y,kind); hitX=textLeft;
+      if(i<lines.length-1) addText('......................',0.20,textLeft+1.85,y-0.55,null,0.16);
+      hitW+=1.85;
+    } else if(style==='milestones'){
+      addText('o',0.48,listLeft,y,kind,0.52);
+      hitW=addText(d.title,titleS,textLeft+0.45,y,kind); hitX=listLeft;
+      if(i<lines.length-1){
+        addText('|',0.34,listLeft+0.04,y-line*0.34,null,0.22);
+        addText('|',0.34,listLeft+0.04,y-line*0.68,null,0.22);
+      }
+      hitW+=textLeft+0.45-listLeft;
+    } else {
+      hitW=addText(d.text,titleS,textLeft,y,kind); hitX=textLeft;
+    }
+    btns.push({kind,timeline:i,data:i,cx:hitX+hitW/2,cy:y,hw:hitW/2+0.42,hh:line*0.46});
   });
-  items.push({ch:'>',x:listLeft,y:yTop+chBase('>')*TL_S,s:TL_S,L:null,tf:1,timelineCaret:true});
-  return {items,btns,w:totalW,h:listH+0.6,timeline:true,timelineY:lines.map((_,i)=>yTop-i*TL_LINE)};
+  const caretCh=style==='milestones'?'@':style==='editorial'?'#':'>', caretS=style==='editorial'?0.44:0.54;
+  items.push({ch:caretCh,x:listLeft,y:yTop+chBase(caretCh)*caretS,s:caretS,L:null,tf:1,timelineCaret:true});
+  return {items,btns,w:totalW,h:listH+0.6,timeline:true,timelineY:lines.map((_,i)=>yTop-i*line)};
 }
 function shiftLayoutX(lay,dx){ // timeline content breathes to the right of the persistent index
   for(const it of lay.items) it.x+=dx;
@@ -2937,7 +3013,8 @@ function buildWelcomeLayout(){
 
   /* Central spine: greeting, figure, calendar, commit stream. The calendar is centred
      beneath the figure instead of occupying a separate right-hand column. */
-  const calEnd=items.length, calDX=-calCX, calDY=-1.35;
+  const calShiftX=1.25; // optical midpoint between the asymmetric ABOUT ME / PORTFOLIO columns
+  const calEnd=items.length, calDX=-calCX+calShiftX, calDY=-1.35;
   for(let i=0;i<calEnd;i++){ items[i].x+=calDX; items[i].y+=calDY; }
   for(const cc of calCells){ cc.cx+=calDX; cc.cy+=calDY; }
   let bannerCY=calBot+calDY-WCAL_CH*0.5-1.45;
@@ -2965,10 +3042,21 @@ function buildWelcomeLayout(){
     if(L!==undefined) for(let i=start;i<items.length;i++) items[i].L=L;
     return {w,cell};
   };
-  const addQuietHeader=(t,x,y)=>{ const s=0.48, q=layoutLine(t,s);
-    for(let i=0;i<t.length;i++) if(t[i]!==' ') items.push({ch:t[i],x:x+q.xs[i],y:y+chBase(t[i])*s,s,L:0.42,tf:1});
-    const dots='.................', d=layoutLine(dots,0.25); for(let i=0;i<dots.length;i++) items.push({ch:'.',x:x+d.xs[i],y:y-0.72,s:0.25,L:0.18,tf:1}); };
-  addQuietHeader('ABOUT ME',leftX,10.72); addQuietHeader('PORTFOLIO',rightX,10.72);
+  const addSideHeader=(t,x,y)=>{
+    const center=x+WNAV_MAXW/2, dots='.................', ds=0.25, d=layoutLine(dots,ds);
+    if(welcomeHeadingStyle==='stencil-center'){
+      const cell=0.105, w=stCols(t)*cell, start=items.length;
+      layStencilLine(items,t,cell,center-w/2,y+0.22);
+      for(let i=start;i<items.length;i++) items[i].L=0.42;
+    } else {
+      const label=welcomeHeadingStyle==='bracket-center'?'[ '+t+' ]':t, s=0.48, q=layoutLine(label,s);
+      const tx=welcomeHeadingStyle==='quiet-left'?x:center-q.w/2;
+      for(let i=0;i<label.length;i++) if(label[i]!==' ') items.push({ch:label[i],x:tx+q.xs[i],y:y+chBase(label[i])*s,s,L:0.42,tf:1});
+    }
+    const dx=welcomeHeadingStyle==='quiet-left'?x:center-d.w/2;
+    for(let i=0;i<dots.length;i++) items.push({ch:'.',x:dx+d.xs[i],y:y-0.72,s:ds,L:0.18,tf:1});
+  };
+  addSideHeader('ABOUT ME',leftX,10.72); addSideHeader('PORTFOLIO',rightX,10.72);
 
   const about=[
     {id:'work'},{id:'edu'},{id:'interests'},{id:'contact'},
@@ -2978,9 +3066,11 @@ function buildWelcomeLayout(){
     {id:'cases'}, {t:'PROJECT NORTH'}, {t:'PROJECT STATIC'}, {t:'AFTERGLOW'},
     {t:'SIGNAL'}, {t:'ATLAS'}, {t:'RELAY'}, {t:'LATTICE'}
   ];
+  const wsVisible={about:welcomeAboutScroll?WNAV_VISIBLE:about.length,portfolio:WNAV_VISIBLE};
+  if(!welcomeAboutScroll) welcomeScrollPos.about=0;
   const addWelcomeRows=(group,x,rows)=>rows.forEach((entry,row)=>{
     const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;
-    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), y=sideTop-Math.min(row,WNAV_VISIBLE-1)*WNAV_PITCH;
+    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), y=sideTop-Math.min(row,wsVisible[group]-1)*WNAV_PITCH;
     const live=si>=0||entry.href, kind=live?(entry.href?'wcv':'nav'+btns.length):null;
     const extra={ws:group,wsr:row,wsBaseY:y}; if(kind) extra.btn=kind;
     const q=addStencil(t,x,y,live?WNAV_CELL:0.12,WNAV_MAXW,extra,live?undefined:0.48);
@@ -2992,14 +3082,20 @@ function buildWelcomeLayout(){
   const barArt={rail:{track:'|',thumb:'#',up:'^',down:'v'},dots:{track:'.',thumb:'@',up:':',down:':'},brackets:{track:']',thumb:'=',up:'[',down:']'}};
   const art=barArt[welcomeScrollStyle]||barArt.rail;
   const addScrollBar=(group,x,count)=>{
-    const bx=x+WNAV_MAXW+1.05, top=sideTop-0.25, bot=sideTop-(WNAV_VISIBLE-1)*WNAV_PITCH-0.80, n=10;
-    for(let i=0;i<n;i++) items.push({ch:art.track,x:bx,y:top+(bot-top)*i/(n-1),s:0.30,L:0.20,wsBar:group});
-    items.push({ch:art.thumb,x:bx,y:top,s:0.34,L:0.88,wsThumb:group});
-    const ku='wscroll-'+group+'-up', kd='wscroll-'+group+'-down', yu=top+0.72, yd=bot-0.72;
-    items.push({ch:art.up,x:bx,y:yu,s:0.42,L:0.58,btn:ku}); items.push({ch:art.down,x:bx,y:yd,s:0.42,L:0.58,btn:kd});
-    btns.push({kind:ku,wsControl:true,ws:group,wsDir:-1,data:group,cx:bx,cy:yu,hw:0.55,hh:0.48},
-              {kind:kd,wsControl:true,ws:group,wsDir: 1,data:group,cx:bx,cy:yd,hw:0.55,hh:0.48});
-    wsBars[group]={top,bot,count}; wsRects[group]={cx:x+(WNAV_MAXW+1.7)/2,cy:(top+bot)/2,hw:(WNAV_MAXW+1.7)/2,hh:(top-bot)/2+1.0};
+    const vis=wsVisible[group]; if(count<=vis) return;
+    const top=sideTop-0.25, bot=sideTop-(vis-1)*WNAV_PITCH-0.80, n=10;
+    const sides=welcomeScrollSide==='both'?['left','right']:[welcomeScrollSide];
+    for(const side of sides){
+      const bx=side==='left'?x-1.05:x+WNAV_MAXW+1.05;
+      for(let i=0;i<n;i++) items.push({ch:art.track,x:bx,y:top+(bot-top)*i/(n-1),s:0.30,L:0.20,wsBar:group});
+      items.push({ch:art.thumb,x:bx,y:top,s:0.34,L:0.88,wsThumb:group});
+      const ku='wscroll-'+group+'-'+side+'-up', kd='wscroll-'+group+'-'+side+'-down', yu=top+0.72, yd=bot-0.72;
+      items.push({ch:art.up,x:bx,y:yu,s:0.42,L:0.58,btn:ku}); items.push({ch:art.down,x:bx,y:yd,s:0.42,L:0.58,btn:kd});
+      btns.push({kind:ku,wsControl:true,ws:group,wsDir:-1,data:group,cx:bx,cy:yu,hw:0.55,hh:0.48},
+                {kind:kd,wsControl:true,ws:group,wsDir: 1,data:group,cx:bx,cy:yd,hw:0.55,hh:0.48});
+    }
+    const x0=x+(sides.includes('left')?-1.7:0), x1=x+WNAV_MAXW+(sides.includes('right')?1.7:0);
+    wsBars[group]={top,bot,count,visible:vis}; wsRects[group]={cx:(x0+x1)/2,cy:(top+bot)/2,hw:(x1-x0)/2,hh:(top-bot)/2+1.0};
   };
   addScrollBar('about',leftX,about.length); addScrollBar('portfolio',rightX,portfolio.length);
 
@@ -3018,11 +3114,11 @@ function buildWelcomeLayout(){
   if(typeTitle){ for(const c of typeTitle.cells){ c.x-=cx; c.y-=cy; } typeTitle.cursorX=typeTitle.cursorX.map(x=>x-cx); typeTitle.yTop-=cy; }
   if(waveS){ waveS.x-=cx; waveS.y-=cy; waveE.x-=cx; waveE.y-=cy; }
   const ret={items, w:fullW, h:maxY-minY, calCells, calHW:WCAL_CW*0.55, calHH:WCAL_CH*0.55,
-          bannerCX:-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns, typeTitle,
+          bannerCX:calShiftX-cx, bannerCY:bannerCY-cy, bannerHalfW:calW/2, bannerS:WBANNER_S, btns, typeTitle,
           waveS, waveE, waveB1, waveB2, wsRects, wsBars, wsTop:sideTop-cy,
-          wsCounts:{about:about.length,portfolio:portfolio.length}};
+          wsCounts:{about:about.length,portfolio:portfolio.length}, wsVisible};
   if(isHtmlCal){
-    ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=-cx; ret.imgCY=(calTop+calBot)/2+calDY-cy;
+    ret.imgW=ncol*WCAL_CW; ret.imgH=7*WCAL_CH; ret.imgCX=calShiftX-cx; ret.imgCY=(calTop+calBot)/2+calDY-cy;
   }
   return ret;
 }
@@ -3107,6 +3203,26 @@ function startBannerWrite(now){
       L.from=L.to.clone().addScaledVector(F.right,(mid-L.col)*cell*0.72).addScaledVector(F.up,(3-L.row)*cell*0.28).addScaledVector(F.dir,-0.9);
       L.sink=L.from.clone(); L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.5).addScaledVector(F.dir,-1.4);
       L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.5).addScaledVector(F.dir,-1.1);
+    } else if(style==='rise'){ // rows lift cleanly from a shared baseline, like a line printer warming up
+      L.delay=(6-L.row)*28+L.col*5;
+      L.from=L.to.clone().addScaledVector(F.up,-(1.7+L.row*cell*0.22)).addScaledVector(F.dir,-0.55);
+      L.sink=L.from.clone();
+      L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.52).addScaledVector(F.right,(L.col-mid)*cell*0.08);
+      L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.48).addScaledVector(F.right,(mid-L.col)*cell*0.08);
+    } else if(style==='orbit'){ // a clockwise ribbon curls in around the calendar's centre line
+      const a=(L.col/Math.max(1,cols))*Math.PI*2+L.row*0.16, rad=1.25+Math.abs(L.row-3)*0.12;
+      L.delay=L.col*11+L.row*5;
+      L.from=L.to.clone().addScaledVector(F.right,Math.cos(a)*rad).addScaledVector(F.up,Math.sin(a)*rad).addScaledVector(F.dir,-1.0);
+      L.sink=L.from.clone();
+      L.wctrl=L.to.clone().addScaledVector(F.right,-Math.sin(a)*1.5).addScaledVector(F.up,Math.cos(a)*1.0).addScaledVector(F.dir,-1.45);
+      L.cctrl=L.to.clone().addScaledVector(F.right,Math.sin(a)*1.5).addScaledVector(F.up,-Math.cos(a)*1.0).addScaledVector(F.dir,-1.25);
+    } else if(style==='burst'){ // cells radiate from one compact centre, then collapse back into it
+      const dx=(L.col-mid)*cell, dy=(3-L.row)*cell, mag=Math.hypot(dx,dy);
+      const centre=L.to.clone().addScaledVector(F.right,-dx).addScaledVector(F.up,-dy).addScaledVector(F.dir,-1.8);
+      L.delay=mag*28;
+      L.from=centre; L.sink=centre.clone();
+      L.wctrl=new THREE.Vector3().lerpVectors(L.from,L.to,0.52).addScaledVector(F.up,0.65+mag*0.08);
+      L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.48).addScaledVector(F.up,-(0.5+mag*0.06));
     } else if(style==='cascade'){ // shuffled square-by-square rain, echoing the site's image development
       L.delay=L.row*34+((L.col*17)%Math.max(1,cols))*7;
       L.from=L.to.clone().addScaledVector(F.up,2.0+Math.random()*1.0).addScaledVector(F.right,(Math.random()-0.5)*0.5);
@@ -3120,7 +3236,9 @@ function startBannerWrite(now){
       L.wctrl=L.to.clone().addScaledVector(F.up,-(0.65+Math.random()*0.55)).addScaledVector(F.right,(Math.random()-0.5)*1.8);
       L.cctrl=new THREE.Vector3().lerpVectors(L.to,L.sink,0.5).addScaledVector(F.up,-(0.5+Math.random()*0.45)).addScaledVector(F.right,(Math.random()-0.5)*1.4);
     } });
-  b.letters=letters; b.s=cell*1.15; b.fly=style==='cascade'?285:style==='scan'?320:WB_FLY; b.phase='stream'; b.t0=now;
+  b.letters=letters; b.s=cell*1.15;
+  b.fly=style==='cascade'?285:style==='scan'?320:style==='rise'?390:style==='orbit'?520:style==='burst'?430:WB_FLY;
+  b.phase='stream'; b.t0=now;
 }
 function animateBanner(L,p,writing){
   const b=welcome.banner, F=welcome.F, rec=L.rec, m=rec.m, sc=b.s*F.f;
@@ -3220,12 +3338,14 @@ function updateWelcomeWave(now){
    assembly reaches hold; there is no slower second write pass. */
 function welcomeScrollHidden(it){
   if(!it||!it.ws) return false;
-  const o=welcomeScrollPos[it.ws]||0;
-  return it.wsr<o||it.wsr>=o+WNAV_VISIBLE;
+  const F=welcome.F, o=welcomeScrollPos[it.ws]||0;
+  const visible=F&&F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
+  return it.wsr<o||it.wsr>=o+visible;
 }
 function welcomeScrollBy(group,dir){
   const F=welcome.F, count=F&&F.lay.wsCounts&&F.lay.wsCounts[group]; if(!count) return;
-  const next=Math.max(0,Math.min(Math.max(0,count-WNAV_VISIBLE),(welcomeScrollPos[group]||0)+dir));
+  const visible=F.lay.wsVisible?F.lay.wsVisible[group]:WNAV_VISIBLE;
+  const next=Math.max(0,Math.min(Math.max(0,count-visible),(welcomeScrollPos[group]||0)+dir));
   if(next!==welcomeScrollPos[group]){ welcomeScrollPos[group]=next; glyphsDirty=true; renderDirty=true; }
 }
 function welcomeScrollHit(x,y){
@@ -3242,7 +3362,8 @@ function updateWelcomeNav(now,dt){
   const F=welcome.F, holding=F.state==='hold', hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
   for(const b of F.btns){
     if(b.nav!==undefined){
-      const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+WNAV_VISIBLE));
+      const count=b.ws&&F.lay.wsVisible?F.lay.wsVisible[b.ws]:WNAV_VISIBLE;
+      const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+count));
       b.shown=visible;
       if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws]; b.cy=F.lay.wsTop-slot*WNAV_PITCH+b.wsDY; }
       for(const it of b.items) it.shown=visible;
@@ -3251,7 +3372,8 @@ function updateWelcomeNav(now,dt){
   if(!holding) return;
   for(const it of F.items){
     if(it.ws){
-      const off=welcomeScrollPos[it.ws]||0, visible=!welcomeScrollHidden(it), slot=Math.max(-1,Math.min(WNAV_VISIBLE,it.wsr-off));
+      const off=welcomeScrollPos[it.ws]||0, count=F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
+      const visible=!welcomeScrollHidden(it), slot=Math.max(-1,Math.min(count,it.wsr-off));
       const ly=F.lay.wsTop-slot*WNAV_PITCH+it.wsDY;
       it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to);
       if(it.wsAlpha===undefined) it.wsAlpha=visible?1:0;
@@ -3259,7 +3381,7 @@ function updateWelcomeNav(now,dt){
       if(it.wsAlpha<0.015){ it.wsAlpha=0; it.m.material.opacity=0; it.m.visible=false; }
       else { it.m.visible=true; it.m.material.opacity=it.wsAlpha; if(!hoverKinds.has(it.btnKind)) it.m.position.lerp(it.to,Math.min(1,dt*11)); }
     } else if(it.wsThumb){
-      const bar=F.lay.wsBars[it.wsThumb], max=Math.max(1,bar.count-WNAV_VISIBLE), p=Math.min(1,(welcomeScrollPos[it.wsThumb]||0)/max);
+      const bar=F.lay.wsBars[it.wsThumb], max=Math.max(1,bar.count-bar.visible), p=Math.min(1,(welcomeScrollPos[it.wsThumb]||0)/max);
       const ly=bar.top+(bar.bot-bar.top)*p;
       it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to); it.m.position.lerp(it.to,Math.min(1,dt*12));
     }
@@ -3375,8 +3497,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       // Other panoramas retain the newest-right / oldest-left alternating placement.
       const dy=scrollMode?0:(st.id==='cases'?-(i+1)*step:((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step);
       const coverLay=buildCoverLayout(g, st.id==='cases');
-      const detailLay=st.id==='cases'&&g.more?buildCaseDetailLayout(g):null;
-      if(scrollMode) shiftLayoutX(coverLay,3.0);
+      const detailLay=g.more?buildCaseDetailLayout(g):null;
+      if(scrollMode){ shiftLayoutX(coverLay,3.0); if(detailLay) shiftLayoutX(detailLay,3.0); }
       defs.push({lay:coverLay, dy:dy*Math.PI/180,
         dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:g.hFit||1.25, photoKey, pdf:g.pdf||null, g,
          vids:g.vids||null, games:g.games||null, detailLay, scrollSlot:i+1}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
@@ -3569,8 +3691,8 @@ function facetIn(F,now){
 }
 function facetOut(F,now,noHand){ // noHand: departure — everything goes home, no facet-to-facet handoffs
   if(F.state!=='in'&&F.state!=='hold') return;
-  if(F.g) hideMore(); // a cover leaving the gaze takes its read-more card with it
-  if(F.caseBaseLay&&(F.moreDetail||F.moreSwap)) resetCaseMore(F); // case details always return to the cover on look-away
+  if(F.g) hideMore(); // legacy overlay fallback closes with its cover
+  if(F.caseBaseLay&&(F.moreDetail||F.moreSwap)) resetCaseMore(F); // in-scene details always return to the cover on look-away
   if(F.vids) stopFacetVideo(F); // a playing video pauses + folds when its facet leaves the gaze
   if(F.games){ F.cbOn=false; F.cbT0=0; F.cbDis=0; } // the chess board hides with the facet — a re-fire auto-develops it fresh
   F.state='out'; F.t0=now; F.pT0=0; F.pOn=false; F.pDone=false;
@@ -3818,8 +3940,8 @@ function timelineTo(idx){
 function timelineStep(dir){
   return stopFacets&&stopFacets.scrollMode?timelineTo(stopFacets.scrollIndex+dir):false;
 }
-/* READ MORE side card for non-case galleries (work / education). Case studies use
-   buildCaseDetailLayout + toggleCaseMore so their details remain assembled in-scene. */
+/* Legacy READ MORE side-card fallback. Assemble mode merges every authored `more` layout
+   into its cover facet; the card remains for classic/third-party layouts without that merge. */
 const moreCard=document.createElement('div'); moreCard.id='more-card';
 moreCard.innerHTML='<button id="more-close" title="Close">×</button><div id="more-body"></div>';
 document.body.appendChild(moreCard);
@@ -5641,11 +5763,16 @@ const DEV_TIPS={
   coverSpeed:'Controls every ASCII-to-image, video-still and chess-board develop animation.', toggleAbsorbView:'Pulls the entire visible glyph field into the active facet for a clean reading plane.',
   travelAdjSelect:'Camera style used when moving to the neighbouring stop.', travelFarSelect:'Camera style used when jumping across several stops.',
   toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.', toggleCursorSway:'Adds a subtle passive camera response to pointer position while docked.',
-  timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
+  timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.', arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
   welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
-  welScrollSelect:'Chooses the ASCII scrollbar design for About me and Portfolio.', welSize:'Scales the complete Welcome composition inside the camera view.',
+  welHeadingSelect:'Chooses alignment and typography for the two Welcome column headings.',
+  welScrollSelect:'Chooses the ASCII scrollbar design for About me and Portfolio.',
+  welScrollSideSelect:'Places each Welcome scrollbar to the left, right, or on both sides of its list.',
+  toggleWelAboutScroll:'Shows the About Me scrollbar; off expands the list to all five rows.',
+  welSize:'Scales the complete Welcome composition inside the camera view.',
   welHalo:'Adds breathing room to the Welcome clearing around its content.', toggleInspect:'Colour-codes terrain glyphs by their assembly role.',
   inspectScene:'Selects which stop the glyph inspector is auditing.', inspectRole:'Shows only one assembly role in the inspector.', inspectHard:'Controls what fraction of a marquee selection is affected.'
 };
@@ -5743,6 +5870,9 @@ absorbViewCheck.addEventListener('change',()=>{ absorbView=absorbViewCheck.check
 const timelineNavSelect=document.getElementById('timelineNavSelect');
 timelineNavSelect.value=timelineNav;
 timelineNavSelect.addEventListener('change',()=>{ timelineNav=timelineNavSelect.value; reassembleDocked(); });
+const timelineStyleSelect=document.getElementById('timelineStyleSelect');
+timelineStyleSelect.value=timelineStyle;
+timelineStyleSelect.addEventListener('change',()=>{ timelineStyle=timelineStyleSelect.value; reassembleDocked(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -5770,6 +5900,22 @@ const welScrollSelect=document.getElementById('welScrollSelect');
 welScrollSelect.value=welcomeScrollStyle;
 welScrollSelect.addEventListener('change',()=>{
   welcomeScrollStyle=welScrollSelect.value; localStorage.setItem('pf_welcome_scroll',welcomeScrollStyle); reassembleWelcome();
+});
+const welScrollSideSelect=document.getElementById('welScrollSideSelect');
+welScrollSideSelect.value=welcomeScrollSide;
+welScrollSideSelect.addEventListener('change',()=>{
+  welcomeScrollSide=welScrollSideSelect.value; localStorage.setItem('pf_welcome_scroll_side',welcomeScrollSide); reassembleWelcome();
+});
+const welHeadingSelect=document.getElementById('welHeadingSelect');
+welHeadingSelect.value=welcomeHeadingStyle;
+welHeadingSelect.addEventListener('change',()=>{
+  welcomeHeadingStyle=welHeadingSelect.value; localStorage.setItem('pf_welcome_heading',welcomeHeadingStyle); reassembleWelcome();
+});
+const welAboutScrollCheck=document.getElementById('toggleWelAboutScroll');
+welAboutScrollCheck.checked=welcomeAboutScroll;
+welAboutScrollCheck.addEventListener('change',()=>{
+  welcomeAboutScroll=welAboutScrollCheck.checked;
+  localStorage.setItem('pf_welcome_about_scroll',welcomeAboutScroll?'1':'0'); reassembleWelcome();
 });
 const welWaveSelect=document.getElementById('welWaveSelect');
 welWaveSelect.value=welcomeWave;
@@ -5845,17 +5991,19 @@ const CTRL_DEF={
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',true],
   uiFontSelect:['select','mono'],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
-  toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true], timelineNavSelect:['select','scroll'], arrowSelect:['select','stream'],
+  toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
+  timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','index'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
-  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','blocks'], welSize:['range',0.90], welHalo:['range',0.05],
-  welTitleSelect:['select','type'], welBannerSelect:['select','stream'], welScrollSelect:['select','rail']
+  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','html2'], welSize:['range',0.90], welHalo:['range',0.05],
+  welTitleSelect:['select','type'], welBannerSelect:['select','stream'], welHeadingSelect:['select','quiet-left'],
+  welScrollSelect:['select','rail'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',true]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
-  welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welScrollSelect','welSize','welHalo']
+  welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };
 const ALL_CTRLS=[].concat(SECT_CTRLS.render,SECT_CTRLS.journey,SECT_CTRLS.text,SECT_CTRLS.welcome);
 function ctrlGet(id){ const el=document.getElementById(id), k=CTRL_DEF[id][0]; return k==='check'?el.checked : k==='range'?parseFloat(el.value) : el.value; }
@@ -5873,6 +6021,9 @@ function applyUserDefaults(){ for(const id of ALL_CTRLS){ if(USER_DEFAULTS[id]!=
 function captureDefaults(){ const o={}; for(const id of ALL_CTRLS) o[id]=ctrlGet(id);
   Object.assign(USER_DEFAULTS,o); try{ localStorage.setItem('pf_user_defaults',JSON.stringify(USER_DEFAULTS)); }catch(e){} }
 applyUserDefaults();
+// Raw is a roam-state invariant, not a remembered journey-rendering preference.
+// A previously saved unchecked toggle must not make the initial overview processed.
+if(uiState==='overview'&&!rawMode){ rawCheck.checked=true; applyRaw(true); }
 devPanel.querySelectorAll('.sect-reset').forEach(box=>{
   const name=box.dataset.reset;
   box.querySelector('.sreset-btn').addEventListener('click',()=>{

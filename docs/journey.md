@@ -2,6 +2,17 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v76: split About / Portfolio rails
+
+The one right-side journey rail is now two linked rails revealed by the existing
+one-shot `railReveal()` lifecycle. Work, Education, Interests, and Contact sit on the
+left; Case studies sits on the right; Welcome is intentionally absent because the
+rails first appear only after leaving it. `railEls` stores each button with its real
+STOPS index, so current/done state remains correct after the visual regrouping.
+Hovering either rail toggles a shared wrapper `peek` class, revealing labels on both
+sides at once. The wrapper itself never intercepts the canvas; only the two compact
+nav columns accept pointer input.
+
 ## v74: continuous Welcome arrivals, dock-time processing, timeline drag-look
 
 Every stop-to-stop travel style now calls `arrivalQuat(toIdx,pos,pathQuat,out)` for its final gaze. Ordinary stops still level out with `levelQuat`; Welcome instead converges on the exact position-dependent `welcomeLookQuat`. Cruise/classic recompute that target through deceleration and all swoop variants use it for their terminal quaternion, so the touchdown callback no longer replaces a path-facing quaternion with the horizontal face-centre gaze (the reported 90-degree cut). Roam-to-Welcome keeps the established direct target.

@@ -1,5 +1,26 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v76: unified in-scene details and selectable timeline lists
+
+Every assembled gallery entry with `more` now builds and merges a detail layout, not
+only Case studies. Work and Education therefore use the same terrain-owned
+cover-to-sections morph, READ LESS return, Escape handling, look-away reset, and
+button gating as Cases; their old `#more-card` overlay remains only as a legacy
+fallback. In scroll mode both cover and detail layouts receive the same
+`shiftLayoutX(3)` before merging, so a detail morph cannot jump back over the
+persistent index. Cases keep the exact v75 max-layout merge and glyph claims.
+
+The Experience/Education list retains **Index** as its factory format, with its text
+raised from 0.50 to 0.58 and row pitch from 0.96 to 1.08. Journey settings add
+**Editorial chapters** (larger titles, small ordinals, dotted separators) and
+**Milestone rail** (nodes and a vertical ASCII track). All three return the same
+`timelineY` contract and clickable `timeline` buttons, so `timelineTo()`, caret
+easing, facet handoff, wheel/keyboard input, and content facets remain unchanged.
+
+On the chess facet, the side mark's rotated top bound is aligned to `imgTop`; “Let's
+play a game” and its pawn now begin level with the embedded board instead of hanging
+below its top edge.
+
 ## v75: assembled case details, reordered studies, revised timelines, restored piano quality
 
 Case-study READ MORE is now an in-scene facet state rather than the `#more-card` DOM
