@@ -7,6 +7,30 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v75 addendum: case details reuse their cover glyphs
+
+Case-study READ MORE no longer opens `#more-card`. `buildCaseDetailLayout()` authors an
+alternate Context / Methods / Outcomes layout; `mergeCaseLayouts()` reserves
+`max(cover.items, detail.items)` terrain glyphs for the facet, and `toggleCaseMore()`
+morphs those same records between the two target sets. Never concatenate both layouts:
+the Cases stop is still the binding pool user, and allocating their sum would overflow.
+Items unused by one state fly into an active target and land hidden, following the same
+"fade only at the destination" rule as absorbed terrain. The developed cover folds on
+READ MORE; READ LESS restores the base specs and re-arms the normal photo develop.
+`facetOut()` resets a detailed case to its cover before sending its owners home.
+
+Buttons are rebuilt from the active layout. DOWNLOAD therefore remains beside
+READ MORE / READ LESS, and hit testing is disabled during the morph. The HTML card
+remains the correct implementation for Work/Education `more.sections`.
+
+Cases now use sequential yaw assignment `-(i+1)*step`, so rotating right walks the
+authored P1→P6 order. This only permutes the same six non-intro slots; spacing, gaze
+windows, cones, and the seven-direction angular set are unchanged.
+
+Real-data validation for v75 (stream arrows, the worst style): 13,268 terrain glyphs;
+Cases claim 12,959 and leave 309 spare. Every detail layout is smaller than its cover,
+so the merged maximum adds no new binding claims.
+
 ## v74 addendum: scrolled Welcome facets and unified development clocks
 
 Welcome's ABOUT ME and PORTFOLIO columns may contain more authored rows than are visible. Every row is still partitioned once as ordinary `F.items`; `ws/wsr/wsBaseY/wsDY` metadata lets `updateWelcomeNav()` move the active four-row window without reallocating or changing ownership. Off-window items must stay invisible and their `b.shown` flag must stay false, or button pulse/hit testing will fight the scroll window. `baseTo` is updated alongside `to` after a scroll so hover/swell and departure restore remain coherent. The ASCII scrollbar itself is facet content (`wsBar/wsThumb/wsControl`), not a DOM layer.
@@ -129,8 +153,9 @@ The machinery is generic — nothing in it is Case-studies-specific. Steps:
    cover gets shorted if the layouts outgrow the 13,268 pool (v41 measured ~12.9k used
    with 6 covers + buttons; only ~400 spare). Shorter titles/blurbs, or fewer covers,
    is the fix.
-5. Nothing else: partition passes 2/3, handoff, cone, develop, buttons, READ MORE card
-   all key off the facet definitions and just work.
+5. Non-case galleries continue to use the READ MORE HTML card. Case studies instead
+   build and merge an alternate layout as described in the v75 addendum; pass 2/3,
+   handoff, cone, and develop still key off the merged facet definition.
 
 ## 4. The methodology (why v43 worked — do it this way again)
 

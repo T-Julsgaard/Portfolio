@@ -1,5 +1,37 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v75: assembled case details, reordered studies, revised timelines, restored piano quality
+
+Case-study READ MORE is now an in-scene facet state rather than the `#more-card` DOM
+panel. `buildCaseDetailLayout()` builds the Context / Methods / Outcomes composition;
+`mergeCaseLayouts()` claims only the larger of the cover and detail item counts, and
+`toggleCaseMore()` / `updateCaseMore()` morph the same terrain-owned item records
+between those specs. The photo tiles fold while details are active, DOWNLOAD stays
+beside READ LESS, READ LESS re-arms the cover develop, Esc returns to the cover, and
+look-away resets the facet before its normal home/handoff flight. `more-card` remains
+in use for Work/Education role cards. Button hit testing and pulse writes cede while
+`moreSwap` owns the glyphs.
+
+The case studies are authored P1→P6 as Plant-Based Meat, Autonomous Transport, VR,
+Radiology, Wegovy, and Disciplinary Divide. Their yaws are sequential
+`-(i+1)*step`, so rightward rotation follows that order; this is a permutation of the
+same six 360/7 slots, not a spacing or cone change. Copy, titles, two-line cover blurbs,
+and all detailed sections were revised in the same round. Real `asciiData` /
+`ASCII_COVERS` / `BTN_FONT` validation measured 12,959 of 13,268 glyphs with stream
+arrows (309 spare); every detailed layout is smaller than its cover.
+
+Work copy now expands the Orange Wheel forecasting, market-intelligence and live-
+optimisation sections; Concentrix uses “Technical Advisor & Quality Assurance Analyst”
+and the revised knowledge/QA/advisory sections; Nordic Mining's short summary drops the
+agency clause. Education leads the university cards with “MSc, Software Design” and
+“BSc, Techno-Anthropology”, placing the institution beneath; Gymnasium and Højskole
+remain institution-first.
+
+`videos/piano-2.mp4` was restored from the original v67 60 fps encode, undoing v68's
+cheap-decode reduction. It now matches piano-1's delivery profile: 1280×720 at 59.94
+fps, H.264 High, BT.709 and about 6.1 Mb/s video; the source AAC audio remains copied
+bit-exact (184 kb/s for Pathétique).
+
 ## v74: shared develop speed, contact optical bounds, and square-by-square chess reveal
 
 The Journey **Image develop speed** setting drives every cover/video/calendar/chess development through `photoStagger()` and `photoTileMs()`; factory 1.5x is the requested 50% speed-up. The chess DOM no longer appears as one opaque layer after its ASCII cover dissolves: a stable shuffled order assigns a delay to each of the 64 `.cb-sq` elements, while player bars and controls follow as chrome. `cbHide()` resets those square transforms so looking away and returning replays the reveal.

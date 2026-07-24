@@ -1643,10 +1643,10 @@ const JOURNEY=[
       {img:'ow', title:'Orange Wheel Advisory', sub:'Technical Analyst & Co-owner', meta:'Oct 2025 – present',
         link:'https://orange-wheel.com/',
         more:{sections:[
-          ['In short','Monte Carlo forecasting models in a web-based decision tool; scraping pipelines mapping Danish renewable energy producers; real-time optimization between grid sales and flexible load.'],
-          ['Forecasting','Developed and integrated Monte Carlo based forecasting models into a web based decision tool used for profitability assessment and B2B and B2C client acquisition.'],
-          ['Market intelligence','Engineered and deployed automated web scraping pipelines targeting data on Danish renewable energy producers to generate market intelligence on potential B2B and B2C customers.'],
-          ['Live optimization','Led the development and maintenance of software systems that continuously monitor real time profitability metrics for demand load operations, dynamically optimizing between grid sales and flexible load allocation.']]}},
+          ['In short','Developed forecasting, market-intelligence and real-time optimisation tools for Denmark’s renewable-energy sector.'],
+          ['Forecasting','Developed and integrated Monte Carlo forecasting models into a web-based decision tool for profitability assessments and customer acquisition across B2B and B2C markets.'],
+          ['Market intelligence','Built and deployed automated web-scraping pipelines to map Danish renewable-energy producers and identify prospective B2B and B2C customers.'],
+          ['Live optimisation','Led the development and maintenance of software that continuously evaluates operational profitability, dynamically balancing electricity sales to the grid against flexible load allocation.']]}},
       {img:'unicef', title:'Earlier roles', meta:'2021 – 2024',
         vids:[{ascii:'unicef', cap:'UNICEF - Fundraiser - Nov 2023 - Jan 2024'},
               {ascii:'artium', cap:'Artium - Substitute teacher - 2022'},
@@ -1655,17 +1655,18 @@ const JOURNEY=[
           ['UNICEF — Fundraiser (Nov 2023 – Jan 2024)','Direct engagement and fundraising for humanitarian aid initiatives.'],
           ['Artium — Substitute teacher (2022)','Classroom management and educational support.'],
           ['Brande Åbo — Social care assistant (2021)','Support and care for residents with physical and mental disabilities.']]}},
-      {img:'concentrix', title:'Concentrix', sub:'Quality Assurance', meta:'Jan 2026 – Jul 2026',
+      {img:'concentrix', title:'Concentrix', sub:'Technical Advisor & Quality Assurance Analyst', meta:'Jan 2026 – Jul 2026',
         more:{sections:[
-          ['In short','Quality assurance for frontline tech support — and built RAG-like systems that made the internal knowledge base searchable for frontline supporters.'],
-          ['Quality assurance','Seven months of quality assurance for frontline tech support: reviewing cases, calibrating standards and feeding structured feedback back into the support organization.'],
-          ['Knowledge systems','Developed RAG-like retrieval systems over the internal knowledge base, so frontline tech supporters could pull the right procedure out of thousands of articles while on a call.']]}},
+          ['In short','Developed RAG-based systems that made internal knowledge bases searchable and navigable, conducted quality assurance, and provided frontline technical support.'],
+          ['Knowledge systems','Developed RAG-based retrieval systems that enabled technical advisors to navigate thousands of internal knowledge-base articles quickly and find the correct procedures during live customer calls.'],
+          ['Quality assurance','Spent seven months reviewing support cases, calibrating quality standards and providing structured feedback to improve performance across the support organisation.'],
+          ['Technical advisory','Provided frontline technical support, translating complex procedures into clear, practical solutions for customers.']]}},
       {img:'introtech', title:'Introtech Ventures', sub:'Head of Technical Support', meta:'Sep 2024 – Feb 2025',
         more:{sections:[
           ['In short','Guidance and support for the operating teams; strategic advice on growth plans, the competitive landscape and key initiatives for senior management.']]}},
       {img:'nordic', title:'Nordic Mining', sub:'Co-founder', meta:'Feb 2024 – Jul 2025',
         more:{sections:[
-          ['In short','Modeled how flexible data centers add profitability to green energy grids, in collaboration with Energistyrelsen.'],
+          ['In short','Modelled how flexible data centres add profitability to green-energy grids.'],
           ['The model','Developed a model to assess the profitability of flexible data centers in green energy grids. Modeled in collaboration with Energistyrelsen (the Danish Energy Agency).'],
           ['The journey','The startup was accepted into the AAU Innovator Hub incubator program, and later merged with Orange Wheel Advisory.']]}}
     ]}}, // (v68: UNICEF folded into the Earlier-roles card; Volunteering moved to the Interests stop. v69: Concentrix slotted between OW and Nordic — the clockwise walk is OW → Concentrix → Nordic → Introtech → Earlier, i.e. array [a0,a2,a4,a3,a1])
@@ -1673,16 +1674,17 @@ const JOURNEY=[
   {xf: 0.18, yf: 0.48},
   {xf: 0.46, yf: 0.36},
   /* Education: four logo cards (v69 — each institution's logo assembles subject-shaped and
-     develops into the crisp mark, like the work stop). Titles are the INSTITUTIONS, the
-     programme lives in the sub. Chronological clockwise like Work: newest (ITU, the
+     develops into the crisp mark, like the work stop). The university degrees lead the
+     ITU/AAU cards, with their institutions beneath; Gymnasium and Højskole keep the
+     institution-first hierarchy. Chronological clockwise like Work: newest (ITU, the
      upcoming MSc) immediately right of the intro, oldest (IBG) immediately left —
      the -1,+1,-2,+2 ring makes that array order [ITU, IBG, AAU, Askov]. */
   {xf: 0.36, yf: 0.22, stop:{id:'edu', label:'Education', title:'Education', body:'Diplomas are available upon request.', media:[], links:[{href:'pdfs/Tutor certificate 2023.pdf',label:'Tutor certificate'}], scrollOrder:[0,2,3,1],
     gallery:[
-      {img:'itu', title:'IT University of Copenhagen', sub:'MSc, Software Design', meta:'Aug 2026 – 2028',
+      {img:'itu', title:'MSc, Software Design', sub:'IT University of Copenhagen', meta:'Aug 2026 – 2028',
         blurb:'Specializing in artificial intelligence and big data.', blurbOneLine:true},
       {img:'ibg', title:'Ikast-Brande Gymnasium', sub:'Democracy & Globalization', meta:'2017 – 2020'},
-      {img:'aau', title:'Aalborg University', sub:'BSc, Techno-Anthropology', meta:'Copenhagen · 2022 – 2025',
+      {img:'aau', title:'BSc, Techno-Anthropology', sub:'Aalborg University', meta:'Copenhagen · 2022 – 2025',
         blurb:'Graduated with a Danish grade average of 11.3\nEquivalent to a weighted GPA of 3.9/4.0',
         more:{sections:[
           ['The degree','A three-year BSc at Aalborg University Copenhagen built on problem-based learning: every semester pairs coursework with a real-world project for an external partner.'],
@@ -1690,50 +1692,50 @@ const JOURNEY=[
       {img:'askov', title:'Askov Højskole', sub:'Film Production', meta:'2021'}
     ]}}, // (v68: the Volunteering facet moved to the Interests stop — the tutor certificate went with it)
   {xf: 0.04, yf: 0.20},
-  {xf:-0.34, yf: 0.22, stop:{id:'cases', label:'Case studies', title:'Case studies', body:'', media:[], links:[{href:'pdfs/Hvilken VR-sion af dig.pdf',label:'VRChat'},{href:'pdfs/Den sorte boks i den hvide verden.pdf',label:'Radiology'},{href:'pdfs/Transcending the disciplinary divide.pdf',label:'Networks'},{href:'pdfs/Wegovy a matter of fact.pdf',label:'Wegovy'},{href:'pdfs/Så kører bussen, selv.pdf',label:'Buses'},{href:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',label:'Food'}],
-    /* the 360° gallery: covers ring the visitor in this order (alternating sides, even 360/7 spacing).
+  {xf:-0.34, yf: 0.22, stop:{id:'cases', label:'Case studies', title:'Case studies', body:'', media:[], links:[{href:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',label:'Plant-Based Meat'},{href:'pdfs/Så kører bussen, selv.pdf',label:'Autonomous Transport'},{href:'pdfs/Hvilken VR-sion af dig.pdf',label:'VRChat'},{href:'pdfs/Den sorte boks i den hvide verden.pdf',label:'Radiology'},{href:'pdfs/Wegovy a matter of fact.pdf',label:'Wegovy'},{href:'pdfs/Transcending the disciplinary divide.pdf',label:'Networks'}],
+    /* the 360° gallery: covers ring the visitor in authored P1→P6 order at even 360/7 spacing.
        `img` names the ASCII_COVERS grid AND the COVER_PHOTOS texture it develops into;
        `ascii` optionally assembles a different grid first (the bus's pre-made ascii-art);
        `pdf` adds the [ DOWNLOAD REPORT ] glyph button; `tags`/`sub`/`blurb` build the
        assembled header (tags+title+subtitle above the cover) and description below it;
-       `more` {context,methods,outcomes} fills the [ READ MORE ] HTML card. */
+       `more` {context,methods,outcomes} builds the alternate assembled READ MORE state. */
     gallery:[
+      {img:'food', title:'Making Sense of Plant-Based Meat', pdf:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',
+        tags:'Food Studies / Mixed Methods / Stigma', sub:'Understanding Stigmatisation',
+        blurb:'Investigating the social stigma surrounding\nplant-based meat among Danish consumers.',
+        more:{context:'Despite climate goals, Danes struggle to change their dietary habits. We investigated the social friction associated with buying plant-based “meat” products.',
+              methods:'A mixed-methods approach combining a quantitative survey of 954 respondents with qualitative, semi-structured interviews.',
+              outcomes:'Found a correlation between diet type and experiences of stigmatisation.'}},
+      {img:'buses', ascii:'buses_art', title:'Building Trust in Autonomous Transport', pdf:'pdfs/Så kører bussen, selv.pdf',
+        tags:'Autonomous Vehicles / Citizen Summit / PTA', sub:'Participatory Technology Assessment of Self-Driving Buses',
+        blurb:'A democratic assessment of self-driving buses, focusing on trust, safety, and social accessibility.',
+        more:{context:'Autonomous buses could make public transport more flexible and accessible, but removing the driver raises questions about safety, trust, cybersecurity and the passenger experience. The project examined which factors would make the technology attractive to citizens.',
+              methods:'Analysed 455 public Facebook posts using sentiment analysis and topic extraction, conducted three expert interviews and applied participatory technology assessment. A three-hour citizen summit with 13 participants explored traffic safety, passenger security and accessibility.',
+              outcomes:'Produced a prioritised set of design and implementation recommendations. These included flexible services, continuous cybersecurity, accessible emergency calling, interiors that encourage social interaction, and gradual deployment to build familiarity and trust—particularly in rural communities.'}},
       {img:'vrchat', title:'Which VR-sion of You?', pdf:'pdfs/Hvilken VR-sion af dig.pdf',
         tags:'Social VR / Identity / Postphenomenology', sub:'A Virtual Ethnography',
-        blurb:'How socially marginalized users form and perform new identity traits through avatars in VRChat.',
-        more:{context:'Social VR is not just a game but a space for identity formation, particularly for socially marginalized individuals.',
-              methods:'Avatar-based ethnography and interviews within VRChat, analyzed through Verbeek’s postphenomenological framework.',
-              outcomes:'Documented the phenomenon of “Phantom Touch” and how users leverage virtual anonymity to perform — and eventually integrate — new identity traits.'}},
-      {img:'radiology', title:'The Black Box in the White World', pdf:'pdfs/Den sorte boks i den hvide verden.pdf',
+        blurb:'How socially marginalised users form and perform new identity traits through avatars in VRChat.',
+        more:{context:'Social VR is not merely a game, but a space for identity formation—particularly for socially marginalised individuals.',
+              methods:'Avatar-based ethnography and interviews conducted within VRChat, analysed through Verbeek’s postphenomenological framework.',
+              outcomes:'Documented the phenomenon of “Phantom Touch” and how users leverage virtual anonymity to perform—and eventually integrate—new identity traits.'}},
+      {img:'radiology', title:'Making Sense of AI in Radiology', pdf:'pdfs/Den sorte boks i den hvide verden.pdf',
         tags:'Praxiography / Clinical AI / Healthcare', sub:'AI in Radiology: A Praxiographic Analysis',
-        blurb:'An investigation into how artificial intelligence is practiced differently by developers, administrators, and clinicians.',
-        more:{context:'AI is often presented as a solution to healthcare pressure, but “AI” means different things to a hospital director than to a radiologist.',
-              methods:'Praxiography (Annemarie Mol) based on interviews with actors from RAIT, Radiobotics, and Herlev-Gentofte Hospital.',
-              outcomes:'Identified conflicting logics (market vs. professional vs. administrative) and developed a translation tool to help stakeholders align their expectations of AI implementation.'}},
-      {img:'networks', title:'Transcending the disciplinary divide', pdf:'pdfs/Transcending the disciplinary divide.pdf',
+        blurb:'Exploring how AI is understood and practised across radiology, and translating its complexity for professionals and the public.',
+        more:{context:'AI is often positioned as a response to pressure on healthcare, yet in radiology it encompasses diverse technologies, expectations and professional practices. Developed in collaboration with RAIT, the project examined how this complexity affects communication across the field.',
+              methods:'Conducted seven semi-structured interviews with clinicians, researchers, developers and decision-makers, supplemented by two expert podcasts. Applied inductive coding, Mol’s praxiography and participatory prototyping with RAIT to map AI practices and translate the findings.',
+              outcomes:'Revealed that communication challenges arise not only from differences between AI systems, but also from the situated ways in which actors practise the same technology. Produced eight digital infographics and a practice map supporting professional reflection, coordination and public communication.'}},
+      {img:'wegovy', title:'Wegovy: A Matter of Fa(c)t?', pdf:'pdfs/Wegovy a matter of fact.pdf',
+        tags:'Digital Methods / Controversy Mapping / ANT', sub:'A Digital Ethnography',
+        blurb:'Tracing Wegovy’s socio-technical controversies\nacross six different social platforms.',
+        more:{context:'Wegovy is more than a weight-loss medication. Its widespread adoption has generated controversies involving health, body image, treatment access, economics, insurance and public policy.',
+              methods:'Collected and processed more than 150,000 posts, comments, reviews and publications from Reddit, X, YouTube, Mumsnet, news media, review platforms and Scopus. Applied digital ethnography, controversy mapping and network visualisation, guided by Latour’s distinction between “matters of fact” and “matters of concern”.',
+              outcomes:'Produced seven platform-specific network maps demonstrating how Wegovy is understood differently across digital contexts—from price and insurance debates on Reddit to everyday treatment practices on Mumsnet and specialised research on Scopus. The findings position Wegovy as a heterogeneous sociotechnical network whose effects extend far beyond individual weight loss.'}},
+      {img:'networks', title:'Transcending the Disciplinary Divide', pdf:'pdfs/Transcending the disciplinary divide.pdf',
         tags:'Network Analysis / Scopus / Epistemology', sub:'Digital Methods & Interactional Expertise',
         blurb:'Investigating how digital methods can guide ‘interactional expertise’ to bridge gaps between distinct scientific disciplines.',
         more:{context:'Interdisciplinary collaboration is crucial in post-normal science, yet experts often lack a shared language. We explored how to identify blind spots between disciplines.',
               methods:'Co-occurrence network analysis of 1,500 Scopus articles on Bitcoin mining, combined with qualitative expert group interviews with energy engineers.',
-              outcomes:'Developed a method to visualize disciplinary heterogeneity, letting techno-anthropologists strategically target where bridges need to be built between experts.'}},
-      {img:'wegovy', title:'Wegovy: a matter of fa(c)t?', pdf:'pdfs/Wegovy a matter of fact.pdf',
-        tags:'Digital Methods / Controversy Mapping / ANT', sub:'A Digital Ethnography',
-        blurb:'Tracing the socio-technical controversies of the weight-loss drug Wegovy across six different digital platforms.',
-        more:{context:'Wegovy is not just a medical molecule; it is a cultural phenomenon intervening in concepts of body image, economics, and health policy.',
-              methods:'Scraped 150,000+ data points from Reddit, X, Mumsnet, and Scopus. Applied Actor-Network Theory (Latour’s “matters of concern”) and network visualization.',
-              outcomes:'Mapped how the “fact” of Wegovy mutates across platforms — from a financial asset on X to a lifestyle struggle on Mumsnet — revealing it as a heterogeneous network rather than a singular product.'}},
-      {img:'buses', ascii:'buses_art', title:'The Bus Drives Itself', pdf:'pdfs/Så kører bussen, selv.pdf',
-        tags:'Autonomous Vehicles / Citizen Summit / PTA', sub:'Participatory Technology Assessment',
-        blurb:'A democratic assessment of self-driving buses, focusing on trust, safety, and social accessibility.',
-        more:{context:'The transition to autonomous public transport is often driven by technology, overlooking the social reality of the passengers.',
-              methods:'Organized a citizen summit (borgertopmøde) combined with expert interviews (Movia, Holo) to facilitate democratic debate.',
-              outcomes:'Concluded that passengers prioritize flexibility and cybersecurity over futuristic “pods”, recommending a gradual implementation strategy to build social trust.'}},
-      {img:'food', title:'Making Sense of Plant-Based Meat', pdf:'pdfs/Meningstilskrivelser af plantebaseret kød.pdf',
-        tags:'Food Studies / Mixed Methods / Stigma', sub:'Understanding Stigmatization',
-        blurb:'Investigating the social stigma surrounding plant-based meat alternatives among Danish consumers.',
-        more:{context:'Despite climate goals, young Danes struggle to change dietary habits. We investigated the social friction of ordering “fake meat”.',
-              methods:'A mixed-methods approach combining a quantitative survey (n=954) with qualitative semi-structured interviews.',
-              outcomes:'Found a correlation between diet type and felt stigmatization: omnivores associate meat with tradition and masculinity, creating a social barrier to adopting plant-based alternatives.'}}
+              outcomes:'Developed a method to visualise disciplinary heterogeneity, enabling techno-anthropologists to target strategically where bridges need to be built between experts.'}}
     ]}},
   {xf:-0.50, yf: 0.06},
   {xf:-0.24, yf:-0.02},
@@ -2723,6 +2725,54 @@ function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional meta
   for(const b of btns) b.cy-=cy2;
   return {items, w:maxW, h:top-bot, imgW:iw, imgH:ih, imgCY:imgCY0-cy2, btns}; // img* = where the photo plane develops
 }
+/* Case-study READ MORE stays inside the scene (v75): the cover and its developed image
+   re-assemble into this alternate Context / Methods / Outcomes layout. The facet claims
+   max(cover, detail) glyphs — never both layouts added together — and recycles those same
+   terrain characters in toggleCaseMore(), keeping the tight Cases pool viable. */
+function buildCaseDetailLayout(g){
+  const items=[], btns=[]; let y=0, maxW=0;
+  const addLine=(t,s,gap,L)=>{ const {xs,w}=layoutLine(t,s);
+    if(w+s*0.6>maxW) maxW=w+s*0.6;
+    for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({
+      ch, x:-w/2+xs[i], y:y+chBase(ch)*s, s, L:L===undefined?null:L, tf:1}); }
+    y-=s+gap;
+  };
+  const title=asciiSafe(g.title), ts=Math.min(0.90,23/Math.max(1,layoutLine(title,1).w));
+  addLine(title,ts,0.72);
+  const secs=g.more.sections||[['Context',g.more.context],['Methods',g.more.methods],['Outcomes',g.more.outcomes]];
+  for(const [heading,text] of secs){
+    if(!text) continue;
+    const ht=stencilSafe(heading), cell=0.105, hw=stCols(ht)*cell;
+    if(hw+1>maxW) maxW=hw+1;
+    layStencilLine(items,ht,cell,-hw/2,y);
+    y-=7*cell+0.34;
+    for(const line of wrapText(asciiSafe(text),62)) addLine(line,0.47,0.18);
+    y-=0.48;
+  }
+  const bdefs=[]; if(g.pdf) bdefs.push({t:'DOWNLOAD',kind:'pdf'});
+  bdefs.push({t:'READ LESS',kind:'less'});
+  const r=layBtnRow(items,btns,bdefs,y-0.15,maxW); y=r.y; maxW=r.maxW;
+  const top=0.6, bot=y, cy=(top+bot)/2;
+  for(const it of items) it.y-=cy;
+  for(const b of btns) b.cy-=cy;
+  return {items,w:maxW,h:top-bot,imgW:0,imgH:0,imgCY:0,btns};
+}
+function caseHiddenSpec(src,lay,i){
+  const target=lay.items.length?lay.items[i%lay.items.length]:{x:0,y:0,s:0.3};
+  return {ch:src?src.ch:'#',x:target.x,y:target.y,s:Math.max(0.08,target.s*0.45),
+          L:null,tf:src&&src.tf,gh:true,caseHidden:true};
+}
+function mergeCaseLayouts(base,detail){
+  const items=[], n=Math.max(base.items.length,detail.items.length);
+  for(let i=0;i<n;i++){
+    const bs=base.items[i]||caseHiddenSpec(detail.items[i],base,i);
+    const ds=detail.items[i]||caseHiddenSpec(base.items[i],detail,i);
+    items.push(Object.assign({},bs,{caseBase:bs,caseDetail:ds}));
+  }
+  return {items,w:Math.max(base.w,detail.w),h:Math.max(base.h,detail.h),
+          imgW:base.imgW,imgH:base.imgH,imgCY:base.imgCY,imgCX:base.imgCX||0,
+          btns:base.btns,caseBaseLay:base,caseDetailLay:detail};
+}
 /* Work/Education scroll mode: one persistent compact ASCII index sits beside the
    changing content facet. Keeping it as its own facet means a scroll only rebuilds the
    main card; the left list no longer flies out and assembles again from a second glyph set. */
@@ -3321,12 +3371,15 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       const photoKey=g.vids?(COVER_PHOTOS[g.vids[0].ascii]?g.vids[0].ascii:null)
                     :(g.img&&COVER_PHOTOS[g.img]&&!g.games)?g.img:null;
       if(photoKey) getPhotoTex(photoKey); // warm the texture decode before the first develop
-      const dy=scrollMode?0:((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step; // timeline stacks dead ahead; panorama alternates -1,+1,-2,+2,…
+      // Cases follow their authored P1→P6 order when rotating right from the intro.
+      // Other panoramas retain the newest-right / oldest-left alternating placement.
+      const dy=scrollMode?0:(st.id==='cases'?-(i+1)*step:((i%2===0)?-1:1)*(Math.floor(i/2)+1)*step);
       const coverLay=buildCoverLayout(g, st.id==='cases');
+      const detailLay=st.id==='cases'&&g.more?buildCaseDetailLayout(g):null;
       if(scrollMode) shiftLayoutX(coverLay,3.0);
       defs.push({lay:coverLay, dy:dy*Math.PI/180,
         dist:g.img?ASM_IMG_DIST:ASM_DIST, hFit:g.hFit||1.25, photoKey, pdf:g.pdf||null, g,
-         vids:g.vids||null, games:g.games||null, scrollSlot:i+1}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
+         vids:g.vids||null, games:g.games||null, detailLay, scrollSlot:i+1}); }); // 1.25: fit uses BASE_FOV but the docked FOV is 80 — headroom to keep the image big (v40); the chess facet raises hFit further (the board wants the size, and the real headroom is ~1.7)
   }
   if(scrollMode) defs.push({lay:buildTimelineNavLayout(timelineLabels),dy:0,dist:ASM_DIST,hFit:0.60,
     clearM:0.04,photoKey:null,pdf:null,g:null,timelineNav:true,scrollSlot:-1});
@@ -3339,8 +3392,13 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   if(defs.length>1&&!scrollMode&&ARROW_STYLE!=='off'){
     const art=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
     const artSm=ROT_ARROWS_SM[ARROW_STYLE]||ROT_ARROWS_SM.stream;
-    for(const d of defs) addFlankArrows(d.lay,(st.id==='cases'&&d.g)?artSm:art);
+    for(const d of defs){
+      const useArt=(st.id==='cases'&&d.g)?artSm:art;
+      addFlankArrows(d.lay,useArt);
+      if(d.detailLay) addFlankArrows(d.detailLay,useArt);
+    }
   }
+  for(const d of defs) if(d.detailLay) d.lay=mergeCaseLayouts(d.lay,d.detailLay);
   /* every facet hangs at EYE LEVEL (v37): anchor z = the camera's own z, pitch 0, so
      content sits where the scene is and the visitor never cranes up or down. The old
      terrain-clearance height / shared gallery ring / 24° elevation cap are gone — the
@@ -3365,6 +3423,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, cbDis:0, // in-scene chess board (v66)
                  elist:(d.g&&d.g.list)||null, eIdx:0, // v68: highlight list (volunteering)
                  pdfEntry:(d.g&&d.g.pdfEntry!==undefined)?d.g.pdfEntry:null, // v69: DOWNLOAD only shows while THIS list entry is highlighted
+                  caseBaseLay:d.lay.caseBaseLay||null, caseDetailLay:d.lay.caseDetailLay||null,
+                  moreDetail:false, moreSwap:null,
                   pdf:d.pdf, g:d.g, holdT0:0, fields:d.lay.fields||null, scrollSlot:d.scrollSlot||0, timelineNav:!!d.timelineNav, scrollMove:null, scrollExit:0,
                  btns:(d.lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b)),
                  state:'home', items:[], extras:[], fades:[], t0:0});
@@ -3403,7 +3463,8 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         ws:li.ws, wsr:li.wsr, wsBaseY:li.wsBaseY, wsDY:li.wsBaseY!==undefined?li.y-li.wsBaseY:0,
         wsBar:li.wsBar, wsThumb:li.wsThumb, btnKind:li.btn,
         gcap:li.gcap, en:li.en, eh:li.eh, gh:li.gh, timelineCaret:li.timelineCaret,
-        pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined};
+        pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined,
+        caseBase:li.caseBase, caseDetail:li.caseDetail, caseHidden:li.caseHidden};
       F.items.push(rec);
       if(li.btn){ const b=F.btns.find(bb=>bb.kind===li.btn); if(b) b.items.push(rec); } // button glyphs: pulsed/hover-lit each frame while assembled
     }
@@ -3509,6 +3570,7 @@ function facetIn(F,now){
 function facetOut(F,now,noHand){ // noHand: departure — everything goes home, no facet-to-facet handoffs
   if(F.state!=='in'&&F.state!=='hold') return;
   if(F.g) hideMore(); // a cover leaving the gaze takes its read-more card with it
+  if(F.caseBaseLay&&(F.moreDetail||F.moreSwap)) resetCaseMore(F); // case details always return to the cover on look-away
   if(F.vids) stopFacetVideo(F); // a playing video pauses + folds when its facet leaves the gaze
   if(F.games){ F.cbOn=false; F.cbT0=0; F.cbDis=0; } // the chess board hides with the facet — a re-fire auto-develops it fresh
   F.state='out'; F.t0=now; F.pT0=0; F.pOn=false; F.pDone=false;
@@ -3601,12 +3663,95 @@ function facetGaze(cy,cp,dt){ // fire/release facets by YAW ONLY — each facet 
     else if(d>F_GAZE_OUT&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
   }
 }
+const CASE_SWAP_MS=720, CASE_SWAP_STAGGER=180;
+function caseUseSpec(F,it,spec){
+  const to=new THREE.Vector3().copy(F.anchor).addScaledVector(F.right,spec.x*F.f).addScaledVector(F.up,spec.y*F.f);
+  it.to.copy(to); it.baseTo.copy(to); it.lx=spec.x; it.ly=spec.y;
+  it.s1=spec.s*F.f; it.geoA=spec.tf?glyphGeoT(spec.ch):glyphGeo(spec.ch);
+  it.L=spec.L!==undefined?spec.L:null; it.dev=spec.dev||undefined; it.gh=spec.gh||undefined;
+  it.btnKind=spec.btn; it.gr=spec.gr; it.vcap=spec.vcap; it.gcap=spec.gcap;
+  it.en=spec.en; it.eh=spec.eh; it.pg=undefined; it.caseHidden=!!spec.caseHidden;
+}
+function caseSetButtons(F,lay,detail){
+  F.btns=(lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b));
+  for(const it of F.items){
+    const spec=detail?it.caseDetail:it.caseBase;
+    if(!spec||!spec.btn) continue;
+    const b=F.btns.find(bb=>bb.kind===spec.btn);
+    if(b) b.items.push(it);
+  }
+}
+function resetCaseMore(F){
+  if(!F.caseBaseLay) return;
+  F.moreSwap=null; F.moreDetail=false;
+  for(const it of F.items){
+    it.moreOn=false;
+    if(it.caseBase) caseUseSpec(F,it,it.caseBase);
+  }
+  caseSetButtons(F,F.caseBaseLay,false);
+}
+function toggleCaseMore(F,detail){
+  if(!F||!F.caseBaseLay||F.state!=='hold'||F.moreSwap||detail===F.moreDetail) return;
+  const now=performance.now(), n=F.items.length;
+  if(detail){ F.moreDetail=true; if(F.tiles) F.pKill=true; }
+  for(let i=0;i<n;i++){
+    const it=F.items[i], spec=detail?it.caseDetail:it.caseBase, m=it.m;
+    if(!spec) continue;
+    it.moreFrom=m.position.clone(); it.moreS0=m.scale.x||0.05;
+    it.moreO0=m.visible?m.material.opacity:0; it.moreWasVisible=m.visible&&m.material.opacity>0.03;
+    caseUseSpec(F,it,spec);
+    it.moreTo=it.to.clone(); it.moreHidden=!!(spec.caseHidden||spec.gh);
+    it.moreCtrl=new THREE.Vector3().lerpVectors(it.moreFrom,it.moreTo,0.5)
+      .addScaledVector(F.up,1.2+Math.random()*2.0)
+      .addScaledVector(F.right,(Math.random()-0.5)*2.4);
+    it.moreD=(i/Math.max(1,n))*CASE_SWAP_STAGGER+Math.random()*35;
+    it.moreOn=true; it.moreSwapped=false; m.visible=true;
+  }
+  caseSetButtons(F,detail?F.caseDetailLay:F.caseBaseLay,detail);
+  F.moreSwap={t0:now,detail}; renderDirty=true; glyphsDirty=true;
+}
+function updateCaseMore(F,now){
+  const sw=F.moreSwap; if(!sw) return;
+  let busy=false;
+  for(const it of F.items){
+    if(!it.moreOn) continue;
+    const m=it.m, lt=now-sw.t0-it.moreD;
+    if(lt<=0){ busy=true; continue; }
+    let p=lt/CASE_SWAP_MS; if(p>=1) p=1; else busy=true;
+    if(!it.moreSwapped&&p>=0.5){
+      m.geometry=it.geoA; setImgColor(m.material.color,it.L);
+      m.userData.asm=true; m.userData.asmL=it.L; it.moreSwapped=true;
+    }
+    if(p===1){
+      m.geometry=it.geoA; m.position.copy(it.moreTo); m.scale.setScalar(it.s1);
+      setImgColor(m.material.color,it.L); m.userData.asm=true; m.userData.asmL=it.L;
+      m.material.opacity=it.moreHidden?0:1; m.visible=!it.moreHidden;
+      it.moreOn=false; continue;
+    }
+    const e=easeInOut(p), ie=1-e;
+    m.position.set(
+      ie*ie*it.moreFrom.x+2*ie*e*it.moreCtrl.x+e*e*it.moreTo.x,
+      ie*ie*it.moreFrom.y+2*ie*e*it.moreCtrl.y+e*e*it.moreTo.y,
+      ie*ie*it.moreFrom.z+2*ie*e*it.moreCtrl.z+e*e*it.moreTo.z);
+    m.scale.setScalar(Math.max(0.05,it.moreS0+(it.s1-it.moreS0)*easeOutBack(p)));
+    if(it.moreHidden) m.material.opacity=p<0.62?Math.max(it.moreO0,p*0.65):Math.max(0,(1-p)/0.38);
+    else m.material.opacity=Math.min(1,it.moreWasVisible?it.moreO0+p*0.45:p*1.8);
+    m.visible=m.material.opacity>0.015;
+  }
+  renderDirty=true; glyphsDirty=true;
+  if(!busy){
+    F.moreSwap=null;
+    if(!sw.detail){
+      F.moreDetail=false; F.pKill=false; F.pT0=0; F.pOn=false; F.pDone=false;
+    }
+  }
+}
 const _hRay=new THREE.Vector3(), _hP=new THREE.Vector3(), _nC=new THREE.Vector3();
 function facetButtonHit(clientX,clientY){ // pointer ray vs. facet plane, tested against each button's layout rect
   if(!stopFacets||uiState!=='journey'||jMode!=='docked') return null;
   _hRay.set((clientX/innerWidth)*2-1,-(clientY/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
   for(const F of stopFacets.facets){
-    if(!F.btns.length||(F.state!=='in'&&F.state!=='hold')) continue;
+    if(!F.btns.length||F.moreSwap||(F.state!=='in'&&F.state!=='hold')) continue;
     const denom=_hRay.dot(F.dir); if(denom<1e-4) continue; // facing away / edge-on
     const t=_hP.copy(F.anchor).sub(camera.position).dot(F.dir)/denom;
     if(t<=0) continue;
@@ -3673,9 +3818,8 @@ function timelineTo(idx){
 function timelineStep(dir){
   return stopFacets&&stopFacets.scrollMode?timelineTo(stopFacets.scrollIndex+dir):false;
 }
-/* READ MORE: an HTML side card with the project's context / methods / outcomes
-   (glyphs would blow the budget at ~450 chars per project). Closes on ×, Esc,
-   looking away (facetOut), or leaving the stop (disassemble). */
+/* READ MORE side card for non-case galleries (work / education). Case studies use
+   buildCaseDetailLayout + toggleCaseMore so their details remain assembled in-scene. */
 const moreCard=document.createElement('div'); moreCard.id='more-card';
 moreCard.innerHTML='<button id="more-close" title="Close">×</button><div id="more-body"></div>';
 document.body.appendChild(moreCard);
@@ -4169,6 +4313,7 @@ function updateFacet(F,now,dt){
     }
     if(!busy&&!(dirOut&&exBusy)){ if(dirOut){ restoreFacet(F); return; } F.state='hold'; F.holdT0=now; }
   }
+  updateCaseMore(F,now);
   // the buttons "light up": a slow amber pulse once their glyphs have swapped in, pinned
   // to full brightness while hovered (facetButtonHit sets b.hover). The download button
   // additionally does one little scale "pop" ~1.5s after the facet settles — a nudge
@@ -4199,7 +4344,7 @@ function updateFacet(F,now,dt){
       for(const it of b.items){
         if(isNav&&!it.shown) continue; // not written in yet (or mid-write — the write owns it)
         if(!(it.swapped||it.done)) continue;
-        if(it.vsOn) continue; // mid next-video morph — the swap flight owns the glyph
+        if(it.vsOn||it.moreOn) continue; // a content morph owns the glyph until it lands
         if(!inverted){
           if(isArt) it.m.material.color.copy(setImgColor(_cc,it.L)).lerp(BTN_HOT, b.hover?0.6:0.18+0.14*(0.5+0.5*Math.sin(now*0.0045)));
           else it.m.material.color.copy(BTN_DIM).lerp(BTN_HOT,w);
@@ -4227,7 +4372,7 @@ function updateFacet(F,now,dt){
   // the develop: shortly after the ASCII settles, the real front page fades in tile
   // by tile while the image glyphs dissolve beneath it (the title stays as glyphs)
   if(F.photoKey){
-    const holding=(F.state==='hold')&&!F.cbOn&&!F.vOn&&!F.vSwap; // an open chess board, playing video or mid-swap folds the developed photo (v66)
+    const holding=(F.state==='hold')&&!F.cbOn&&!F.vOn&&!F.vSwap&&!F.moreDetail&&!F.moreSwap; // alternate in-scene content folds the developed cover
     if(holding&&!F.pOn){
       if(!F.pT0) F.pT0=now+PHOTO_DELAY;
       else if(now>=F.pT0){
@@ -5108,7 +5253,8 @@ addEventListener('pointerup',e=>{
     const hit=facetButtonHit(e.clientX,e.clientY);
     if(hit){
       if(hit.b.kind==='pdf') downloadPDF(hit.F.pdf);
-      else if(hit.b.kind==='more') showMore(hit.F.g);
+      else if(hit.b.kind==='more') hit.F.caseBaseLay?toggleCaseMore(hit.F,true):showMore(hit.F.g);
+      else if(hit.b.kind==='less') toggleCaseMore(hit.F,false);
       else if(hit.b.kind==='gsel') facetChessGame(hit.F,hit.b.data); // in-scene chess: the match list loads that game (v68)
       else if(hit.b.kind==='vplay') facetPlayVideo(hit.F); // in-scene video (v61): starts right away
       else if(hit.b.kind==='vnext') facetNextVideo(hit.F); // the still re-assembles into the next recording/slide
@@ -5162,6 +5308,10 @@ addEventListener('keydown',e=>{
   const t=e.target&&e.target.tagName;
   if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA') return;
   if(e.key==='Escape'&&moreOpen){ hideMore(); return; } // close the read-more card first
+  if(e.key==='Escape'&&stopFacets){
+    const F=stopFacets.facets.find(f=>f.moreDetail);
+    if(F){ toggleCaseMore(F,false); return; }
+  }
   if(e.key==='Escape'&&(uiState==='journey'||uiState==='entering')){ beginExit(); return; }
   if(uiState!=='journey'||jMode!=='docked') return;
   const k=e.key;
