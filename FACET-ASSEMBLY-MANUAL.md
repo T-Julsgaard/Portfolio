@@ -7,6 +7,15 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v79 addendum: timeline arrow bounds
+
+The optional Work/Education timeline controls are centered above and below the list.
+Because those controls now extend the composition vertically, `addTimelineArrows()`
+returns its top and bottom bounds and `buildTimelineNavLayout()` folds them into
+`lay.h`. Keep that contract if the artwork, cell size, or list gap changes; otherwise
+the fit and clearing ellipse will be computed from the rows alone and can clip the
+controls.
+
 ## v78 addendum: keyboard Welcome nav and boundary-aware timeline arrows
 
 Welcome's live side-column buttons can be selected with all four arrow keys and

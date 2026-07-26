@@ -24,7 +24,15 @@
     display:flex; flex-direction:column; gap:9px; pointer-events:auto;
   }
   #rail-about { left:22px; align-items:flex-start; }
-  #rail-portfolio { right:22px; align-items:flex-end; }
+  #rail-portfolio {
+    right:18px; align-items:flex-end; max-height:min(150px,48vh);
+    overflow-y:auto; overscroll-behavior:contain; padding:18px 8px 18px 2px;
+    scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.32) transparent;
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);
+    mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);
+  }
+  #rail-portfolio::-webkit-scrollbar { width:2px; }
+  #rail-portfolio::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.32); border-radius:2px; }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
     background:transparent; border:none; padding:2px; cursor:pointer;
@@ -43,7 +51,10 @@
   #rail-about .rail-stop { flex-direction:row-reverse; }
   #rail-about .rail-stop .lbl { transform:translateX(-6px); }
   #journey-rails.peek .rail-stop .lbl { opacity:0.8; transform:none; }
-  .rail-stop:hover .lbl { opacity:1; transform:none; color:#fff; }
+  .rail-stop:is(:hover,:focus-visible) { outline:none; }
+  #journey-rails .rail-stop:is(:hover,:focus-visible) .lbl { opacity:1; transform:none; color:#fff; }
+  .rail-stop:focus-visible .dot { border-color:#fff; box-shadow:0 0 8px rgba(255,255,255,0.72); }
+  #rail-portfolio .rail-project { cursor:default; opacity:0.58; }
   .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
   .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
   /* the current dot stays lit, but its label only appears on hover like every other —
@@ -1823,6 +1834,7 @@ const JOURNEY=[
   {xf: 0.04, yf:-1.02},
 ];
 const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.stop); } });
+const PORTFOLIO_PROJECTS=['Chess-Review','Entropy-forge','DocuRAG','Danish wind mapper','Bitcoin-miningame'];
 
 /* --- path build: xy spline through the waypoints, altitude hugging the relief --- */
 let JCLEAR=ud('jHeight',7); // flight height above the local glyph tops (dev-tunable)
@@ -2040,16 +2052,36 @@ const enterBtn=document.getElementById('enter-btn'), exploreBtn=document.getElem
 const railWrap=document.getElementById('journey-rails');
 const railAbout=document.getElementById('rail-about'), railPortfolio=document.getElementById('rail-portfolio');
 const railEls=[];
-STOPS.forEach((st,k)=>{
-  if(st.id==='welcome') return;
+function addRailStop(parent,st,k){
   const b=document.createElement('button'); b.className='rail-stop'; b.title=st.title;
   b.innerHTML='<span class="lbl">'+st.label+'</span><span class="dot"></span>'; // v69: bare section names — the numbering is gone
   b.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(k); else if(uiState==='journey'&&jMode==='docked'&&k!==dockIdx) departTo(k); });
-  (st.id==='cases'?railPortfolio:railAbout).appendChild(b); railEls.push({el:b,k});
-});
+  parent.appendChild(b); railEls.push({el:b,k});
+}
+function addRailProject(label){
+  const row=document.createElement('button'); row.type='button'; row.className='rail-stop rail-project';
+  row.title='Project details coming soon'; row.setAttribute('aria-disabled','true');
+  row.innerHTML='<span class="lbl">'+label+'</span><span class="dot"></span>';
+  railPortfolio.appendChild(row);
+}
+const welcomeRailIdx=STOPS.findIndex(st=>st.id==='welcome');
+addRailStop(railAbout,STOPS[welcomeRailIdx],welcomeRailIdx);
+STOPS.forEach((st,k)=>{ if(st.id!=='welcome'&&st.id!=='cases') addRailStop(railAbout,st,k); });
+addRailStop(railPortfolio,STOPS[welcomeRailIdx],welcomeRailIdx);
+const casesRailIdx=STOPS.findIndex(st=>st.id==='cases');
+addRailStop(railPortfolio,STOPS[casesRailIdx],casesRailIdx);
+PORTFOLIO_PROJECTS.forEach(addRailProject);
 for(const r of [railAbout,railPortfolio]){
   r.addEventListener('mouseenter',()=>railWrap.classList.add('peek'));
   r.addEventListener('mouseleave',()=>railWrap.classList.remove('peek'));
+  r.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+  r.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowUp'&&e.key!=='ArrowDown'&&e.key!=='Home'&&e.key!=='End') return;
+    const opts=[...r.querySelectorAll('button.rail-stop')], i=opts.indexOf(document.activeElement);
+    if(i<0) return;
+    const ni=e.key==='Home'?0:e.key==='End'?opts.length-1:Math.max(0,Math.min(opts.length-1,i+(e.key==='ArrowDown'?1:-1)));
+    opts[ni].focus(); e.preventDefault(); e.stopPropagation();
+  });
 }
 function railSet(k){ railEls.forEach(r=>{ r.el.classList.toggle('current',r.k===k); r.el.classList.toggle('done',k>=0&&r.k<k); }); }
 let railSeen=false; // v69: the rail only appears once the visitor first travels beyond Welcome
@@ -2552,15 +2584,17 @@ function rotateArrowArt(art,clockwise){ // right-facing rotation art -> matching
   return out;
 }
 function addTimelineArrows(items,btns,listLeft,listW,yTop,yBot){
-  if(!timelineArrows||ARROW_STYLE==='off') return;
+  if(!timelineArrows||ARROW_STYLE==='off') return null;
   const base=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
   const up=rotateArrowArt(base,false), down=rotateArrowArt(base,true), cell=0.18;
-  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+listW+0.42;
-  const upH=up.length*cell, dnH=down.length*cell, upCY=yTop-0.10, dnCY=yBot+0.10;
+  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+(listW-w)/2, gap=0.42;
+  const upH=up.length*cell, dnH=down.length*cell;
+  const upCY=yTop+gap+upH/2, dnCY=yBot-gap-dnH/2;
   layArrowArt(items,up,cell,x0,upCY+upH/2,false,{btn:'tlprev',tlDir:-1});
   layArrowArt(items,down,cell,x0,dnCY+dnH/2,false,{btn:'tlnext',tlDir:1});
   btns.push({kind:'tlprev',data:-1,tlControl:true,cx:x0+w/2,cy:upCY,hw:w/2+0.35,hh:upH/2+0.32});
   btns.push({kind:'tlnext',data: 1,tlControl:true,cx:x0+w/2,cy:dnCY,hw:w/2+0.35,hh:dnH/2+0.32});
+  return {top:upCY+upH/2,bottom:dnCY-dnH/2};
 }
 const BTN_CELL=0.19;                                 // stencil cell size (layout units; v41: 0.26→0.19, slightly smaller buttons)
 const BTN_DIM=new THREE.Color('#a8a8a8'), BTN_HOT=new THREE.Color('#ffffff'); // idle pulse range; hover pins to HOT
@@ -2891,10 +2925,11 @@ function buildTimelineNavLayout(labels){
     }
     btns.push({kind,timeline:i,data:i,cx:hitX+hitW/2,cy:y,hw:hitW/2+0.42,hh:line*0.46});
   });
-  addTimelineArrows(items,btns,listLeft,listW,yTop,yTop-(lines.length-1)*line);
+  const arrowBounds=addTimelineArrows(items,btns,listLeft,listW,yTop,yTop-(lines.length-1)*line);
   const caretCh=style==='milestones'?'@':style==='editorial'?'#':'>', caretS=style==='editorial'?0.44:0.54;
   items.push({ch:caretCh,x:listLeft,y:yTop+chBase(caretCh)*caretS,s:caretS,L:null,tf:1,timelineCaret:true});
-  return {items,btns,w:totalW,h:listH+0.6,timeline:true,timelineY:lines.map((_,i)=>yTop-i*line)};
+  const fullH=arrowBounds?arrowBounds.top-arrowBounds.bottom+0.6:listH+0.6;
+  return {items,btns,w:totalW,h:fullH,timeline:true,timelineY:lines.map((_,i)=>yTop-i*line)};
 }
 function shiftLayoutX(lay,dx){ // timeline content breathes to the right of the persistent index
   for(const it of lay.items) it.x+=dx;
@@ -3086,8 +3121,7 @@ function buildWelcomeLayout(){
     {t:'DOWNLOAD CV',href:'pdfs/CV - Thomas Julsgaard.pdf'}
   ];
   const portfolio=[
-    {id:'cases'}, {t:'PROJECT NORTH'}, {t:'PROJECT STATIC'}, {t:'AFTERGLOW'},
-    {t:'SIGNAL'}, {t:'ATLAS'}, {t:'RELAY'}, {t:'LATTICE'}
+    {id:'cases'}, ...PORTFOLIO_PROJECTS.map(t=>({t}))
   ];
   const welcomeRowWidth=(group,entry)=>{
     const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;

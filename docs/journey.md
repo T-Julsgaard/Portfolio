@@ -2,6 +2,20 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v79: complete split rails and keyboard focus
+
+Welcome is now the first destination on both post-entry rails. The left rail then
+continues through Experience, Education, Interests, and Contact; the right rail
+continues through Case studies and the named portfolio projects. Project rows are
+text-only until their destinations exist.
+
+The longer Portfolio rail is a deliberately short scroll viewport with a thin
+scrollbar and faded top/bottom edges, so clipped rows advertise that more content is
+available. Wheel input over either rail is contained there instead of leaking into
+the docked scene. Up/Down plus Home/End move focus through every rail row, including
+the text-only projects, and focused labels use the exact mouse-hover treatment. Only
+rows backed by real stops have click/Enter actions.
+
 ## v78: complete keyboard entry and Welcome selection
 
 In overview, any arrow key focuses the Enter control and Enter begins at Welcome.
@@ -27,8 +41,8 @@ therefore settle before the camera does, masking the last handoff.
 
 The one right-side journey rail is now two linked rails revealed by the existing
 one-shot `railReveal()` lifecycle. Work, Education, Interests, and Contact sit on the
-left; Case studies sits on the right; Welcome is intentionally absent because the
-rails first appear only after leaving it. `railEls` stores each button with its real
+left; Case studies sits on the right. (v79 adds Welcome to both sides and the named,
+text-only project rows to Portfolio.) `railEls` stores each live button with its real
 STOPS index, so current/done state remains correct after the visual regrouping.
 Hovering either rail toggles a shared wrapper `peek` class, revealing labels on both
 sides at once. The wrapper itself never intercepts the canvas; only the two compact

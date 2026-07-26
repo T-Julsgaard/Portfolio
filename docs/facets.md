@@ -1,5 +1,14 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v79: timeline arrows above and below the list
+
+Work/Education's optional timeline controls are horizontally centered over the list
+instead of hanging from its right edge. The up control now sits completely above the
+first row and the down control completely below the last row. `addTimelineArrows()`
+returns those outer bounds, and `buildTimelineNavLayout()` includes them in `lay.h`,
+so fit and clearing calculations remain truthful for every selectable arrow style.
+Boundary hiding, hit dispatch, caret motion, and timeline handoff are unchanged.
+
 ## v78: milestone defaults, timeline arrows, and contact polish
 
 Milestone rail is now the factory Work/Education list skin. A new factory-on

@@ -1,5 +1,18 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v79 - real project names and complete journey rails
+
+The PORTFOLIO column no longer contains invented placeholder titles. Its text-only
+future-project rows are Chess-Review, Entropy-forge, DocuRAG, Danish wind mapper,
+and Bitcoin-miningame, sourced from the shared `PORTFOLIO_PROJECTS` array also used
+by the fixed right rail. Case studies remains the live first portfolio destination.
+With six authored rows in a four-row window, the existing in-scene scrollbar,
+off-window opacity transition, wheel, track click, and drag behavior remain active.
+
+Welcome is also the first live item on both fixed journey rails. The right rail adds
+the same five text-only project rows beneath Case studies and uses a clipped,
+faded-edge scroll viewport to make its additional content obvious.
+
 ## v78 - promoted defaults, optical heading width, and keyboard navigation
 
 The project factory profile now uses Exact darker calendar cells, Center burst,
