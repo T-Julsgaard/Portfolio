@@ -1236,6 +1236,24 @@ scene.background=new THREE.Color('#000000');
    behaviour, unchanged. */
 const USER_DEFAULTS=(()=>{ try{ return JSON.parse(localStorage.getItem('pf_user_defaults'))||{}; }catch(e){ return {}; } })();
 const ud=(k,d)=> (USER_DEFAULTS[k]!==undefined ? USER_DEFAULTS[k] : d);
+/* v80: v76 promoted the darker exact GitHub calendar in code, but both the legacy
+   per-control key and the saved-default profile could still restore an older choice
+   afterward. Promote those existing browser values once; selections made after this
+   migration remain user-owned and continue to persist normally. */
+const WELCOME_CAL_DEFAULT='html2', WELCOME_CAL_DEFAULT_REV='v80-html2';
+(function migrateWelcomeCalendarDefault(){
+  try{
+    const revKey='pf_welcome_cal_default_rev';
+    if(localStorage.getItem(revKey)===WELCOME_CAL_DEFAULT_REV) return;
+    if(localStorage.getItem('pf_welcome_cal')!==null)
+      localStorage.setItem('pf_welcome_cal',WELCOME_CAL_DEFAULT);
+    if(USER_DEFAULTS.welCalSelect!==undefined){
+      USER_DEFAULTS.welCalSelect=WELCOME_CAL_DEFAULT;
+      localStorage.setItem('pf_user_defaults',JSON.stringify(USER_DEFAULTS));
+    }
+    localStorage.setItem(revKey,WELCOME_CAL_DEFAULT_REV);
+  }catch(e){}
+})();
 
 scene.fog=new THREE.Fog(0x000000, spanY*ud('fogNear',0.35), spanY*ud('fogFar',1.5));
 const sceneFog=scene.fog; // stable handle: raw mode sets scene.fog=null; the processing fade eases its tuned range in/out
@@ -2332,7 +2350,7 @@ const WTW_KEY=105, WTW_GAP=380, WTW_DELAY=260, WTW_POP=100;
 //  'classic' — the original in-scene grid (per-level ASCII char)
 //  'html' — a faithful HTML/SVG recreation of react-github-calendar, overlaid while docked;
 //           in this mode buildWelcomeLayout omits the glyph calendar (title/figure/banner stay).
-let welcomeCal=localStorage.getItem('pf_welcome_cal')||ud('welCalSelect','html2');
+let welcomeCal=localStorage.getItem('pf_welcome_cal')||ud('welCalSelect',WELCOME_CAL_DEFAULT);
 /* welcome title (v63, dev panel > Welcome Stop):
    'type' (default) — an independent keyboard reveal that allocates fresh stencil cells;
    'assemble' — the classic terrain-glyph reveal. Both sit directly above the figure. */
@@ -6188,7 +6206,7 @@ const CTRL_DEF={
   timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
-  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','html2'], welSize:['range',0.90], welHalo:['range',0.05],
+  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',0.90], welHalo:['range',0.05],
   welTitleSelect:['select','type'], welBannerSelect:['select','burst'], welHeadingSelect:['select','bracket-center'],
   welScrollSelect:['select','brackets'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',false]
 };

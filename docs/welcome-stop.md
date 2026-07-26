@@ -1,5 +1,14 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v80 - darker exact calendar default migration
+
+The v76 factory promotion to **Exact · darker empty cells** (`html2`) did not
+replace older browser state: `pf_welcome_cal` and `pf_user_defaults.welCalSelect`
+could still restore **Exact (assembles, develops to image)** (`html`) after startup.
+A one-time `pf_welcome_cal_default_rev` migration now promotes both existing values
+to `html2`. Once migrated, later calendar selections and saved defaults remain
+user-owned and persist normally.
+
 ## v79 - real project names and complete journey rails
 
 The PORTFOLIO column no longer contains invented placeholder titles. Its text-only
