@@ -1254,6 +1254,20 @@ const WELCOME_CAL_DEFAULT='html2', WELCOME_CAL_DEFAULT_REV='v80-html2';
     localStorage.setItem(revKey,WELCOME_CAL_DEFAULT_REV);
   }catch(e){}
 })();
+const UI_FONT_DEFAULT='plexmono', UI_FONT_DEFAULT_REV='v81-plexmono';
+(function migrateUIFontDefault(){
+  try{
+    const revKey='pf_ui_font_default_rev';
+    if(localStorage.getItem(revKey)===UI_FONT_DEFAULT_REV) return;
+    if(localStorage.getItem('pf_ui_font')!==null)
+      localStorage.setItem('pf_ui_font',UI_FONT_DEFAULT);
+    if(USER_DEFAULTS.uiFontSelect!==undefined){
+      USER_DEFAULTS.uiFontSelect=UI_FONT_DEFAULT;
+      localStorage.setItem('pf_user_defaults',JSON.stringify(USER_DEFAULTS));
+    }
+    localStorage.setItem(revKey,UI_FONT_DEFAULT_REV);
+  }catch(e){}
+})();
 
 scene.fog=new THREE.Fog(0x000000, spanY*ud('fogNear',0.35), spanY*ud('fogFar',1.5));
 const sceneFog=scene.fog; // stable handle: raw mode sets scene.fog=null; the processing fade eases its tuned range in/out
@@ -6147,7 +6161,6 @@ const UI_FONTS={
   inter:{g:'Inter:wght@400;500;600', css:'"Inter", system-ui, sans-serif'},
   garamond:{g:'EB+Garamond:wght@400;500;600', css:'"EB Garamond", Georgia, serif'}
 };
-const UI_FONT_DEFAULT='plexmono';
 let uiFont=localStorage.getItem('pf_ui_font')||UI_FONT_DEFAULT;
 const uiFontLoaded={};
 function applyUIFont(id){
