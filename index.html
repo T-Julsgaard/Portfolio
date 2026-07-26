@@ -10,7 +10,7 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:100%; height:100%; overflow:hidden; background:#000; }
-  body { font-family:"SFMono-Regular", ui-monospace, "DejaVu Sans Mono", monospace; color:#fff; }
+  body { font-family:"IBM Plex Mono", "SFMono-Regular", ui-monospace, "DejaVu Sans Mono", monospace; color:#fff; }
   #app { position:fixed; inset:0; }
   canvas#three { display:block; width:100%; height:100%; }
 
@@ -6136,9 +6136,9 @@ bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
 /* v70: UI font switcher (dev tools ▸ Render). Swaps the HTML/UI body font only — the 3D
    scene glyphs draw from their own geometry/atlas and never follow CSS. Google Fonts
-   stylesheets are injected lazily the first time a webfont is picked (nothing external
-   loads while the classic system-mono default is active); the choice persists in
-   localStorage pf_ui_font and participates in Set-default/Reset like any Render control. */
+   stylesheets are injected lazily the first time a webfont is picked; the choice persists
+   in localStorage pf_ui_font and participates in Set-default/Reset like any Render control.
+   v81: IBM Plex Mono is the factory default; explicit saved choices remain user-owned. */
 const UI_FONTS={
   mono:{css:'"SFMono-Regular", ui-monospace, "DejaVu Sans Mono", monospace'},
   plexmono:{g:'IBM+Plex+Mono:wght@400;500;600', css:'"IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace'},
@@ -6147,7 +6147,8 @@ const UI_FONTS={
   inter:{g:'Inter:wght@400;500;600', css:'"Inter", system-ui, sans-serif'},
   garamond:{g:'EB+Garamond:wght@400;500;600', css:'"EB Garamond", Georgia, serif'}
 };
-let uiFont=localStorage.getItem('pf_ui_font')||'mono';
+const UI_FONT_DEFAULT='plexmono';
+let uiFont=localStorage.getItem('pf_ui_font')||UI_FONT_DEFAULT;
 const uiFontLoaded={};
 function applyUIFont(id){
   const f=UI_FONTS[id]||UI_FONTS.mono;
@@ -6176,7 +6177,7 @@ function setSceneTextFont(id){
 applyUIFont(uiFont);
 if(uiFont!=='mono') setSceneTextFont(uiFont);
 const uiFontSelect=document.getElementById('uiFontSelect');
-uiFontSelect.value=UI_FONTS[uiFont]?uiFont:'mono';
+uiFontSelect.value=UI_FONTS[uiFont]?uiFont:UI_FONT_DEFAULT;
 uiFontSelect.addEventListener('change',()=>{
   uiFont=uiFontSelect.value; try{ localStorage.setItem('pf_ui_font',uiFont); }catch(e){}
   applyUIFont(uiFont); setSceneTextFont(uiFont); });
@@ -6200,7 +6201,7 @@ const CTRL_DEF={
   bloomStrength:['range',BASE_BLOOM], bloomRadius:['range',0.5], bloomThreshold:['range',0.2],
   fov:['range',52], fogNear:['range',0.35], fogFar:['range',1.5],
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',true],
-  uiFontSelect:['select','mono'],
+  uiFontSelect:['select',UI_FONT_DEFAULT],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
   timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true], arrowSelect:['select','stream'],
