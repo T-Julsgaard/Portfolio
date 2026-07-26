@@ -148,9 +148,9 @@
     transition:opacity 0.5s; }
   #cfields.on { visibility:visible; opacity:1; }
   #cfields input, #cfields textarea { position:absolute; pointer-events:auto; box-sizing:border-box;
-    background:transparent; border:none; outline:none; border-radius:0; color:#fff; caret-color:#fff;
+    background:#000; border:none; outline:none; border-radius:0; color:#fff; caret-color:#fff;
     font-family:inherit; letter-spacing:0.05em; }
-  #cfields input:focus, #cfields textarea:focus { background:rgba(255,255,255,0.05); }
+  #cfields input:focus, #cfields textarea:focus { background:#000; }
   #cfields input::selection, #cfields textarea::selection { background:rgba(255,255,255,0.3); }
   #cfields textarea { resize:none; overflow-y:auto; line-height:1.45; }
   /* v69: browser autofill (the suggested-email popup) paints its own white background —
@@ -574,6 +574,7 @@
             <option value="milestones">Milestone rail</option>
           </select>
         </label>
+        <div class="row"><span>Timeline arrows</span><input type="checkbox" id="toggleTimelineArrows" checked></div>
         <label>Rotation arrows
           <select id="arrowSelect">
             <option value="stream">Stream (triple chevron)</option>
@@ -2283,10 +2284,10 @@ const WNAV_CELL=0.15, WNAV_MAXW=9.0;   // stencil cell size / max label width (l
 const WNAV_ROWGAP=0.78, WNAV_VISIBLE=4;// extra breathing room; each side column exposes four rows at a time
 const WNAV_PITCH=7*WNAV_CELL+WNAV_ROWGAP;
 const WNAV_POP=1.13;                   // hover: the label swells to this factor about its centre
-let welcomeBannerStyle=localStorage.getItem('pf_welcome_banner')||ud('welBannerSelect','stream');
-let welcomeScrollStyle=localStorage.getItem('pf_welcome_scroll')||ud('welScrollSelect','rail');
+let welcomeBannerStyle=localStorage.getItem('pf_welcome_banner')||ud('welBannerSelect','burst');
+let welcomeScrollStyle=localStorage.getItem('pf_welcome_scroll')||ud('welScrollSelect','brackets');
 let welcomeScrollSide=localStorage.getItem('pf_welcome_scroll_side')||ud('welScrollSideSelect','right');
-let welcomeHeadingStyle=localStorage.getItem('pf_welcome_heading')||ud('welHeadingSelect','quiet-left');
+let welcomeHeadingStyle=localStorage.getItem('pf_welcome_heading')||ud('welHeadingSelect','bracket-center');
 const _welcomeAboutSaved=localStorage.getItem('pf_welcome_about_scroll');
 let welcomeAboutScroll=_welcomeAboutSaved==null?ud('toggleWelAboutScroll',false):_welcomeAboutSaved==='1';
 const welcomeScrollPos={about:0,portfolio:0};
@@ -2316,7 +2317,8 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    shaded ASCII arrows flanks every facet on multi-facet stops — the "there's more around
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
-let timelineStyle=ud('timelineStyleSelect','index'); // scroll-mode list presentation: index | editorial | milestones
+let timelineStyle=ud('timelineStyleSelect','milestones'); // scroll-mode list presentation: index | editorial | milestones
+let timelineArrows=ud('toggleTimelineArrows',true); // boundary-aware up/down hints on the Work/Education list
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
 let absorbView=ud('toggleAbsorbView',true); // when on, every terrain glyph inside the active camera view joins that facet's assembly
 const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge and arrow
@@ -2504,6 +2506,7 @@ function layArrowArt(items,art,cell,x0,yTop,mirror,extra){ // -> {w,h}; x0 = LEF
       if(ch==='.'||ch===' ') continue;
       const it={ch, x:x0+(c+0.5)*cell, y:yTop-(r+0.5)*cell, s:cell*1.05, L:COVER_RAMP.indexOf(ch)/9};
       if(extra&&extra.btn!==undefined) it.btn=extra.btn;
+      if(extra&&extra.tlDir!==undefined) it.tlDir=extra.tlDir;
       items.push(it);
     } }
   return {w:cols*cell, h:rows*cell};
@@ -2538,6 +2541,26 @@ function addUDArrows(items,btns,x0,cy,upKind,dnKind){ // an up/down pair stacked
   btns.push({kind:upKind, cx:x0+w/2, cy:cy+gap/2+h/2, hw:w/2+0.45, hh:h/2+0.4});
   btns.push({kind:dnKind, cx:x0+w/2, cy:cy-gap/2-h/2, hw:w/2+0.45, hh:h/2+0.4});
   return w;
+}
+function rotateArrowArt(art,clockwise){ // right-facing rotation art -> matching down/up art
+  const rows=art.length, cols=art[0].length, out=[];
+  for(let r=0;r<cols;r++){
+    let line='';
+    for(let c=0;c<rows;c++) line+=clockwise?art[rows-1-c][r]:art[c][cols-1-r];
+    out.push(line);
+  }
+  return out;
+}
+function addTimelineArrows(items,btns,listLeft,listW,yTop,yBot){
+  if(!timelineArrows||ARROW_STYLE==='off') return;
+  const base=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
+  const up=rotateArrowArt(base,false), down=rotateArrowArt(base,true), cell=0.18;
+  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+listW+0.42;
+  const upH=up.length*cell, dnH=down.length*cell, upCY=yTop-0.10, dnCY=yBot+0.10;
+  layArrowArt(items,up,cell,x0,upCY+upH/2,false,{btn:'tlprev',tlDir:-1});
+  layArrowArt(items,down,cell,x0,dnCY+dnH/2,false,{btn:'tlnext',tlDir:1});
+  btns.push({kind:'tlprev',data:-1,tlControl:true,cx:x0+w/2,cy:upCY,hw:w/2+0.35,hh:upH/2+0.32});
+  btns.push({kind:'tlnext',data: 1,tlControl:true,cx:x0+w/2,cy:dnCY,hw:w/2+0.35,hh:dnH/2+0.32});
 }
 const BTN_CELL=0.19;                                 // stencil cell size (layout units; v41: 0.26→0.19, slightly smaller buttons)
 const BTN_DIM=new THREE.Color('#a8a8a8'), BTN_HOT=new THREE.Color('#ffffff'); // idle pulse range; hover pins to HOT
@@ -2868,6 +2891,7 @@ function buildTimelineNavLayout(labels){
     }
     btns.push({kind,timeline:i,data:i,cx:hitX+hitW/2,cy:y,hw:hitW/2+0.42,hh:line*0.46});
   });
+  addTimelineArrows(items,btns,listLeft,listW,yTop,yTop-(lines.length-1)*line);
   const caretCh=style==='milestones'?'@':style==='editorial'?'#':'>', caretS=style==='editorial'?0.44:0.54;
   items.push({ch:caretCh,x:listLeft,y:yTop+chBase(caretCh)*caretS,s:caretS,L:null,tf:1,timelineCaret:true});
   return {items,btns,w:totalW,h:listH+0.6,timeline:true,timelineY:lines.map((_,i)=>yTop-i*line)};
@@ -2915,7 +2939,7 @@ function buildContactLayout(k){
   { const t=stencilSafe(st.title), cell=Math.min(0.20, 20/stCols(t)), tw=stCols(t)*cell; // stencil title (v61)
     if(tw+1>maxW) maxW=tw+1;
     layStencilLine(items,t,cell,-tw/2,y);
-    y-=7*cell+1.0; }
+    y-=7*cell+1.35; } // a little more separation lifts SAY HELLO above the form
   /* the form chrome. Field frames are dim glyph boxes ('+' corners, '-' top/bottom, ':'
      sides) with a small bright label above-left; the actual typing happens in the HTML
      inputs #cfields floats over these rects. */
@@ -3042,8 +3066,8 @@ function buildWelcomeLayout(){
     if(L!==undefined) for(let i=start;i<items.length;i++) items[i].L=L;
     return {w,cell};
   };
-  const addSideHeader=(t,x,y)=>{
-    const center=x+WNAV_MAXW/2, dots='.................', ds=0.25, d=layoutLine(dots,ds);
+  const addSideHeader=(t,x,y,columnW)=>{
+    const center=x+columnW/2, dots='.................', ds=0.25, d=layoutLine(dots,ds);
     if(welcomeHeadingStyle==='stencil-center'){
       const cell=0.105, w=stCols(t)*cell, start=items.length;
       layStencilLine(items,t,cell,center-w/2,y+0.22);
@@ -3056,7 +3080,6 @@ function buildWelcomeLayout(){
     const dx=welcomeHeadingStyle==='quiet-left'?x:center-d.w/2;
     for(let i=0;i<dots.length;i++) items.push({ch:'.',x:dx+d.xs[i],y:y-0.72,s:ds,L:0.18,tf:1});
   };
-  addSideHeader('ABOUT ME',leftX,10.72); addSideHeader('PORTFOLIO',rightX,10.72);
 
   const about=[
     {id:'work'},{id:'edu'},{id:'interests'},{id:'contact'},
@@ -3066,6 +3089,15 @@ function buildWelcomeLayout(){
     {id:'cases'}, {t:'PROJECT NORTH'}, {t:'PROJECT STATIC'}, {t:'AFTERGLOW'},
     {t:'SIGNAL'}, {t:'ATLAS'}, {t:'RELAY'}, {t:'LATTICE'}
   ];
+  const welcomeRowWidth=(group,entry)=>{
+    const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;
+    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), live=si>=0||entry.href;
+    const rowCell=group==='about'&&!welcomeAboutScroll?WNAV_CELL*0.82:WNAV_CELL;
+    return stCols(t)*Math.min(live?rowCell:Math.min(0.12,rowCell),WNAV_MAXW/stCols(t));
+  };
+  const aboutW=Math.max(...about.map(entry=>welcomeRowWidth('about',entry)));
+  const portfolioW=Math.max(...portfolio.map(entry=>welcomeRowWidth('portfolio',entry)));
+  addSideHeader('ABOUT ME',leftX,10.72,aboutW); addSideHeader('PORTFOLIO',rightX,10.72,portfolioW);
   const wsVisible={about:welcomeAboutScroll?WNAV_VISIBLE:about.length,portfolio:WNAV_VISIBLE};
   const wsPitch={
     about:welcomeAboutScroll?WNAV_PITCH:WNAV_PITCH*(WNAV_VISIBLE-1)/(about.length-1),
@@ -3462,6 +3494,7 @@ function updateWelcome(now,dt){
   else { releaseWelcomeTypeTitle(); if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; } hideCalTip(); }
 }
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
+  clearWelcomeKeyNav();
   releaseWelcomeTypeTitle();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
   welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
@@ -3582,6 +3615,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   /* welcome stop: reserve a set of terrain glyphs for the commit banner BEFORE the
      facet partition, so pass 2/3 leave them alone (the banner animates them itself) */
   let reserved=null;
+  clearWelcomeKeyNav();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
   welcome.waveItems=null; welcome.waveT0=null;
   if(isWelcome){ const F0=facets[0]; const rb=reserveWelcomeBanner(F0);
@@ -3611,7 +3645,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         from:null, ctrl:null, d:0, s0:1, pD:0, swapped:false, done:false, handed:false,
         wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr, vcap:li.vcap,
         ws:li.ws, wsr:li.wsr, wsBaseY:li.wsBaseY, wsDY:li.wsBaseY!==undefined?li.y-li.wsBaseY:0,
-        wsBar:li.wsBar, wsThumb:li.wsThumb, btnKind:li.btn,
+        wsBar:li.wsBar, wsThumb:li.wsThumb, tlDir:li.tlDir, btnKind:li.btn,
         gcap:li.gcap, en:li.en, eh:li.eh, gh:li.gh, timelineCaret:li.timelineCaret,
         pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined,
         caseBase:li.caseBase, caseDetail:li.caseDetail, caseHidden:li.caseHidden};
@@ -3679,6 +3713,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   const timelineFacet=scrollMode?facets.find(F=>F.timelineNav):null;
   if(timelineFacet) timelineFacet.timelineCaret=timelineFacet.items.find(it=>it.timelineCaret)||null;
   stopFacets={k, facets, yaw0, pitch0, byMesh, scrollMode, scrollFacets, timelineFacet, scrollIndex:0, scrollBusyUntil:0, scrollWheel:0};
+  if(scrollMode) syncTimelineArrows(stopFacets);
   // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
   // frame()), so set BOTH current and target to level: docking involves zero re-aim
   freeYaw=freeYawT=0;
@@ -3914,6 +3949,43 @@ function facetButtonHit(clientX,clientY){ // pointer ray vs. facet plane, tested
   }
   return null;
 }
+let welcomeKeyBtn=null;
+function clearWelcomeKeyNav(){
+  if(welcomeKeyBtn) welcomeKeyBtn.hover=false;
+  welcomeKeyBtn=null;
+}
+function welcomeKeyMove(key){
+  const F=welcome.F;
+  if(!F||F.state!=='hold') return false;
+  const all=F.btns.filter(b=>b.nav!==undefined&&b.shown);
+  if(!all.length) return false;
+  let next=null;
+  if(!welcomeKeyBtn||!all.includes(welcomeKeyBtn)){
+    const group=key==='ArrowRight'?'portfolio':'about';
+    const groupBtns=all.filter(b=>b.ws===group).sort((a,b)=>b.cy-a.cy);
+    next=key==='ArrowUp'?groupBtns[groupBtns.length-1]:groupBtns[0];
+  } else if(key==='ArrowLeft'||key==='ArrowRight'){
+    const group=key==='ArrowRight'?'portfolio':'about';
+    const groupBtns=all.filter(b=>b.ws===group);
+    next=groupBtns.reduce((best,b)=>!best||Math.abs(b.cy-welcomeKeyBtn.cy)<Math.abs(best.cy-welcomeKeyBtn.cy)?b:best,null);
+  } else {
+    const groupBtns=all.filter(b=>b.ws===welcomeKeyBtn.ws).sort((a,b)=>b.cy-a.cy);
+    const i=groupBtns.indexOf(welcomeKeyBtn), d=key==='ArrowDown'?1:-1;
+    next=groupBtns[Math.max(0,Math.min(groupBtns.length-1,i+d))];
+  }
+  if(!next) return false;
+  if(welcomeKeyBtn&&welcomeKeyBtn!==next) welcomeKeyBtn.hover=false;
+  welcomeKeyBtn=next; welcomeKeyBtn.hover=true; renderDirty=true; glyphsDirty=true;
+  return true;
+}
+function welcomeKeyActivate(){
+  const b=welcomeKeyBtn, F=welcome.F;
+  if(!F||!b||!b.shown) return false;
+  if(b.kind==='wcv') window.open(b.data,'_blank','noopener');
+  else if(b.nav!==undefined) departTo(b.data);
+  else return false;
+  return true;
+}
 function downloadPDF(href){ // open the report in its own tab — the site keeps running in this one
   window.open(href,'_blank','noopener');
 }
@@ -3929,6 +4001,25 @@ function rotateDock(dir){ // rotation-hint arrows: turn the docked view one face
   freePitchT=-stopFacets.pitch0; dockZoomT=1; // level = cancel the path pose's down-pitch (0 would ease onto pitch0's ground-stare)
   while(freeYawT> 2*Math.PI){ freeYawT-=2*Math.PI; freeYaw-=2*Math.PI; } // keep both wrapped
   while(freeYawT<-2*Math.PI){ freeYawT+=2*Math.PI; freeYaw+=2*Math.PI; } // (shift preserves the smoothing delta)
+}
+function timelineArrowHidden(it,S){
+  if(!it||it.tlDir===undefined) return false;
+  S=S||stopFacets;
+  if(!S||!S.scrollMode) return true;
+  return it.tlDir<0?S.scrollIndex<=0:S.scrollIndex>=S.scrollFacets.length-1;
+}
+function syncTimelineArrows(S){
+  S=S||stopFacets;
+  const nav=S&&S.scrollMode&&S.timelineFacet; if(!nav) return;
+  for(const b of nav.btns){
+    if(!b.tlControl) continue;
+    b.gone=b.data<0?S.scrollIndex<=0:S.scrollIndex>=S.scrollFacets.length-1;
+    for(const it of b.items){
+      if(!it.done) continue;
+      it.m.material.opacity=b.gone?0:1; it.m.visible=!b.gone;
+    }
+  }
+  renderDirty=true; glyphsDirty=true;
 }
 function updateTimelineMotion(now){
   if(!stopFacets||!stopFacets.scrollMode) return;
@@ -3962,6 +4053,7 @@ function timelineTo(idx){
     nav.caretMove={from:caret.to.clone(),to:target,t0:now};
   }
   S.scrollIndex=idx; S.scrollBusyUntil=now+TL_MS; S.scrollWheel=0;
+  syncTimelineArrows(S);
   dockZoomT=1; renderDirty=true; glyphsDirty=true;
   return true;
 }
@@ -4438,7 +4530,7 @@ function updateFacet(F,now,dt){
           m.userData.asm=true; m.userData.asmL=it.L;
           // Slide-union ghost cells (gh — no ink on the CURRENT slide) and a gated
           // DOWNLOAD (pg) land invisible while their current entry is inactive.
-          if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)||welcomeScrollHidden(it)){ m.material.opacity=0; m.visible=false; }
+          if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)||welcomeScrollHidden(it)||timelineArrowHidden(it)){ m.material.opacity=0; m.visible=false; }
           else m.material.opacity=1;
         } else {
           m.geometry=it.geo0; m.position.copy(it.home); m.scale.setScalar(1);
@@ -4454,7 +4546,7 @@ function updateFacet(F,now,dt){
         ie*ie*it.from.z+2*ie*e*it.ctrl.z+e*e*to.z);
       m.scale.setScalar(Math.max(0.05,it.s0+((dirIn?it.s1:1)-it.s0)*(dirIn?easeOutBack(p):e)));
       if(dirIn){
-        if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)||welcomeScrollHidden(it)) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
+        if(it.gh||(it.pg&&F.eIdx!==F.pdfEntry)||welcomeScrollHidden(it)||timelineArrowHidden(it)) m.material.opacity=p<0.62?Math.min(1,Math.max(m.material.opacity,p*2)):Math.max(0,(1-p)/0.38); // fade out on approach, like an extra
         else{
           m.material.opacity=Math.min(1,Math.max(m.material.opacity,p*2));
           if(it.swapped&&!inverted) m.material.color.copy(INTRO_FLASH).lerp(setImgColor(_cc,it.L),(p-0.5)*2);
@@ -4475,7 +4567,7 @@ function updateFacet(F,now,dt){
       // arrow art (rotation hints / next-video chevron) is luminance-SHADED like the marks —
       // the stencil-button gray→white pulse would flatten it, so it gets its own treatment:
       // base shade with a gentle glow, hover lifts it well toward white
-      const isArt=b.kind==='rotl'||b.kind==='rotr'||b.kind==='vnext'||b.kind==='vprev'||b.kind==='eprev'||b.kind==='enext'||b.wsControl;
+      const isArt=b.kind==='rotl'||b.kind==='rotr'||b.kind==='vnext'||b.kind==='vprev'||b.kind==='eprev'||b.kind==='enext'||b.tlControl||b.wsControl;
       // rotation arrows get the section-list hover swell too (v63) — but only the stream
       // design (the user's pick); wedge/dart keep the plain colour lift
       const isRot=(b.kind==='rotl'||b.kind==='rotr')&&ARROW_STYLE==='stream';
@@ -5425,6 +5517,7 @@ addEventListener('pointerup',e=>{
       else if(hit.b.kind==='esel') { hit.F.eIdx=hit.b.data; renderDirty=true; } // highlight list: pick that entry (v68)
       else if(hit.b.kind==='eprev') facetStepEntry(hit.F,-1);
       else if(hit.b.kind==='enext') facetStepEntry(hit.F,1);
+      else if(hit.b.tlControl) timelineStep(hit.b.data);
       else if(hit.b.timeline!==undefined) timelineTo(hit.b.data);
       else if(hit.b.kind==='rotl'||hit.b.kind==='rotr') rotateDock(hit.b.data); // rotation-hint arrows: turn one facet step
       else if(hit.b.kind==='send') cformSubmit(); // the embedded contact form's stencil SEND
@@ -5475,6 +5568,8 @@ addEventListener('pointermove',e=>{
 addEventListener('keydown',e=>{
   const t=e.target&&e.target.tagName;
   if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA') return;
+  if(uiState==='overview'&&/^Arrow/.test(e.key)){ enterBtn.focus(); e.preventDefault(); return; }
+  if(e.key==='Enter'&&uiState==='overview'){ beginEnter(0); e.preventDefault(); return; }
   if(e.key==='Escape'&&moreOpen){ hideMore(); return; } // close the read-more card first
   if(e.key==='Escape'&&stopFacets){
     const F=stopFacets.facets.find(f=>f.moreDetail);
@@ -5483,6 +5578,13 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape'&&(uiState==='journey'||uiState==='entering')){ beginExit(); return; }
   if(uiState!=='journey'||jMode!=='docked') return;
   const k=e.key;
+  if(stopInfoMode==='assemble'&&welcome.active){
+    if(k==='ArrowLeft'||k==='ArrowRight'||k==='ArrowUp'||k==='ArrowDown'){
+      if(welcomeKeyMove(k)) e.preventDefault();
+      return;
+    }
+    if(k==='Enter'&&welcomeKeyActivate()){ e.preventDefault(); return; }
+  }
   /* v68: in assemble mode the arrow keys work the STOP, not the rail — ←/→ rotate the
      panorama one facet step (nothing at a single-facet stop), ↑/↓ drive the faced
      facet's vertical switcher (piano recordings, the Earlier-roles card, the
@@ -5817,7 +5919,8 @@ const DEV_TIPS={
   travelAdjSelect:'Camera style used when moving to the neighbouring stop.', travelFarSelect:'Camera style used when jumping across several stops.',
   toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.', toggleCursorSway:'Adds a subtle passive camera response to pointer position while docked.',
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
-  timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.',
+  toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.', arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
   welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
@@ -5926,6 +6029,9 @@ timelineNavSelect.addEventListener('change',()=>{ timelineNav=timelineNavSelect.
 const timelineStyleSelect=document.getElementById('timelineStyleSelect');
 timelineStyleSelect.value=timelineStyle;
 timelineStyleSelect.addEventListener('change',()=>{ timelineStyle=timelineStyleSelect.value; reassembleDocked(); });
+const timelineArrowCheck=document.getElementById('toggleTimelineArrows');
+timelineArrowCheck.checked=timelineArrows;
+timelineArrowCheck.addEventListener('change',()=>{ timelineArrows=timelineArrowCheck.checked; reassembleDocked(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -6045,16 +6151,16 @@ const CTRL_DEF={
   uiFontSelect:['select','mono'],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
-  timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','index'], arrowSelect:['select','stream'],
+  timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select','html2'], welSize:['range',0.90], welHalo:['range',0.05],
-  welTitleSelect:['select','type'], welBannerSelect:['select','stream'], welHeadingSelect:['select','quiet-left'],
-  welScrollSelect:['select','rail'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',false]
+  welTitleSelect:['select','type'], welBannerSelect:['select','burst'], welHeadingSelect:['select','bracket-center'],
+  welScrollSelect:['select','brackets'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',false]
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };

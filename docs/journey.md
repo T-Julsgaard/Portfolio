@@ -2,6 +2,14 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v78: complete keyboard entry and Welcome selection
+
+In overview, any arrow key focuses the Enter control and Enter begins at Welcome.
+Once Welcome is settled, all four arrows navigate its live About/Portfolio choices
+and Enter activates the selected row. Other assembled-stop arrow behavior remains
+unchanged: left/right rotate panorama facets, up/down drive vertical switchers, and
+Work/Education up/down step their linear timelines.
+
 ## v77: Welcome-only re-entry and masked Raw handoff
 
 The Enter button always calls `beginEnter(0)`. Returning to free roam no longer

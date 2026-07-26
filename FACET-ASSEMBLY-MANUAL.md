@@ -7,6 +7,19 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v78 addendum: keyboard Welcome nav and boundary-aware timeline arrows
+
+Welcome's live side-column buttons can be selected with all four arrow keys and
+activated with Enter. The selected button reuses the normal hover/swell state; clear
+`welcomeKeyBtn` whenever Welcome is rebuilt or released so a stale facet record can
+never survive a journey transition.
+
+Scroll-mode Work/Education may add a matched vertical version of `ROT_ARROWS` to the
+persistent timeline facet. The two controls are allocated once with the list. Their
+`tlDir` metadata and `syncTimelineArrows()` hide the impossible direction at each
+boundary (down only at the overview, both in the middle, up only at the end). Do not
+rebuild the timeline facet merely to change arrow visibility.
+
 ## v77 addendum: Welcome row pitches and direct scrollbar input
 
 Welcome row spacing is now per group (`lay.wsPitch`), because a no-scroll five-row

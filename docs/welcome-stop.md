@@ -1,5 +1,20 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v78 - promoted defaults, optical heading width, and keyboard navigation
+
+The project factory profile now uses Exact darker calendar cells, Center burst,
+Bracketed centered headings, right-side Brackets `[=]`, and no About Me scrollbar.
+Previously saved browser preferences still override factory values as intended.
+
+Centered headings now use the widest actually rendered row in their own group rather
+than the nine-unit maximum row allowance. This puts ABOUT ME over the visual center
+of its compact five-row list instead of over unused space to its right.
+
+At the settled Welcome stop, arrow keys select live section/CV rows with the normal
+hover swell. Up/down move within a column, left/right switch columns, and Enter
+activates the selected destination. Rebuilding or releasing Welcome clears the
+selection.
+
 ## v77 - compact About column and direct scrollbar manipulation
 
 The greeting sits 0.70 layout units higher above the figure. The ABOUT ME scrollbar

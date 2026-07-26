@@ -1,5 +1,19 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v78: milestone defaults, timeline arrows, and contact polish
+
+Milestone rail is now the factory Work/Education list skin. A new factory-on
+**Timeline arrows** control adds vertical versions of the selected rotation-arrow
+art to the persistent list facet. At the overview only the down control is live;
+after the first step both directions appear, and at the final entry only up remains.
+The controls call the existing `timelineStep()` path, so caret motion, handoff, wheel,
+and keyboard behavior are unchanged. Work/Education remain far below the glyph-pool
+limit.
+
+Contact inputs now keep an opaque black fill both idle and focused; focus no longer
+lays a gray tint over the assembled field. The title-to-form gap grew by 0.35 layout
+units, giving SAY HELLO a small upward optical lift without changing the form fields.
+
 ## v76: unified in-scene details and selectable timeline lists
 
 Every assembled gallery entry with `more` now builds and merges a detail layout, not
