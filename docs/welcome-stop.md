@@ -1,5 +1,23 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v81 - one-shot greeting and animated banner reservation
+
+The seated mini-me waves once per page session. `welcome.wavePlayed` becomes true
+when the first raise/wiggle/lower sequence finishes and survives look-away,
+reassembly, and later visits to Welcome; changing the Wave control deliberately
+clears it so the chosen style can be previewed once.
+
+The commit-banner reserve no longer disappears as soon as Welcome starts assembling.
+`initBanner()` creates a `prepare` phase that flies every reserved terrain glyph from
+its real home into a compact hidden strip below the calendar, fading only at the
+destination. The existing title-aware pause and selectable banner motions begin
+after that preparation. This removes the instantaneous central hole that previously
+appeared ahead of the rest of the assembly.
+
+`welcomeMessages()` also appends a compact `README:` line from the latest public
+repository description and the total star count already present in
+`GH_STATS.repos`. The stats workflow and JSON schema required no change.
+
 ## v80 - darker exact calendar default migration
 
 The v76 factory promotion to **Exact · darker empty cells** (`html2`) did not

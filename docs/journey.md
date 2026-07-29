@@ -2,6 +2,19 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v81: dock-expanded rails
+
+The split ABOUT ME / PORTFOLIO rails now use explicit journey states instead of
+hover-driven label reveal. `railTravel()` retracts the labels for entering, flying,
+exiting, and overview resets; `railDock(k)` slides them back in over 180 ms at every
+settled non-Welcome stop. Welcome applies `at-welcome`, hiding and disabling both
+rails because the assembled stop already exposes the same destinations.
+
+Native `title` attributes and the shared hover `peek` lifecycle are removed, so
+hovering a dot no longer opens a browser tooltip. Hover/focus only brightens an
+already expanded label. Dots remain visible during stop-to-stop travel once the
+rails have first been revealed.
+
 ## v79: complete split rails and keyboard focus
 
 Welcome is now the first destination on both post-entry rails. The left rail then

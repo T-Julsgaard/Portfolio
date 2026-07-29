@@ -1,5 +1,26 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v81: gaze-aware timelines and quiet Volunteering
+
+Experience and Education no longer keep their current card and persistent timeline
+index assembled when the visitor looks away. Scroll mode now runs the same yaw
+hysteresis as every panorama facet: the pair disassembles through `facetOut()` beyond
+`F_GAZE_OUT` and reassembles through `facetIn()` inside `F_GAZE_IN`, preserving the
+normal terrain flights and handoff rules.
+
+The timeline controls have a larger vertical gap from the first and last rows
+(`0.90`, previously `0.42`). `addTimelineArrows()` still returns their true outer
+bounds, so the persistent list facet's fit and clearing calculations include the
+extra breathing room.
+
+Volunteering is now a static two-entry list. Both roles hold equal emphasis; its
+up/down selector, row hit targets, selected-row recolouring, tutor-certificate
+DOWNLOAD button, and entry-gating state are absent. Static lists use
+`staticList:true`, retain normal facet ownership, and add a slightly larger gap
+between entries. The middle-dot separator is transliterated to an ASCII hyphen by
+`asciiSafe()`, fixing unsupported-font question marks in both Volunteering and the
+BSc Copenhagen/date line.
+
 ## v79: timeline arrows above and below the list
 
 Work/Education's optional timeline controls are horizontally centered over the list

@@ -9,7 +9,8 @@ and stats work; double-clicking the file blocks both).
 ## GitHub stats on the welcome stop
 
 The welcome stop shows live GitHub numbers: a commit ticker, the contribution
-calendar, and a few profile stats. Because the site is static (GitHub Pages),
+calendar, a compact latest-repository README line, and the total stars across the
+public repositories. Because the site is static (GitHub Pages),
 the numbers are fetched **ahead of time** by a scheduled GitHub Actions
 workflow that writes them to `data/stats.json`; the site just reads that file.
 The browser never talks to the GitHub API and never sees a token.

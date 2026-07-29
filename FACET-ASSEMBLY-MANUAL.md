@@ -7,6 +7,25 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v81 addendum: timeline gaze parity and static lists
+
+Scroll-mode Work/Education still share one forward yaw, but that does not make them
+permanently active. `facetGaze()` must apply the same `F_GAZE_IN` / `F_GAZE_OUT`
+hysteresis to the current content facet and persistent timeline facet together. Looking
+away releases both through `facetOut()`; returning recruits both through `facetIn()`.
+Do not special-case this with opacity or direct visibility writes, because that bypasses
+terrain handoff and home restoration.
+
+`staticList:true` is the non-interactive form of a cover `list`. Its rows are ordinary
+facet items at equal emphasis: no `en`/`eh` highlight metadata, `esel` hit rectangles,
+`elist` state, switcher arrows, or entry-gated download. It is intended for short lists
+whose entries are all simultaneously valid, such as Volunteering.
+
+Welcome's reserved banner pool now performs a `prepare` flight from each glyph's real
+terrain home into the hidden under-calendar strip. The reserve must never be hidden
+directly on arrival: reserved glyphs are excluded from normal facet absorption, so a
+direct hide produces an obvious instantaneous hole in the portrait.
+
 ## v79 addendum: timeline arrow bounds
 
 The optional Work/Education timeline controls are centered above and below the list.

@@ -16,9 +16,10 @@
 
   #journey-rails {
     position:fixed; inset:0; z-index:5; opacity:0; pointer-events:none;
-    transition:opacity 0.6s ease;
+    transition:opacity 0.28s ease;
   }
-  #journey-rails.seen { opacity:1; }
+  #journey-rails.seen:not(.at-welcome) { opacity:1; }
+  #journey-rails.at-welcome .journey-rail { pointer-events:none; }
   .journey-rail {
     position:fixed; top:50%; transform:translateY(-50%);
     display:flex; flex-direction:column; gap:9px; pointer-events:auto;
@@ -41,7 +42,7 @@
   .rail-stop .lbl {
     font-size:9px; letter-spacing:0.16em; text-transform:uppercase;
     opacity:0; transform:translateX(6px);
-    transition:opacity 0.25s ease, transform 0.25s ease, color 0.25s ease;
+    transition:opacity 0.18s ease, transform 0.18s cubic-bezier(0.2,0.8,0.2,1), color 0.18s ease;
   }
   .rail-stop .dot {
     width:8px; height:8px; border-radius:50%; flex:none;
@@ -50,15 +51,15 @@
   }
   #rail-about .rail-stop { flex-direction:row-reverse; }
   #rail-about .rail-stop .lbl { transform:translateX(-6px); }
-  #journey-rails.peek .rail-stop .lbl { opacity:0.8; transform:none; }
+  #journey-rails.docked .rail-stop .lbl { opacity:0.78; transform:none; }
   .rail-stop:is(:hover,:focus-visible) { outline:none; }
-  #journey-rails .rail-stop:is(:hover,:focus-visible) .lbl { opacity:1; transform:none; color:#fff; }
+  #journey-rails.docked .rail-stop:is(:hover,:focus-visible) .lbl { opacity:1; color:#fff; }
   .rail-stop:focus-visible .dot { border-color:#fff; box-shadow:0 0 8px rgba(255,255,255,0.72); }
   #rail-portfolio .rail-project { cursor:default; opacity:0.58; }
   .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
   .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
-  /* the current dot stays lit, but its label only appears on hover like every other —
-     so leaving a stop (e.g. back to free roam) no longer strands its text on screen */
+  /* Labels stay expanded while docked, retract during travel, then slide back in at
+     touchdown. Welcome hides both rails because its in-scene columns already navigate. */
 
   #panel {
     position:fixed; left:26px; top:50%; transform:translateY(calc(-50% + 16px));
@@ -1829,8 +1830,8 @@ const JOURNEY=[
      the games are a clickable match list under the board (v68 — replaced the digit
      buttons), arrow keys step the moves (see CHESS_GAMES / #cboard), and the
      chess.com mark hangs TILTED beside the board (`mark.side`). Volunteering is a
-     `list` facet: both entries assembled, up/down arrows (or ↑/↓, or a click) move
-     the bright highlight. */
+     quiet static two-entry list: both jobs assemble at equal emphasis with no
+     selector arrows or download control. */
   {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Beyond the work', body:'', media:[],
     gallery:[
       {img:'chessboard', title:'Chess', imgScale:1.95, hFit:1.5,
@@ -1840,11 +1841,9 @@ const JOURNEY=[
         vids:[{src:'videos/piano-1.mp4', ascii:'piano1', cap:"Beethoven's Moonlight Sonata - Third Movement (Alternative Interpretation)"},
               {src:'videos/piano-2.mp4', ascii:'piano2', cap:"Beethoven's Pathétique Sonata - Third Movement (Alternative Interpretation)"}],
         btns:[{t:'PLAY',kind:'vplay'}]},
-      {title:'Volunteering', // v69: sub line dropped; Vice chairman first; the tutor-certificate
-        // DOWNLOAD only appears while the Tutor entry holds the highlight (pdfEntry)
-        list:[{h:'Vice chairman - Askov Folk High School', d:'Student association board · Aug 2022 – present'},
-              {h:'Tutor - Aalborg University', d:'Welcoming and guiding the new Techno-Anthropology students · Sep – Dec 2023'}],
-        pdf:'pdfs/Tutor certificate 2023.pdf', pdfEntry:1}
+      {title:'Volunteering', staticList:true,
+        list:[{h:'Vice chairman - Askov Folk High School', d:'Student association board - Aug 2022 - present'},
+              {h:'Tutor - Aalborg University', d:'Welcoming and guiding the new Techno-Anthropology students - Sep - Dec 2023'}]}
     ]}},
   {xf: 0.32, yf:-0.14},
   {xf: 0.34, yf:-0.30},
@@ -2085,14 +2084,15 @@ const railWrap=document.getElementById('journey-rails');
 const railAbout=document.getElementById('rail-about'), railPortfolio=document.getElementById('rail-portfolio');
 const railEls=[];
 function addRailStop(parent,st,k){
-  const b=document.createElement('button'); b.className='rail-stop'; b.title=st.title;
+  const b=document.createElement('button'); b.className='rail-stop'; b.type='button';
+  b.setAttribute('aria-label','Go to '+st.label);
   b.innerHTML='<span class="lbl">'+st.label+'</span><span class="dot"></span>'; // v69: bare section names — the numbering is gone
   b.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(k); else if(uiState==='journey'&&jMode==='docked'&&k!==dockIdx) departTo(k); });
   parent.appendChild(b); railEls.push({el:b,k});
 }
 function addRailProject(label){
   const row=document.createElement('button'); row.type='button'; row.className='rail-stop rail-project';
-  row.title='Project details coming soon'; row.setAttribute('aria-disabled','true');
+  row.setAttribute('aria-disabled','true'); row.setAttribute('aria-label',label+' (details coming soon)');
   row.innerHTML='<span class="lbl">'+label+'</span><span class="dot"></span>';
   railPortfolio.appendChild(row);
 }
@@ -2104,8 +2104,6 @@ const casesRailIdx=STOPS.findIndex(st=>st.id==='cases');
 addRailStop(railPortfolio,STOPS[casesRailIdx],casesRailIdx);
 PORTFOLIO_PROJECTS.forEach(addRailProject);
 for(const r of [railAbout,railPortfolio]){
-  r.addEventListener('mouseenter',()=>railWrap.classList.add('peek'));
-  r.addEventListener('mouseleave',()=>railWrap.classList.remove('peek'));
   r.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
   r.addEventListener('keydown',e=>{
     if(e.key!=='ArrowUp'&&e.key!=='ArrowDown'&&e.key!=='Home'&&e.key!=='End') return;
@@ -2118,6 +2116,13 @@ for(const r of [railAbout,railPortfolio]){
 function railSet(k){ railEls.forEach(r=>{ r.el.classList.toggle('current',r.k===k); r.el.classList.toggle('done',k>=0&&r.k<k); }); }
 let railSeen=false; // v69: the rail only appears once the visitor first travels beyond Welcome
 function railReveal(){ if(!railSeen){ railSeen=true; railWrap.classList.add('seen'); } }
+function railTravel(){ railWrap.classList.remove('docked','at-welcome'); }
+function railDock(k){
+  const atWelcome=STOPS[k]&&STOPS[k].id==='welcome';
+  railWrap.classList.toggle('at-welcome',atWelcome);
+  railWrap.classList.toggle('docked',!atWelcome);
+  if(!atWelcome) railReveal();
+}
 function setHint(t){ hintText.textContent=t; }
 function showHint(){ hint.classList.add('show'); }
 function hideHint(){ hint.classList.remove('show'); }
@@ -2148,6 +2153,7 @@ function showStop(k){
   panel.classList.toggle('mini',mini);
   panel.classList.toggle('in',!mini);
   railSet(k);
+  railDock(k);
   /* v63: no standing hint at assembled stops — drag-look is discoverable and scroll now
      zooms instead of departing, so "scroll to continue" would lie. The auto tour (scroll
      IS travel there) and the classic panel mode keep their hints. */
@@ -2619,7 +2625,7 @@ function addTimelineArrows(items,btns,listLeft,listW,yTop,yBot){
   if(!timelineArrows||ARROW_STYLE==='off') return null;
   const base=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
   const up=rotateArrowArt(base,false), down=rotateArrowArt(base,true), cell=0.18;
-  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+(listW-w)/2, gap=0.42;
+  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+(listW-w)/2, gap=0.90;
   const upH=up.length*cell, dnH=down.length*cell;
   const upCY=yTop+gap+upH/2, dnCY=yBot-gap-dnH/2;
   layArrowArt(items,up,cell,x0,upCY+upH/2,false,{btn:'tlprev',tlDir:-1});
@@ -2644,7 +2650,7 @@ let freeYaw=0,freeYawT=0,freePitch=0,freePitchT=0;   // 360° docked look (drag)
 let dockZoom=1,dockZoomT=1; const DOCK_ZOOM_MAX=2.8;
 const wrapAng=a=>{ while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; return a; };
 function asciiSafe(s){ // transliterate what the helvetiker 3D font lacks; the HTML panel keeps the original text
-  return s.replace(/[—–]/g,'-').replace(/[’‘]/g,"'").replace(/[“”]/g,'"')
+  return s.replace(/[—–]/g,'-').replace(/·/g,'-').replace(/[’‘]/g,"'").replace(/[“”]/g,'"')
           .replace(/æ/g,'ae').replace(/ø/g,'oe').replace(/å/g,'aa')
           .replace(/Æ/g,'Ae').replace(/Ø/g,'Oe').replace(/Å/g,'Aa').replace(/é/g,'e');
 }
@@ -2783,8 +2789,8 @@ function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional meta
       addLine(one,s,0.30);
     } else for(const line of wrapText(blurb,48)) addLine(line,0.55,0.30);
   }
-  if(g.list){ // v68: highlight list (Volunteering) — every entry assembled, the CURRENT one bright
-    // (updateFacet recolors); the flanking up/down pair, ↑/↓, or a click move the highlight
+  if(g.list){ // selectable highlight list, or a quiet equal-emphasis static list
+    const selectable=!g.staticList;
     y-=0.35; const eTop=y+0.35; let eW=0;
     g.list.forEach((en,ei)=>{
       const rows=[[asciiSafe(en.h),0.62,true]].concat(wrapText(asciiSafe(en.d),48).map(l=>[l,0.5,false]));
@@ -2793,16 +2799,22 @@ function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional meta
         const {xs,w:lw}=layoutLine(t,s);
         if(lw>eW) eW=lw;
         if(lw+1>maxW) maxW=lw+1;
-        for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' ') items.push({ch, x:-lw/2+xs[i], y:y+chBase(ch)*s, s, L:null, en:ei, eh:hd||undefined, tf:1}); }
+        for(let i=0;i<t.length;i++){ const ch=t[i]; if(ch!==' '){
+          const it={ch, x:-lw/2+xs[i], y:y+chBase(ch)*s, s, L:selectable?null:(hd?null:0.76), tf:1};
+          if(selectable){ it.en=ei; it.eh=hd||undefined; }
+          items.push(it);
+        } }
         y-=s+0.22;
       }
       const yBot=y+0.10;
-      btns.push({kind:'esel', data:ei, cx:0, cy:(yTop+yBot)/2, hw:eW/2+0.6, hh:(yTop-yBot)/2});
-      y-=1.05; // v69: a full breath between entries — the two options read as separate blocks
+      if(selectable) btns.push({kind:'esel', data:ei, cx:0, cy:(yTop+yBot)/2, hw:eW/2+0.6, hh:(yTop-yBot)/2});
+      y-=selectable?1.05:1.35;
     });
     y+=0.25;
-    const ax0=eW/2+1.0, w=addUDArrows(items,btns,ax0,(eTop+y)/2,'eprev','enext');
-    if((ax0+w)*2>maxW) maxW=(ax0+w)*2;
+    if(selectable){
+      const ax0=eW/2+1.0, w=addUDArrows(items,btns,ax0,(eTop+y)/2,'eprev','enext');
+      if((ax0+w)*2>maxW) maxW=(ax0+w)*2;
+    }
   }
   /* stencil button row: DOWNLOAD / READ MORE / custom kinds as solid '#' blocks with the
      label as punched-out holes; items carry btn:<kind>, each button records its hit rect */
@@ -3230,7 +3242,7 @@ function buildWelcomeLayout(){
 /* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
    scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
-const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, typeTitle:null};
+const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, wavePlayed:false, typeTitle:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
 /* ── exact GitHub calendar as an in-scene image (welcomeCal==='html') ──────────────────
    Rendered to a canvas → CanvasTexture (no DOM overlay), so the develop machinery can fade
@@ -3282,8 +3294,17 @@ const WB_FLY=360, WB_COL=14, WB_LINGER=4400, WB_GAP=700, WB_FIRST_PAUSE=480;
 const WBAN_CELL=0.15; // nominal stencil cell (matches the section list; long messages shrink to the calendar width)
 function welcomeMessages(){
   if(!statsReady()||!GH_STATS.commits) return ['LOADING COMMITS'];
-  const c=GH_STATS.commits;
-  return [c.today+' COMMITS TODAY', c.month+' COMMITS THIS MONTH', c.year+' COMMITS THIS YEAR', c.total+' COMMITS TOTAL'];
+  const c=GH_STATS.commits, r=GH_STATS.repos||{}, out=[
+    c.today+' COMMITS TODAY', c.month+' COMMITS THIS MONTH',
+    c.year+' COMMITS THIS YEAR', c.total+' COMMITS TOTAL'
+  ];
+  if(r.mostRecent&&r.mostRecent.description){
+    const readme=asciiSafe(String(r.mostRecent.description)).toUpperCase()
+      .replace(/[^A-Z0-9 .,'&?!:()/-]/g,' ').replace(/\s+/g,' ').trim().slice(0,46);
+    if(readme) out.push('README: '+readme);
+  }
+  if(Number.isFinite(r.totalStars)) out.push(r.totalStars+' GITHUB STARS');
+  return out;
 }
 function hideBannerGlyphs(){ for(const rec of welcome.pool){ rec.m.visible=false; rec.m.material.opacity=0; rec.m.position.copy(rec.home); } }
 function startBannerWrite(now){
@@ -3299,7 +3320,6 @@ function startBannerWrite(now){
       letters.push({to, col:cx0+c, row:r});
     }
     cx0+=g[0].length+1; }
-  hideBannerGlyphs();
   if(letters.length>b.pool.length) letters.length=b.pool.length; // never in practice — the reserve is sized from the messages
   const style=welcomeBannerStyle, mid=cols/2;
   letters.forEach((L,i)=>{ const rec=b.pool[i]; L.rec=rec; L.geoT=geoT; L.swapped=false; L.held=false; L.out=false; L.done=false;
@@ -3359,8 +3379,29 @@ function animateBanner(L,p,writing){
   m.scale.setScalar(writing?(1+(sc-1)*e):(sc+(1-sc)*e));
   m.material.opacity=writing?Math.min(1,p*2):Math.max(0,1-p);
 }
+function animateBannerPrepare(P,p){
+  const m=P.rec.m, e=easeInOut(p), ie=1-e;
+  if(p>=1){ m.position.copy(P.sink); m.scale.setScalar(0.05); m.material.opacity=0; m.visible=false; P.done=true; return; }
+  m.visible=true; m.geometry=P.rec.geo0; m.material.color.set(asmRestColor()); m.userData.asm=false;
+  m.position.set(ie*ie*P.rec.home.x+2*ie*e*P.ctrl.x+e*e*P.sink.x,
+    ie*ie*P.rec.home.y+2*ie*e*P.ctrl.y+e*e*P.sink.y,
+    ie*ie*P.rec.home.z+2*ie*e*P.ctrl.z+e*e*P.sink.z);
+  m.scale.setScalar(1-0.95*e);
+  m.material.opacity=p<0.82?1:Math.max(0,(1-p)/0.18); // disappear only as the glyph reaches the hidden strip
+}
 function updateWelcomeBanner(now){
   const b=welcome.banner;
+  if(b.phase==='prepare'){
+    let done=true;
+    for(const P of b.prep){
+      if(P.done) continue;
+      const p=Math.max(0,(now-b.t0-P.delay)/F_FLY_MS);
+      if(p<1){ done=false; animateBannerPrepare(P,p); }
+      else animateBannerPrepare(P,1);
+    }
+    if(done){ b.phase='wait'; b.t0=now; }
+    return;
+  }
   if(b.phase==='wait'){
     if(b.first){
       const F=welcome.F, spec=F&&F.lay.typeTitle;
@@ -3387,7 +3428,19 @@ function updateWelcomeBanner(now){
   }
   if(done){ b.mi=(b.mi+1)%b.msgs.length; b.phase='wait'; b.t0=now; }
 }
-function initBanner(now){ welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'wait', first:true, t0:now, letters:[], s:WBAN_CELL*1.15}; hideBannerGlyphs(); }
+function initBanner(now){
+  const F=welcome.F, lay=F.lay, prep=welcome.pool.map((rec,i)=>{
+    const u=((i*0.61803398875)%1)-0.5, v=((i*0.38196601125)%1)-0.5;
+    const sink=new THREE.Vector3().copy(F.anchor)
+      .addScaledVector(F.right,(lay.bannerCX+u*lay.bannerHalfW*1.45)*F.f)
+      .addScaledVector(F.up,(lay.bannerCY+v*0.55)*F.f)
+      .addScaledVector(F.dir,-0.8-(i%7)*0.08);
+    return {rec,sink,ctrl:new THREE.Vector3().lerpVectors(rec.home,sink,0.5)
+      .addScaledVector(F.up,1.0+(i%9)*0.12),delay:(i%17)*18,done:false};
+  });
+  welcome.banner={pool:welcome.pool, msgs:welcomeMessages(), mi:0, phase:'prepare', first:true,
+    t0:now, letters:[], prep, s:WBAN_CELL*1.15};
+}
 function restoreBannerGlyphs(){ for(const rec of welcome.pool){ const m=rec.m; m.geometry=rec.geo0; m.position.copy(rec.home); m.scale.setScalar(1); m.material.opacity=1; m.visible=true; m.material.color.set(asmRestColor()); m.userData.asm=false; } }
 /* the greeting wave: once the figure has settled (facet 'hold'), his flagged arm glyphs
    move as a TWO-SEGMENT limb — the upper arm rotates about the shoulder pivot, the
@@ -3421,8 +3474,10 @@ function updateWelcomeWave(now){
   if(welcome.waveItems==null) welcome.waveItems=F.items.filter(it=>it.wave);
   if(!welcome.waveItems.length) return;
   if(welcome.waveT0==null) welcome.waveT0=now+900; // a beat to settle before the first wave
-  const W=WAVE_STYLES[welcomeWave]; // 'off' (or unknown) → angles 0, arm pinned at its settled home
-  const L=F.lay, K=W?(W.baseK||1):0, tp=Math.max(0,now-welcome.waveT0);
+  let W=welcome.wavePlayed?null:WAVE_STYLES[welcomeWave]; // one greeting wave per page session
+  const L=F.lay, tp=Math.max(0,now-welcome.waveT0);
+  if(W&&tp>=W.rise+(W.preHold||0)+W.wig+W.fall){ welcome.wavePlayed=true; W=null; }
+  const K=W?(W.baseK||1):0;
   const e=W?welcomeWaveEnv(tp,W):0;
   const w =W?WAVE_WIGK*welcomeWaveWig(tp,W):0;                    // upper arm's share, in phase
   const w2=W?WAVE_WIGK*welcomeWaveWig(Math.max(0,tp-WAVE_LAG),W):0; // forearm follows a beat behind
@@ -3670,7 +3725,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pKill:false, pStart:0,
                  vids:d.vids||null, vIdx:0, vPlane:null, vEl:null, vSrc:null, vOn:false, vT0:0, vEnded:false, vSwap:null,
                  games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, cbDis:0, // in-scene chess board (v66)
-                 elist:(d.g&&d.g.list)||null, eIdx:0, // v68: highlight list (volunteering)
+                 elist:(d.g&&d.g.list&&!d.g.staticList)?d.g.list:null, eIdx:0,
                  pdfEntry:(d.g&&d.g.pdfEntry!==undefined)?d.g.pdfEntry:null, // v69: DOWNLOAD only shows while THIS list entry is highlighted
                   caseBaseLay:d.lay.caseBaseLay||null, caseDetailLay:d.lay.caseDetailLay||null,
                   moreDetail:false, moreSwap:null,
@@ -3903,9 +3958,15 @@ function facetGaze(cy,cp,dt){ // fire/release facets by YAW ONLY — each facet 
   const now=performance.now();
   if(stopFacets.scrollMode){
     const active=stopFacets.scrollFacets[stopFacets.scrollIndex], nav=stopFacets.timelineFacet;
-    if(active&&(active.state==='home'||active.state==='out')) facetIn(active,now);
-    if(nav&&(nav.state==='home'||nav.state==='out')) facetIn(nav,now);
-    for(const F of stopFacets.scrollFacets) if(F!==active&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
+    const facing=active||nav, d=facing?Math.abs(wrapAng(cy-facing.yaw)):Infinity;
+    if(d<F_GAZE_IN){
+      if(active&&(active.state==='home'||active.state==='out')) facetIn(active,now);
+      if(nav&&(nav.state==='home'||nav.state==='out')) facetIn(nav,now);
+      for(const F of stopFacets.scrollFacets) if(F!==active&&(F.state==='in'||F.state==='hold')) facetOut(F,now);
+    } else if(d>F_GAZE_OUT){
+      if(active&&(active.state==='in'||active.state==='hold')) facetOut(active,now);
+      if(nav&&(nav.state==='in'||nav.state==='hold')) facetOut(nav,now);
+    }
     return;
   }
   for(const F of stopFacets.facets){
@@ -5041,6 +5102,8 @@ function beginEnter(toIdx){
   introCamActive=false; introActive=false; if(progActive){ progActive=false; progCleanup(); } // entering early aborts any running intro
   revealPortraitInstant(); // and settles every glyph, so the assembly at the arriving stop owns them cleanly
   controls.enabled=false; hidePanel(); hideHint(); syncButtons();
+  if(toIdx>0) railReveal();
+  railSet(toIdx); railTravel();
 }
 let dockT0=0; const dockPos=new THREE.Vector3(), dockQuat=new THREE.Quaternion();
 function dock(k){
@@ -5072,7 +5135,8 @@ function departTo(k){
     return;
   }
   if(k===dockIdx) return;
-  if(k>0) railReveal(); // v69: first travel beyond Welcome brings the rail in (and it stays)
+  if(k>0) railReveal(); // first travel beyond Welcome brings the rails in
+  railTravel(); // labels retract for the flight and slide back at touchdown
   jMode='flying'; depart=0; dockZoomT=1; hidePanel(); hideHint(); disassemble(false); // zoom eases home during the flight
   const mode=(Math.abs(k-dockIdx)===1)?travelAdjacent:travelFar; // adjacent hop vs. jump across the path
   flight=buildFlight(stopS[dockIdx],stopS[k],k,mode);
@@ -5280,7 +5344,7 @@ function beginExit(){
   dockZoomT=1; // the scroll-zoom eases out with the exit
   tourReset(); // the guided sweep re-arms at the overview framing (exact pose the exit lands on)
   exitFromPos.copy(camera.position); exitFromQuat.copy(camera.quaternion);
-  hidePanel(); hideHint(); disassemble(false); syncButtons();
+  railTravel(); hidePanel(); hideHint(); disassemble(false); syncButtons();
 }
 /* Every new journey begins at Welcome; "Free roam" returns to orbiting. */
 enterBtn.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(0); });
@@ -6043,7 +6107,7 @@ introSelect.value=introMode;
 document.getElementById('introReplay').addEventListener('click',()=>{
   if(!FONT) return; // portrait not built yet
   dragging=false; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1;
-  uiState='overview'; hidePanel(); hideHint(); railSet(-1); syncButtons();
+  uiState='overview'; hidePanel(); hideHint(); railSet(-1); railTravel(); syncButtons();
   rawCheck.checked=true; applyRaw(true);
   beginIntro(introSelect.value); // replay the chosen load animation from the overview
 });
@@ -6119,7 +6183,7 @@ const welBannerSelect=document.getElementById('welBannerSelect');
 welBannerSelect.value=welcomeBannerStyle;
 welBannerSelect.addEventListener('change',()=>{
   welcomeBannerStyle=welBannerSelect.value; localStorage.setItem('pf_welcome_banner',welcomeBannerStyle);
-  if(welcome.active&&welcome.banner){ hideBannerGlyphs(); welcome.banner=null; }
+  if(welcome.active&&welcome.banner){ restoreBannerGlyphs(); welcome.banner=null; }
 });
 const welScrollSelect=document.getElementById('welScrollSelect');
 welScrollSelect.value=welcomeScrollStyle;
@@ -6145,7 +6209,8 @@ welAboutScrollCheck.addEventListener('change',()=>{
 const welWaveSelect=document.getElementById('welWaveSelect');
 welWaveSelect.value=welcomeWave;
 welWaveSelect.addEventListener('change',()=>{ // swap the greeting-wave style; read live each frame by updateWelcomeWave
-  welcomeWave=welWaveSelect.value; localStorage.setItem('pf_welcome_wave',welcomeWave); welcome.waveT0=null; }); // reset the clock so the new style starts clean
+  welcomeWave=welWaveSelect.value; localStorage.setItem('pf_welcome_wave',welcomeWave);
+  welcome.waveT0=null; welcome.wavePlayed=false; }); // a manual style choice previews one fresh greeting
 bindRange('welSize','valWelSize',v=>{ WELCOME_SIZE=v; reassembleWelcome(); },v=>v.toFixed(2)); // live-reframes the welcome panorama when docked there
 bindRange('welHalo','valWelHalo',v=>{ WELCOME_HALO=v; reassembleWelcome(); },v=>v.toFixed(2));
 /* v70: UI font switcher (dev tools ▸ Render). Swaps the HTML/UI body font only — the 3D
@@ -6372,7 +6437,7 @@ function genRun(){
   introActive=false; introCamActive=false; if(progActive){ progActive=false; progCleanup(); } // stop any running intro
   disassemble(true); // and return any assembled stop text to the relief
   revealPortraitInstant(); // settle mid-animation glyphs so genRestore brings back the full portrait, not a frozen partial reveal
-  uiState='overview'; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1; hidePanel(); hideHint(); syncButtons();
+  uiState='overview'; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1; hidePanel(); hideHint(); railTravel(); syncButtons();
   controls.enabled=true; controls.target.copy(faceCenter); controls.update();
   const o={ charsetName:genEl('genCharset').value, customChars:genEl('genCustom').value, cols:parseInt(genEl('genCols').value),
     N:parseInt(genEl('genSamples').value), weight:parseFloat(genEl('genWeight').value), depthScale:parseFloat(genEl('genDepth').value),
