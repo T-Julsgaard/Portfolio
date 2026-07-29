@@ -1,21 +1,30 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
-## v82: Welcome project selectors and projected DOM dossiers
+## v83: Welcome project selectors assemble an auxiliary scene facet
 
-Welcome's five software-project rows now participate in the same live-button
-contract as the stop/CV rows: each is an ordinary scrolled facet row with a unique
-`wproject:<id>` kind, `nav` metadata for arrow-key traversal, its normal button item
-group, and a `project` reference for dispatch. Hover/focus opens the external
-`#project-peek` dossier; click/Enter pins it. The card is positioned from the
-project button's world-to-screen projection in `updateAssembly()` and stays outside
-`lay.w`/`lay.h`, partitioning, absorption, and the glyph budget.
+The v82 screen-space dossier was removed. The five project rows remain ordinary
+scrolled Welcome buttons with unique `wproject:<id>` kinds, but hover/focus/click
+now selects one normalized auxiliary `projectStage` facet. That facet is hung on
+the main Welcome plane just beyond PORTFOLIO's right edge and is omitted from the
+main layout's fit bounds, so existing Welcome content neither shifts nor shrinks.
+It is not gaze-fired independently: the row selection assembles it, the main
+Welcome look-away releases it, and departure restores its owners normally.
 
-`#project-live` is the explicit-action companion viewer. It never exists as a
-project iframe on hover, and its frame is reset to `about:blank` on close. GitHub
-Pages demos navigate normally; standalone repository artifacts are fetched,
-rebased, and assigned through sandboxed `srcdoc`. This is an intentional DOM
-exception like the projected chess/contact surfaces: the project names themselves
-still obey the complete terrain assembly lifecycle.
+`buildProjectStageLayout()` gives every project the same outer frame, 16:9 screen,
+title/body/proof/meta bands, and two-button row. Only the largest variant is
+partitioned. `configureProjectStage()` maps those reserved records onto the chosen
+variant and restarts their in-flight lifecycle from the records' current world
+positions. Switching Chess → Entropy → DocuRAG therefore visibly reorders one
+consistent glyph object instead of swapping differently sized cards. Hidden union
+records converge on active targets and disappear only on landing.
+
+OPEN PROJECT develops deployed or rebased standalone HTML into `#project-live`.
+The 720×405 DOM surface is mapped onto the facet screen with the chess board's
+four-corner homography and follows camera drift, zoom, and drag-look as part of the
+world. There is no full-screen modal or backdrop. Hover never fetches remote code,
+closing the live surface reassembles the screen glyphs, and the music bar is left
+untouched. Real-data budget: main Welcome 3,437 + project stage 1,836 = 5,273 of
+13,268 glyphs, leaving 7,995 spare.
 
 ## v81: gaze-aware timelines and quiet Volunteering
 

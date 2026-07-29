@@ -10,7 +10,7 @@ and stats work; double-clicking the file blocks both).
 
 The welcome stop shows live GitHub numbers: a commit ticker, the contribution
 calendar, a compact latest-repository README line, total stars across the public
-repositories, and per-project stars/language for the featured-project dossiers.
+repositories, and per-project stars/language for the assembled in-scene project stage.
 Because the site is static (GitHub Pages),
 the numbers are fetched **ahead of time** by a scheduled GitHub Actions
 workflow that writes them to `data/stats.json`; the site just reads that file.

@@ -7,26 +7,40 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
-## v82 addendum: Welcome project dossiers stay outside facet bounds
+## v83 addendum: Welcome projects use an auxiliary in-scene facet
 
-Welcome's project names are genuine facet items and must retain normal terrain
-ownership, scroll-window visibility, `baseTo` rewrites, hover swell, departure, and
-restore. The accompanying `#project-peek` dossier and `#project-live` viewer are DOM
-surfaces, however. Never add their width or content to `buildWelcomeLayout()`: doing
-so expands `lay.w`, changes the fit scale, and silently shrinks every established
-Welcome element. Position the dossier from the selected button's projected facet
-coordinate instead.
+The v82 projected DOM dossier is gone. Welcome now allocates one `projectStage`
+facet on the **same world plane** as the main Welcome composition, offset just past
+PORTFOLIO's right edge. It is excluded from `buildWelcomeLayout()` and the main
+facet's fit calculation, so the greeting, figure, calendar, and navigation keep
+their established scale. The stage has its own truthful width/height, cone, terrain
+owners, and world anchor. It is explicitly selected from a project row and skipped
+by the ordinary yaw-gaze loop; looking away from the main Welcome facet releases it.
 
-Every project button needs a unique kind (`wproject:<id>`). `btnKind` is also the
-item-group key used to attach `b.items` and drive hover animation; one shared
-`wproject` kind would bind all project glyphs to every project rectangle. Store the
-project record separately on the button for semantic dispatch.
+All five project layouts share one fixed `PROJECT_STAGE_W` / `PROJECT_STAGE_H`
+frame, the same 16:9 screen rectangle, identical information bands, and the same
+OPEN PROJECT / VIEW CODE controls. `buildProjectStageReserve()` claims only the
+largest layout once. `configureProjectStage()` retargets those same records and
+restarts `facetIn()` from their **current** positions, so changing projects visibly
+reorders the existing glyphs instead of changing card size or spawning a DOM panel.
+Surplus union records fly into active targets and land hidden, following the same
+max-layout reuse rule as in-scene READ MORE.
 
-Remote project code is never loaded by hover. It enters only after an explicit live
-action, inside a disposable iframe. Standalone repository HTML uses sandboxed
-`srcdoc` plus a raw-directory `<base>`; GitHub Pages demos use their deployed URL.
-On departure/Welcome release, close the dossier and tear down the live frame without
-touching glyph ownership.
+Every Welcome project row still needs its unique `wproject:<id>` kind. `btnKind` is
+also the item-group key used for hover animation; one shared kind would merge all
+five row groups. The stage's own controls use the stable `project-open`,
+`project-code`, and `project-close` kinds.
+
+Remote code still loads only after an explicit OPEN PROJECT. GitHub Pages demos and
+rebased standalone repository HTML develop into `#project-live`, whose fixed
+720×405 internal surface is homography-projected onto the stage's glyph screen
+(the same technique as the chess board). It is not modal and has no viewport
+backdrop. Closing it reassembles the glyph screen; departure tears it down. Project
+previews never pause or resume the music bar.
+
+Real-data validation: 13,268 terrain glyphs; Welcome claims 3,437 and the normalized
+project stage claims 1,836, leaving 7,995 spare. Both facets claimed every requested
+record.
 
 ## v81 addendum: timeline gaze parity and static lists
 
