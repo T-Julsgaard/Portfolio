@@ -2272,7 +2272,49 @@
       "url": "https://github.com/T-Julsgaard/portfolio",
       "pushedAt": "2026-07-06T23:03:01Z",
       "language": "HTML"
-    }
+    },
+    "featured": [
+      {
+        "name": "Chess-Review",
+        "description": "Free, open source game review. Produces accuracy scores within ~95% of Chess.com's. [Currently 100+ users]",
+        "url": "https://github.com/T-Julsgaard/Chess-Review",
+        "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
+        "stars": 10,
+        "language": "JavaScript"
+      },
+      {
+        "name": "entropy-forge",
+        "description": "Multi-API entropy harvester. The API version of Cloudflare's lava-lamp wall.",
+        "url": "https://github.com/T-Julsgaard/entropy-forge",
+        "homepageUrl": "https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html",
+        "stars": 0,
+        "language": "HTML"
+      },
+      {
+        "name": "DocuRAG",
+        "description": "A plug-and-play RAG knowledge base for small and mid-size document sets.",
+        "url": "https://github.com/T-Julsgaard/DocuRAG",
+        "homepageUrl": "https://t-julsgaard.github.io/DocuRAG/",
+        "stars": 0,
+        "language": "Python"
+      },
+      {
+        "name": "danish-wind-mapper",
+        "description": "Interactive map of Denmark's wind-energy infrastructure, ownership, and capacity.",
+        "url": "https://github.com/T-Julsgaard/danish-wind-mapper",
+        "homepageUrl": null,
+        "stars": 0,
+        "language": "HTML"
+      },
+      {
+        "name": "bitcoin-mining-miningame",
+        "description": "A real-time visualization experiment that transforms live blockchain data into a skill-based clicker game.",
+        "url": "https://github.com/T-Julsgaard/bitcoin-mining-miningame",
+        "homepageUrl": null,
+        "stars": 0,
+        "language": "Python"
+      }
+    ]
   },
   "profile": {
     "followers": 4,

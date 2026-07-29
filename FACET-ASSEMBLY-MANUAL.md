@@ -7,6 +7,27 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v82 addendum: Welcome project dossiers stay outside facet bounds
+
+Welcome's project names are genuine facet items and must retain normal terrain
+ownership, scroll-window visibility, `baseTo` rewrites, hover swell, departure, and
+restore. The accompanying `#project-peek` dossier and `#project-live` viewer are DOM
+surfaces, however. Never add their width or content to `buildWelcomeLayout()`: doing
+so expands `lay.w`, changes the fit scale, and silently shrinks every established
+Welcome element. Position the dossier from the selected button's projected facet
+coordinate instead.
+
+Every project button needs a unique kind (`wproject:<id>`). `btnKind` is also the
+item-group key used to attach `b.items` and drive hover animation; one shared
+`wproject` kind would bind all project glyphs to every project rectangle. Store the
+project record separately on the button for semantic dispatch.
+
+Remote project code is never loaded by hover. It enters only after an explicit live
+action, inside a disposable iframe. Standalone repository HTML uses sandboxed
+`srcdoc` plus a raw-directory `<base>`; GitHub Pages demos use their deployed URL.
+On departure/Welcome release, close the dossier and tear down the live frame without
+touching glyph ownership.
+
 ## v81 addendum: timeline gaze parity and static lists
 
 Scroll-mode Work/Education still share one forward yaw, but that does not make them

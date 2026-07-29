@@ -55,11 +55,143 @@
   .rail-stop:is(:hover,:focus-visible) { outline:none; }
   #journey-rails.docked .rail-stop:is(:hover,:focus-visible) .lbl { opacity:1; color:#fff; }
   .rail-stop:focus-visible .dot { border-color:#fff; box-shadow:0 0 8px rgba(255,255,255,0.72); }
-  #rail-portfolio .rail-project { cursor:default; opacity:0.58; }
+  #rail-portfolio .rail-project { cursor:pointer; opacity:0.72; }
+  #rail-portfolio .rail-project .dot { border-radius:1px; transform:rotate(45deg) scale(0.78); }
+  #journey-rails.docked .rail-project:is(:hover,:focus-visible) { opacity:1; }
   .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
   .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
   /* Labels stay expanded while docked, retract during travel, then slide back in at
      touchdown. Welcome hides both rails because its in-scene columns already navigate. */
+
+  /* Featured-project dossier (v82). This is deliberately outside buildWelcomeLayout:
+     it may occupy the open terrain to PORTFOLIO's right without widening the facet,
+     shrinking the greeting, or claiming one portrait glyph. Its small "screens" are
+     lightweight native diagrams; the real project is loaded only after TRY LIVE. */
+  #project-peek {
+    --pp-accent:#fff; position:fixed; z-index:8; width:min(310px,calc(100vw - 28px));
+    left:calc(100vw - 328px); top:24vh; padding:13px;
+    color:#f4f4f2; background:rgba(4,4,4,0.90);
+    border:1px solid rgba(255,255,255,0.28); box-shadow:0 18px 70px rgba(0,0,0,0.44);
+    backdrop-filter:blur(10px); opacity:0; pointer-events:none;
+    transform:translateX(22px); transition:opacity .18s ease,transform .28s cubic-bezier(.2,.8,.2,1);
+  }
+  #project-peek::before { content:''; position:absolute; right:100%; top:var(--pp-stem-y,42px);
+    width:22px; height:1px; background:linear-gradient(90deg,transparent,var(--pp-accent)); opacity:.72; }
+  #project-peek.open { opacity:1; pointer-events:auto; transform:none; }
+  #project-peek.from-rail { left:auto!important; right:74px; top:50%!important; transform:translate(18px,-50%); }
+  #project-peek.from-rail.open { transform:translate(0,-50%); }
+  #project-peek.from-rail::before { left:100%; right:auto; background:linear-gradient(90deg,var(--pp-accent),transparent); }
+  .pp-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .pp-index { font-size:8px; line-height:1; letter-spacing:.22em; color:rgba(255,255,255,.5); }
+  #pp-close { width:24px; height:24px; flex:none; border:0; background:transparent; color:rgba(255,255,255,.58);
+    font:16px/1 inherit; cursor:pointer; transition:color .15s,transform .15s; }
+  #pp-close:hover,#pp-close:focus-visible { color:#fff; transform:rotate(90deg); outline:none; }
+  #pp-screen { position:relative; height:132px; overflow:hidden; margin-bottom:13px;
+    border:1px solid rgba(255,255,255,.20); background:#0a0a0a; color:var(--pp-accent); }
+  #pp-screen::after { content:''; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(to bottom,transparent 0,transparent 3px,rgba(255,255,255,.022) 4px); }
+  .pp-screenbar { height:20px; display:flex; align-items:center; justify-content:space-between; padding:0 7px;
+    border-bottom:1px solid rgba(255,255,255,.15); font-size:7px; letter-spacing:.16em; color:rgba(255,255,255,.62); }
+  .pp-screenbar i { width:5px; height:5px; border-radius:50%; background:var(--pp-accent); box-shadow:0 0 8px var(--pp-accent); }
+  .pp-visual { position:absolute; inset:20px 0 0; }
+  .pp-chess { display:grid; grid-template-columns:repeat(8,1fr); width:104px; height:104px; left:12px; top:4px;
+    border:1px solid rgba(255,255,255,.34); }
+  .pp-chess i { display:block; background:rgba(255,255,255,.1); }
+  .pp-chess i:nth-child(16n+1),.pp-chess i:nth-child(16n+3),.pp-chess i:nth-child(16n+5),.pp-chess i:nth-child(16n+7),
+  .pp-chess i:nth-child(16n+10),.pp-chess i:nth-child(16n+12),.pp-chess i:nth-child(16n+14),.pp-chess i:nth-child(16n+16) { background:rgba(158,212,107,.5); }
+  .pp-eval { position:absolute; left:128px; right:10px; top:9px; font-size:7px; letter-spacing:.10em; color:rgba(255,255,255,.55); }
+  .pp-eval b { display:block; margin:5px 0 8px; font-size:19px; color:#fff; font-weight:400; }
+  .pp-eval .line { height:3px; margin:5px 0; background:rgba(255,255,255,.1); }
+  .pp-eval .line::after { content:''; display:block; width:var(--w); height:100%; background:var(--pp-accent); }
+  .pp-lanes { display:grid; grid-template-columns:1fr 1fr; gap:5px 8px; padding:9px; }
+  .pp-lane { display:grid; grid-template-columns:52px 1fr 14px; align-items:center; gap:5px;
+    font-size:6px; letter-spacing:.08em; color:rgba(255,255,255,.57); }
+  .pp-lane i { height:2px; background:rgba(255,255,255,.11); overflow:hidden; }
+  .pp-lane i::after { content:''; display:block; width:var(--w); height:100%; background:var(--pp-accent);
+    animation:pp-pulse 2.2s ease-in-out infinite alternate; }
+  @keyframes pp-pulse { from{opacity:.35;transform:scaleX(.55);transform-origin:left} to{opacity:1;transform:scaleX(1);transform-origin:left} }
+  .pp-rag { padding:9px; font-size:7px; color:rgba(255,255,255,.64); }
+  .pp-rag .query,.pp-rag .answer { width:82%; padding:6px 8px; margin-bottom:6px; border:1px solid rgba(255,255,255,.16); }
+  .pp-rag .query { margin-left:auto; color:#fff; border-color:color-mix(in srgb,var(--pp-accent) 55%,transparent); }
+  .pp-rag .answer { background:rgba(255,255,255,.04); }
+  .pp-rag .sources { display:flex; gap:4px; margin-top:5px; }
+  .pp-rag .sources i { width:34px; height:3px; background:var(--pp-accent); opacity:.52; }
+  .pp-wind svg { width:100%; height:100%; display:block; }
+  .pp-wind .land { fill:rgba(255,255,255,.06); stroke:rgba(255,255,255,.34); stroke-width:1.2; }
+  .pp-wind .turb { fill:var(--pp-accent); filter:drop-shadow(0 0 3px var(--pp-accent)); }
+  .pp-wind .ring { fill:none; stroke:var(--pp-accent); stroke-width:.7; opacity:.42; }
+  .pp-blocks { display:flex; align-items:flex-end; gap:6px; padding:10px; }
+  .pp-block { position:relative; width:42px; height:var(--h); min-height:26px; padding:5px; border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.035); font-size:6px; color:rgba(255,255,255,.5); }
+  .pp-block.hot { border-color:var(--pp-accent); color:#fff; box-shadow:0 0 14px color-mix(in srgb,var(--pp-accent) 28%,transparent); }
+  .pp-block::after { content:''; position:absolute; left:100%; top:50%; width:7px; height:1px; background:rgba(255,255,255,.24); }
+  .pp-block:last-child::after { display:none; }
+  .pp-kicker { margin-bottom:4px; font-size:8px; letter-spacing:.18em; color:var(--pp-accent); text-transform:uppercase; }
+  #pp-title { margin:0; font-size:19px; line-height:1.16; font-weight:500; letter-spacing:.02em; }
+  #pp-blurb { margin:7px 0 9px; font-size:10.5px; line-height:1.55; color:rgba(255,255,255,.74); }
+  .pp-proof { padding:7px 0; border-top:1px dotted rgba(255,255,255,.20); border-bottom:1px dotted rgba(255,255,255,.20);
+    font-size:8px; line-height:1.35; letter-spacing:.10em; text-transform:uppercase; color:rgba(255,255,255,.68); }
+  #pp-meta { display:flex; flex-wrap:wrap; gap:5px; margin-top:9px; }
+  #pp-meta span { padding:3px 5px; border:1px solid rgba(255,255,255,.17); color:rgba(255,255,255,.58);
+    font-size:7px; letter-spacing:.12em; text-transform:uppercase; }
+  #pp-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:11px; }
+  #pp-actions a,#pp-actions button { min-height:28px; padding:0 9px; border:1px solid rgba(255,255,255,.28);
+    background:transparent; color:#fff; font:8px/1 inherit; letter-spacing:.13em; text-decoration:none; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; transition:background .15s,color .15s,border-color .15s; }
+  #pp-actions .primary { border-color:var(--pp-accent); color:var(--pp-accent); }
+  #pp-actions a:hover,#pp-actions button:hover,#pp-actions a:focus-visible,#pp-actions button:focus-visible {
+    background:#fff; border-color:#fff; color:#000; outline:none; }
+
+  /* Full project viewer: keeps the visitor inside the portfolio while providing a
+     normal-sized surface for dense demos. Remote content is never created on hover. */
+  #project-live { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
+    padding:24px; background:rgba(0,0,0,.78); backdrop-filter:blur(12px);
+    opacity:0; visibility:hidden; pointer-events:none; transition:opacity .22s ease,visibility 0s linear .22s; }
+  #project-live.open { opacity:1; visibility:visible; pointer-events:auto; transition-delay:0s; }
+  .pl-shell { width:min(1240px,100%); height:min(820px,100%); display:flex; flex-direction:column;
+    background:#080808; border:1px solid rgba(255,255,255,.34); box-shadow:0 26px 100px rgba(0,0,0,.72);
+    transform:scale(.985) translateY(8px); transition:transform .28s cubic-bezier(.2,.8,.2,1); }
+  #project-live.open .pl-shell { transform:none; }
+  .pl-bar { height:42px; flex:none; display:flex; align-items:center; gap:12px; padding:0 10px 0 14px;
+    border-bottom:1px solid rgba(255,255,255,.22); }
+  .pl-status { width:6px; height:6px; flex:none; border-radius:50%; background:var(--pl-accent,#fff);
+    box-shadow:0 0 9px var(--pl-accent,#fff); }
+  .pl-names { min-width:0; flex:1; }
+  #pl-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; letter-spacing:.15em; text-transform:uppercase; }
+  #pl-sub { margin-top:2px; font-size:7px; letter-spacing:.14em; color:rgba(255,255,255,.45); }
+  .pl-bar a,.pl-bar button { height:25px; padding:0 8px; border:1px solid rgba(255,255,255,.24); background:transparent;
+    color:rgba(255,255,255,.74); font:7px/1 inherit; letter-spacing:.12em; text-decoration:none; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; }
+  .pl-bar a:hover,.pl-bar button:hover,.pl-bar a:focus-visible,.pl-bar button:focus-visible { color:#000;background:#fff;outline:none; }
+  #pl-close { width:27px; padding:0; font-size:15px; }
+  .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#f3f3ef; }
+  #pl-frame { width:100%; height:100%; border:0; display:block; background:#f3f3ef; }
+  #pl-load { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
+    background:#080808; color:rgba(255,255,255,.62); font-size:8px; letter-spacing:.16em; text-transform:uppercase;
+    transition:opacity .24s; pointer-events:none; }
+  #pl-load::before { content:''; width:7px; height:7px; border:1px solid var(--pl-accent,#fff);
+    animation:pl-spin .8s steps(4,end) infinite; }
+  #project-live.ready #pl-load { opacity:0; }
+  #project-live.failed #pl-load { pointer-events:auto; text-align:center; padding:24px; line-height:1.7; }
+  @keyframes pl-spin { to{transform:rotate(360deg)} }
+  .pf-invert #project-peek { color:#111; background:rgba(255,255,255,.92); border-color:rgba(0,0,0,.3);
+    box-shadow:0 18px 70px rgba(30,30,30,.18); }
+  .pf-invert #pp-close,.pf-invert #pp-blurb,.pf-invert .pp-proof,.pf-invert #pp-meta span,.pf-invert .pp-index {
+    color:rgba(0,0,0,.66); }
+  .pf-invert #pp-title { color:#111; }
+  .pf-invert #pp-actions a,.pf-invert #pp-actions button { color:#111; border-color:rgba(0,0,0,.3); }
+  .pf-invert #pp-actions a:hover,.pf-invert #pp-actions button:hover { background:#111;color:#fff; }
+  @media (max-width:900px) {
+    #project-peek,#project-peek.from-rail { left:12px!important; right:12px!important; top:auto!important; bottom:12px;
+      width:auto; transform:translateY(22px); }
+    #project-peek.open,#project-peek.from-rail.open { transform:none; }
+    #project-peek::before { display:none; }
+    #pp-screen { height:104px; }
+    #pp-blurb { font-size:10px; }
+    #project-live { padding:8px; }
+    .pl-shell { width:100%; height:100%; }
+    #pl-sub,.pl-bar .pl-external { display:none; }
+  }
 
   #panel {
     position:fixed; left:26px; top:50%; transform:translateY(calc(-50% + 16px));
@@ -1329,6 +1461,7 @@ let inverted=false;
 const BG_DARK='#000000', BG_LIGHT='#ffffff', GLYPH_LIGHT='#e8ecf3', GLYPH_DARK='#111111', GLYPH_RAW='#ffffff';
 function applyInvert(on){
   inverted=on; renderDirty=true; glyphsDirty=true; // per-instance colors need a re-sync
+  document.documentElement.classList.toggle('pf-invert',on);
   const bg=on?BG_LIGHT:BG_DARK, glyph=on?GLYPH_DARK:(rawMode?GLYPH_RAW:GLYPH_LIGHT);
   if(typeof PROCESS_RAW_COLOR!=='undefined') PROCESS_RAW_COLOR.value.set(on?GLYPH_DARK:GLYPH_RAW);
   scene.background.set(bg);
@@ -1865,7 +1998,49 @@ const JOURNEY=[
   {xf: 0.04, yf:-1.02},
 ];
 const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.stop); } });
-const PORTFOLIO_PROJECTS=['Chess-Review','Entropy-forge','DocuRAG','Danish wind mapper','Bitcoin-miningame'];
+/* Featured software projects share one curated source of truth across Welcome, the
+   fixed rail, the dossier card, and the on-demand live viewer. GitHub-owned facts
+   (stars/language/description) are overlaid from data/stats.json when available;
+   the copy and launch targets stay deliberately curated here. `liveMode:'raw'`
+   renders a repository's standalone HTML artifact through iframe.srcdoc only after
+   the visitor asks to try it — nothing remote loads on hover. */
+const PORTFOLIO_PROJECTS=[
+  {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
+   repo:'https://github.com/T-Julsgaard/Chess-Review',
+   launch:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en',
+   launchLabel:'GET EXTENSION', kind:'CHROME EXTENSION', visual:'chess', accent:'#9ed46b',
+   language:'JavaScript', stars:10, proof:'100+ users · local Stockfish NNUE',
+   blurb:'Free, private game review for Chess.com and Lichess — accuracy, classifications, evaluation graphs, and estimated ratings in one click.'},
+  {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
+   repo:'https://github.com/T-Julsgaard/entropy-forge',
+   live:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html',
+   extra:'https://t-julsgaard.github.io/entropy-forge/web/harvest-manual.html', extraLabel:'FIELD MANUAL',
+   launchLabel:'TRY LIVE', kind:'CRYPTOGRAPHY INSTRUMENT', visual:'entropy', accent:'#ef6f55',
+   language:'HTML / Python', stars:0, proof:'13 live sources · verifiable receipts',
+   blurb:'Harvests earthquakes, weather, solar wind, the Bitcoin mempool, and human input into auditable public randomness.'},
+  {id:'docurag', label:'DocuRAG', repoName:'DocuRAG',
+   repo:'https://github.com/T-Julsgaard/DocuRAG',
+   live:'https://t-julsgaard.github.io/DocuRAG/',
+   launchLabel:'TRY DEMO', kind:'RAG KNOWLEDGE BASE', visual:'rag', accent:'#7aa2ff',
+   language:'Python', stars:0, proof:'Search + grounded Ask · self-hostable',
+   blurb:'A plug-and-play document knowledge base with free keyword search, grounded agentic answers, accounts, limits, and usage analytics.'},
+  {id:'danish-wind-mapper', label:'Danish wind mapper', repoName:'danish-wind-mapper',
+   repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
+   liveMode:'raw',
+   live:'https://raw.githubusercontent.com/T-Julsgaard/danish-wind-mapper/main/wind-asset-map/Interactive_wind_map_preview.html',
+   liveBase:'https://raw.githubusercontent.com/T-Julsgaard/danish-wind-mapper/main/wind-asset-map/',
+   launchLabel:'EXPLORE MAP', kind:'DATA VISUALIZATION', visual:'wind', accent:'#69c7d5',
+   language:'HTML / Python', stars:0, proof:'Turbines · ownership · capacity',
+   blurb:'An interactive map of Denmark’s wind-energy infrastructure, joining turbine and park locations with ownership and financial data.'},
+  {id:'bitcoin-miningame', label:'Bitcoin miningame', repoName:'bitcoin-mining-miningame',
+   repo:'https://github.com/T-Julsgaard/bitcoin-mining-miningame',
+   liveMode:'raw',
+   live:'https://raw.githubusercontent.com/T-Julsgaard/bitcoin-mining-miningame/main/Bitcoin_Miner_Minigame/output/btc_miner_preview.html',
+   liveBase:'https://raw.githubusercontent.com/T-Julsgaard/bitcoin-mining-miningame/main/Bitcoin_Miner_Minigame/output/',
+   launchLabel:'PLAY DEMO', kind:'REAL-TIME EXPERIMENT', visual:'bitcoin', accent:'#f2a900',
+   language:'Python / HTML', stars:0, proof:'Live mempool · skill-based play',
+   blurb:'A real-time visualization experiment that turns live, unconfirmed Bitcoin transactions into a skill-based clicker game.'}
+];
 
 /* --- path build: xy spline through the waypoints, altitude hugging the relief --- */
 let JCLEAR=ud('jHeight',7); // flight height above the local glyph tops (dev-tunable)
@@ -2090,10 +2265,15 @@ function addRailStop(parent,st,k){
   b.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(k); else if(uiState==='journey'&&jMode==='docked'&&k!==dockIdx) departTo(k); });
   parent.appendChild(b); railEls.push({el:b,k});
 }
-function addRailProject(label){
+function addRailProject(project){
   const row=document.createElement('button'); row.type='button'; row.className='rail-stop rail-project';
-  row.setAttribute('aria-disabled','true'); row.setAttribute('aria-label',label+' (details coming soon)');
-  row.innerHTML='<span class="lbl">'+label+'</span><span class="dot"></span>';
+  row.setAttribute('aria-label','Preview '+project.label);
+  row.innerHTML='<span class="lbl">'+project.label+'</span><span class="dot"></span>';
+  row.addEventListener('pointerenter',()=>showProjectPeek(project.id,false,null,'rail'));
+  row.addEventListener('pointerleave',scheduleProjectPeekClose);
+  row.addEventListener('focus',()=>showProjectPeek(project.id,false,null,'rail'));
+  row.addEventListener('blur',scheduleProjectPeekClose);
+  row.addEventListener('click',()=>showProjectPeek(project.id,true,null,'rail'));
   railPortfolio.appendChild(row);
 }
 const welcomeRailIdx=STOPS.findIndex(st=>st.id==='welcome');
@@ -2113,10 +2293,188 @@ for(const r of [railAbout,railPortfolio]){
     opts[ni].focus(); e.preventDefault(); e.stopPropagation();
   });
 }
+
+/* ===== featured-project dossier + live viewer (v82) ========================
+   The dossier is an HTML companion to Welcome's terrain-built project rows. It
+   intentionally does not participate in facet layout or glyph ownership: widening
+   buildWelcomeLayout would shrink every existing Welcome element. Hover/focus gives
+   an instant native preview; click/Enter pins it. Only an explicit launch creates
+   the remote iframe or fetches a standalone repository HTML artifact. */
+const projectPeek=document.createElement('aside');
+projectPeek.id='project-peek'; projectPeek.setAttribute('aria-label','Featured project preview'); projectPeek.setAttribute('aria-hidden','true');
+projectPeek.innerHTML=
+  '<div class="pp-head"><div class="pp-index" id="pp-index"></div><button id="pp-close" title="Close project preview" aria-label="Close project preview">×</button></div>'+
+  '<div id="pp-screen"></div><div class="pp-kicker" id="pp-kicker"></div><h2 id="pp-title"></h2>'+
+  '<p id="pp-blurb"></p><div class="pp-proof" id="pp-proof"></div><div id="pp-meta"></div><div id="pp-actions"></div>';
+document.body.appendChild(projectPeek);
+
+const projectLive=document.createElement('div');
+projectLive.id='project-live'; projectLive.setAttribute('role','dialog'); projectLive.setAttribute('aria-modal','true'); projectLive.setAttribute('aria-hidden','true');
+projectLive.innerHTML=
+  '<div class="pl-shell"><div class="pl-bar"><i class="pl-status"></i><div class="pl-names">'+
+  '<div id="pl-title"></div><div id="pl-sub"></div></div>'+
+  '<a class="pl-external" id="pl-external" target="_blank" rel="noopener">OPEN SEPARATELY ↗</a>'+
+  '<button id="pl-close" title="Close live project" aria-label="Close live project">×</button></div>'+
+  '<div class="pl-stage"><iframe id="pl-frame" title="Live project"></iframe><div id="pl-load">LOADING LIVE PROJECT</div></div></div>';
+document.body.appendChild(projectLive);
+
+const ppIndex=projectPeek.querySelector('#pp-index'), ppScreen=projectPeek.querySelector('#pp-screen');
+const ppKicker=projectPeek.querySelector('#pp-kicker'), ppTitle=projectPeek.querySelector('#pp-title');
+const ppBlurb=projectPeek.querySelector('#pp-blurb'), ppProof=projectPeek.querySelector('#pp-proof');
+const ppMeta=projectPeek.querySelector('#pp-meta'), ppActions=projectPeek.querySelector('#pp-actions');
+const plFrame=projectLive.querySelector('#pl-frame'), plLoad=projectLive.querySelector('#pl-load');
+const plTitle=projectLive.querySelector('#pl-title'), plSub=projectLive.querySelector('#pl-sub'), plExternal=projectLive.querySelector('#pl-external');
+const projectPeekState={id:null,pinned:false,source:'welcome',anchorBtn:null,closeT:0};
+let projectLiveOpen=false, projectPausedMusic=false, projectLoadToken=0, projectLiveReturnFocus=null;
+
+function projectById(id){ return PORTFOLIO_PROJECTS.find(p=>p.id===id)||null; }
+function projectRepoFact(p){
+  const rows=GH_STATS&&GH_STATS.repos&&GH_STATS.repos.featured;
+  return Array.isArray(rows)?rows.find(r=>r&&r.name&&r.name.toLowerCase()===p.repoName.toLowerCase()):null;
+}
+function projectVisualHTML(p){
+  const bar='<div class="pp-screenbar"><span>'+p.kind+'</span><i></i></div>';
+  if(p.visual==='chess'){
+    return bar+'<div class="pp-visual pp-chess">'+Array.from({length:64},()=>'<i></i>').join('')+'</div>'+
+      '<div class="pp-eval">LOCAL ANALYSIS<b>+0.38</b><div class="line" style="--w:82%"></div>'+
+      '<div class="line" style="--w:61%"></div><div class="line" style="--w:74%"></div>ACCURACY · 94.7</div>';
+  }
+  if(p.visual==='entropy'){
+    const lanes=[['WEATHER','72%'],['QUAKES','46%'],['MEMPOOL','88%'],['SOLAR WIND','59%'],['TIDES','67%'],['BIOSPHERE','39%'],['DRAND','91%'],['JITTER','54%']];
+    return bar+'<div class="pp-visual pp-lanes">'+lanes.map((l,i)=>'<div class="pp-lane"><span>'+l[0]+'</span><i style="--w:'+l[1]+'"></i><b>0'+((i%4)+1)+'</b></div>').join('')+'</div>';
+  }
+  if(p.visual==='rag'){
+    return bar+'<div class="pp-visual pp-rag"><div class="query">How do I configure daily limits?</div>'+
+      '<div class="answer">Set the allowance in the admin dashboard. The assistant cites the matching policy article.<div class="sources"><i></i><i></i><i></i></div></div>'+
+      '<div class="query">Show the source →</div></div>';
+  }
+  if(p.visual==='wind'){
+    return bar+'<div class="pp-visual pp-wind"><svg viewBox="0 0 300 112" aria-hidden="true">'+
+      '<path class="land" d="M139 7l16 9-6 13 10 12-7 12 9 13-5 13-13 4-8 18-16-3 1-18-13-9 8-14-4-14 15-9-2-12z"/>'+
+      '<path class="land" d="M165 79l19-8 20 4 10 10-15 8-18-4-9 12-13-7z"/>'+
+      '<path class="ring" d="M30 89C74 59 104 62 139 47S215 16 270 35"/>'+
+      '<g class="turb"><circle cx="57" cy="76" r="2.5"/><circle cx="87" cy="62" r="2.5"/><circle cx="121" cy="53" r="2.5"/>'+
+      '<circle cx="148" cy="35" r="2.5"/><circle cx="180" cy="31" r="2.5"/><circle cx="212" cy="26" r="2.5"/><circle cx="242" cy="35" r="2.5"/>'+
+      '<circle cx="175" cy="84" r="2.5"/><circle cx="203" cy="81" r="2.5"/></g></svg></div>';
+  }
+  const blocks=[['884,201','42px'],['884,202','57px'],['884,203','76px'],['NEXT','98px']];
+  return bar+'<div class="pp-visual pp-blocks">'+blocks.map((b,i)=>'<div class="pp-block'+(i===3?' hot':'')+'" style="--h:'+b[1]+'">BLOCK<br>'+b[0]+'<br><br>'+((i+3)*127)+' TX</div>').join('')+'</div>';
+}
+function renderProjectPeek(p){
+  const fact=projectRepoFact(p), index=PORTFOLIO_PROJECTS.indexOf(p)+1;
+  const stars=fact&&Number.isFinite(fact.stars)?fact.stars:p.stars;
+  const language=(fact&&fact.language)||p.language;
+  projectPeek.style.setProperty('--pp-accent',p.accent);
+  ppIndex.textContent=String(index).padStart(2,'0')+' / '+String(PORTFOLIO_PROJECTS.length).padStart(2,'0')+' · FEATURED PROJECT';
+  ppScreen.innerHTML=projectVisualHTML(p);
+  ppKicker.textContent=p.kind; ppTitle.textContent=p.label; ppBlurb.textContent=p.blurb; ppProof.textContent=p.proof;
+  ppMeta.innerHTML='<span>'+language+'</span><span>★ '+stars+'</span><span>PUBLIC REPO</span>';
+  let actions='';
+  if(p.live) actions+='<button class="primary" type="button" data-project-live="'+p.id+'">'+p.launchLabel+'</button>';
+  if(p.launch) actions+='<a class="primary" href="'+p.launch+'" target="_blank" rel="noopener">'+p.launchLabel+'</a>';
+  if(p.extra) actions+='<a href="'+p.extra+'" target="_blank" rel="noopener">'+p.extraLabel+'</a>';
+  actions+='<a href="'+p.repo+'" target="_blank" rel="noopener">VIEW CODE ↗</a>';
+  ppActions.innerHTML=actions;
+}
+function showProjectPeek(id,pin,anchorBtn,source){
+  const p=projectById(id); if(!p) return;
+  if(projectPeekState.pinned&&!pin) return;
+  clearTimeout(projectPeekState.closeT);
+  if(projectPeekState.id!==id) renderProjectPeek(p);
+  projectPeekState.id=id; projectPeekState.pinned=!!pin; projectPeekState.source=source||'welcome';
+  projectPeekState.anchorBtn=anchorBtn||null;
+  projectPeek.classList.toggle('from-rail',projectPeekState.source==='rail');
+  projectPeek.classList.add('open'); projectPeek.setAttribute('aria-hidden','false');
+  if(projectPeekState.source==='welcome') updateProjectPeekPosition();
+}
+function scheduleProjectPeekClose(){
+  if(projectPeekState.pinned||projectLiveOpen) return;
+  clearTimeout(projectPeekState.closeT);
+  projectPeekState.closeT=setTimeout(()=>{ if(!projectPeek.matches(':hover')) closeProjectPeek(); },180);
+}
+function closeProjectPeek(force){
+  if(projectPeekState.pinned&&!force) return;
+  clearTimeout(projectPeekState.closeT); projectPeek.classList.remove('open');
+  projectPeek.setAttribute('aria-hidden','true'); projectPeekState.id=null; projectPeekState.pinned=false; projectPeekState.anchorBtn=null;
+}
+function updateProjectPeekPosition(){
+  if(!projectPeek.classList.contains('open')||projectPeekState.source!=='welcome'||!projectPeekState.anchorBtn||!welcome.F) return;
+  const b=projectPeekState.anchorBtn,F=welcome.F;
+  if(!b.shown&&!projectPeekState.pinned){ closeProjectPeek(true); return; }
+  _hP.copy(F.anchor).addScaledVector(F.right,(b.cx+b.hw)*F.f).addScaledVector(F.up,b.cy*F.f).project(camera);
+  const ax=(_hP.x*.5+.5)*innerWidth, ay=(-_hP.y*.5+.5)*innerHeight, r=projectPeek.getBoundingClientRect();
+  const left=Math.max(12,Math.min(innerWidth-r.width-14,ax+20));
+  const top=Math.max(12,Math.min(innerHeight-r.height-12,ay-Math.min(52,r.height*.24)));
+  projectPeek.style.left=left+'px'; projectPeek.style.top=top+'px';
+  projectPeek.style.setProperty('--pp-stem-y',Math.max(18,Math.min(r.height-18,ay-top))+'px');
+}
+function projectMusicHold(){
+  const mb=document.getElementById('music'),mp=document.getElementById('m-play');
+  if(!projectPausedMusic&&mb&&mp&&mb.classList.contains('playing')){ mp.click(); projectPausedMusic=true; }
+}
+function projectMusicRelease(){
+  if(projectPausedMusic){ const mp=document.getElementById('m-play'); if(mp) mp.click(); }
+  projectPausedMusic=false;
+}
+async function openProjectLive(id){
+  const p=projectById(id); if(!p||!p.live) return;
+  projectLiveReturnFocus=document.activeElement;
+  projectPeekState.pinned=true;
+  projectLiveOpen=true; projectLoadToken++;
+  const token=projectLoadToken;
+  projectLive.style.setProperty('--pl-accent',p.accent);
+  projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
+  projectLive.setAttribute('aria-hidden','false');
+  plTitle.textContent=p.label; plSub.textContent=p.kind+' · INTERACTIVE PREVIEW';
+  plExternal.href=p.liveMode==='raw'?p.repo:p.live;
+  plExternal.textContent=p.liveMode==='raw'?'OPEN REPOSITORY ↗':'OPEN SEPARATELY ↗';
+  plLoad.textContent=p.liveMode==='raw'?'PREPARING STANDALONE HTML':'LOADING LIVE PROJECT';
+  plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
+  projectMusicHold();
+  try{
+    if(p.liveMode==='raw'){
+      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-downloads allow-popups');
+      const r=await fetch(p.live,{cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status);
+      let html=await r.text(); if(token!==projectLoadToken||!projectLiveOpen) return;
+      const base='<base href="'+p.liveBase+'">';
+      html=/<head[\s>]/i.test(html)?html.replace(/<head([^>]*)>/i,'<head$1>'+base):base+html;
+      plFrame.onload=()=>{ if(token===projectLoadToken&&projectLiveOpen) projectLive.classList.add('ready'); };
+      plFrame.srcdoc=html;
+    } else {
+      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups allow-popups-to-escape-sandbox');
+      plFrame.onload=()=>{ if(token===projectLoadToken&&projectLiveOpen) projectLive.classList.add('ready'); };
+      plFrame.src=p.live;
+    }
+  }catch(e){
+    if(token!==projectLoadToken) return;
+    projectLive.classList.add('failed');
+    plLoad.textContent='THE EMBED COULD NOT LOAD · USE OPEN REPOSITORY ABOVE';
+  }
+  projectLive.querySelector('#pl-close').focus();
+}
+function closeProjectLive(restoreFocus=true){
+  if(!projectLiveOpen) return;
+  projectLiveOpen=false; projectLoadToken++; projectLive.classList.remove('open','ready','failed');
+  projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
+  projectMusicRelease();
+  const back=projectLiveReturnFocus; projectLiveReturnFocus=null;
+  if(restoreFocus&&back&&back.isConnected) back.focus();
+}
+projectPeek.querySelector('#pp-close').addEventListener('click',()=>closeProjectPeek(true));
+projectPeek.addEventListener('pointerenter',()=>clearTimeout(projectPeekState.closeT));
+projectPeek.addEventListener('pointerleave',scheduleProjectPeekClose);
+projectPeek.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+projectPeek.addEventListener('click',e=>{
+  const b=e.target.closest('[data-project-live]'); if(b) openProjectLive(b.dataset.projectLive);
+});
+projectLive.querySelector('#pl-close').addEventListener('click',closeProjectLive);
+projectLive.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+projectLive.addEventListener('pointerdown',e=>{ if(e.target===projectLive) closeProjectLive(); });
+
 function railSet(k){ railEls.forEach(r=>{ r.el.classList.toggle('current',r.k===k); r.el.classList.toggle('done',k>=0&&r.k<k); }); }
 let railSeen=false; // v69: the rail only appears once the visitor first travels beyond Welcome
 function railReveal(){ if(!railSeen){ railSeen=true; railWrap.classList.add('seen'); } }
-function railTravel(){ railWrap.classList.remove('docked','at-welcome'); }
+function railTravel(){ railWrap.classList.remove('docked','at-welcome'); closeProjectPeek(true); }
 function railDock(k){
   const atWelcome=STOPS[k]&&STOPS[k].id==='welcome';
   railWrap.classList.toggle('at-welcome',atWelcome);
@@ -2338,6 +2696,7 @@ async function loadStats(){
   const stamp=data.generatedAt||'';
   const changed=(stamp!==GH_STAMP);
   GH_STATS=data; GH_STAMP=stamp;
+  if(projectPeekState.id){ const p=projectById(projectPeekState.id); if(p) renderProjectPeek(p); }
   // if we're parked at the welcome stop, rebuild it with the fresh numbers
   if(changed&&uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
@@ -3165,11 +3524,12 @@ function buildWelcomeLayout(){
     {t:'DOWNLOAD CV',href:'pdfs/CV - Thomas Julsgaard.pdf'}
   ];
   const portfolio=[
-    {id:'cases'}, ...PORTFOLIO_PROJECTS.map(t=>({t}))
+    {id:'cases'}, ...PORTFOLIO_PROJECTS.map(project=>({project}))
   ];
   const welcomeRowWidth=(group,entry)=>{
     const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;
-    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), live=si>=0||entry.href;
+    const t=(entry.t||(entry.project&&entry.project.label)||(si>=0?STOPS[si].label:'')).toUpperCase();
+    const live=si>=0||entry.href||entry.project;
     const rowCell=group==='about'&&!welcomeAboutScroll?WNAV_CELL*0.82:WNAV_CELL;
     return stCols(t)*Math.min(live?rowCell:Math.min(0.12,rowCell),WNAV_MAXW/stCols(t));
   };
@@ -3184,12 +3544,15 @@ function buildWelcomeLayout(){
   if(!welcomeAboutScroll) welcomeScrollPos.about=0;
   const addWelcomeRows=(group,x,rows)=>rows.forEach((entry,row)=>{
     const si=entry.id?STOPS.findIndex(s=>s.id===entry.id):-1;
-    const t=(entry.t||(si>=0?STOPS[si].label:'')).toUpperCase(), y=sideTop-Math.min(row,wsVisible[group]-1)*wsPitch[group];
-    const live=si>=0||entry.href, kind=live?(entry.href?'wcv':'nav'+btns.length):null;
+    const t=(entry.t||(entry.project&&entry.project.label)||(si>=0?STOPS[si].label:'')).toUpperCase();
+    const y=sideTop-Math.min(row,wsVisible[group]-1)*wsPitch[group];
+    const live=si>=0||entry.href||entry.project;
+    const kind=entry.project?'wproject:'+entry.project.id:(live?(entry.href?'wcv':'nav'+btns.length):null);
     const extra={ws:group,wsr:row,wsBaseY:y}; if(kind) extra.btn=kind;
     const rowCell=group==='about'&&!welcomeAboutScroll?WNAV_CELL*0.82:WNAV_CELL;
-    const q=addStencil(t,x,y,live?rowCell:Math.min(0.12,rowCell),WNAV_MAXW,extra,live?undefined:0.48);
-    if(live) btns.push({kind,nav:btns.length,data:entry.href||si,ws:group,wsr:row,wsBaseY:y,
+    const q=addStencil(t,x,y,rowCell,WNAV_MAXW,extra);
+    if(live) btns.push({kind,nav:btns.length,data:entry.project?entry.project.id:(entry.href||si),ws:group,wsr:row,wsBaseY:y,
+      project:entry.project||null,
       cx:x+q.w/2,cy:y-7*q.cell/2,wsDY:-7*q.cell/2,hw:q.w/2+0.45,hh:7*q.cell/2+0.30});
   });
   addWelcomeRows('about',leftX,about); addWelcomeRows('portfolio',rightX,portfolio);
@@ -3617,6 +3980,8 @@ function updateWelcome(now,dt){
 function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreBannerGlyphs();
   clearWelcomeKeyNav();
   releaseWelcomeTypeTitle();
+  if(projectPeekState.source==='welcome') closeProjectPeek(true);
+  closeProjectLive(false);
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
   welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
@@ -4103,12 +4468,19 @@ function welcomeKeyMove(key){
   if(!next) return false;
   if(welcomeKeyBtn&&welcomeKeyBtn!==next) welcomeKeyBtn.hover=false;
   welcomeKeyBtn=next; welcomeKeyBtn.hover=true; renderDirty=true; glyphsDirty=true;
+  if(next.project) showProjectPeek(next.data,false,next,'welcome');
+  else if(!projectPeekState.pinned) closeProjectPeek(true);
   return true;
 }
 function welcomeKeyActivate(){
   const b=welcomeKeyBtn, F=welcome.F;
   if(!F||!b||!b.shown) return false;
-  if(b.kind==='wcv') window.open(b.data,'_blank','noopener');
+  if(b.project){
+    showProjectPeek(b.data,true,b,'welcome');
+    const action=projectPeek.querySelector('#pp-actions .primary,#pp-actions a,#pp-actions button');
+    if(action) action.focus();
+  }
+  else if(b.kind==='wcv') window.open(b.data,'_blank','noopener');
   else if(b.nav!==undefined) departTo(b.data);
   else return false;
   return true;
@@ -5025,6 +5397,7 @@ function updateAssembly(now,dt){
   updateTimelineMotion(now);
   if(stopFacets) for(const F of stopFacets.facets) updateFacet(F,now,dt);
   updateWelcome(now,dt); // the commit banner waterfall (welcome stop only)
+  updateProjectPeekPosition(); // projected HTML dossier follows its Welcome row without changing facet bounds
   for(let i=asmRetired.length-1;i>=0;i--){
     const F=asmRetired[i]; updateFacet(F,now,dt);
     if(F.state==='home'){ disposeFacetTiles(F); asmRetired.splice(i,1); }
@@ -5586,6 +5959,7 @@ function setInspect(on){
    hint fills — then the flight launches. Rail dots, space and PageUp/PageDown also travel
    (v68: the arrow keys no longer travel in assemble mode — they work the stop itself). */
 addEventListener('wheel',e=>{
+  if(projectLiveOpen) return;
   if(moreOpen) return; // reading a card shouldn't charge a departure (wheel over the chess embed never reaches us — the iframe consumes it)
   if(inspectActive()) return; // inspector: freeze the view so the x-ray can be studied
   if(autoTour&&uiState==='overview'&&!introActive&&!introCamActive&&!progActive){
@@ -5652,6 +6026,7 @@ addEventListener('pointerup',e=>{
       else if(hit.b.kind==='rotl'||hit.b.kind==='rotr') rotateDock(hit.b.data); // rotation-hint arrows: turn one facet step
       else if(hit.b.kind==='send') cformSubmit(); // the embedded contact form's stencil SEND
       else if(hit.b.wsControl) welcomeScrollBy(hit.b.ws,hit.b.wsDir);
+      else if(hit.b.project) showProjectPeek(hit.b.data,true,hit.b,'welcome');
       else if(hit.b.kind==='wcv') window.open(hit.b.data,'_blank','noopener');
       else if(hit.b.kind==='copy'){ // Discord mark: no public profile URLs — copy the username
         const u=hit.b.data;
@@ -5682,6 +6057,8 @@ addEventListener('pointermove',e=>{
     const barHit=!dragging&&welcome.active?welcomeScrollBarHit(e.clientX,e.clientY):null;
     for(const F of stopFacets.facets) for(const b of F.btns) b.hover=!!(hit&&hit.b===b);
     renderer.domElement.style.cursor=(hit||barHit)?'pointer':'';
+    if(!dragging&&hit&&hit.b.project) showProjectPeek(hit.b.data,false,hit.b,'welcome');
+    else if(projectPeekState.source==='welcome'&&!projectPeekState.pinned&&!projectPeek.matches(':hover')) scheduleProjectPeekClose();
     if(welcome.active){ if(dragging) hideCalTip(); else welcomeCalTip(e.clientX,e.clientY); } // calendar hover tooltip
   }
   if(!dragging) return;
@@ -5700,6 +6077,9 @@ addEventListener('keydown',e=>{
   if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA') return;
   if(uiState==='overview'&&/^Arrow/.test(e.key)){ enterBtn.focus(); e.preventDefault(); return; }
   if(e.key==='Enter'&&uiState==='overview'){ beginEnter(0); e.preventDefault(); return; }
+  if(e.key==='Escape'&&projectLiveOpen){ closeProjectLive(); return; }
+  if(e.key==='Escape'&&projectPeekState.pinned){ closeProjectPeek(true); return; }
+  if(projectPeek.contains(e.target)||projectLive.contains(e.target)) return;
   if(e.key==='Escape'&&moreOpen){ hideMore(); return; } // close the read-more card first
   if(e.key==='Escape'&&stopFacets){
     const F=stopFacets.facets.find(f=>f.moreDetail);

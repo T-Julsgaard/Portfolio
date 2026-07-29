@@ -2245,7 +2245,49 @@
    "url": "https://github.com/T-Julsgaard/Portfolio-2.0",
    "pushedAt": "2026-07-12T08:41:00Z",
    "language": "HTML"
-  }
+  },
+  "featured": [
+   {
+    "name": "Chess-Review",
+    "description": "Free, private game review in the browser.",
+    "url": "https://github.com/T-Julsgaard/Chess-Review",
+    "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
+    "stars": 10,
+    "language": "JavaScript"
+   },
+   {
+    "name": "entropy-forge",
+    "description": "Multi-API entropy harvester with verifiable receipts.",
+    "url": "https://github.com/T-Julsgaard/entropy-forge",
+    "homepageUrl": "https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html",
+    "stars": 0,
+    "language": "HTML"
+   },
+   {
+    "name": "DocuRAG",
+    "description": "A plug-and-play document knowledge base.",
+    "url": "https://github.com/T-Julsgaard/DocuRAG",
+    "homepageUrl": "https://t-julsgaard.github.io/DocuRAG/",
+    "stars": 0,
+    "language": "Python"
+   },
+   {
+    "name": "danish-wind-mapper",
+    "description": "Interactive wind infrastructure and ownership map.",
+    "url": "https://github.com/T-Julsgaard/danish-wind-mapper",
+    "homepageUrl": null,
+    "stars": 0,
+    "language": "HTML"
+   },
+   {
+    "name": "bitcoin-mining-miningame",
+    "description": "Live mempool data transformed into a clicker game.",
+    "url": "https://github.com/T-Julsgaard/bitcoin-mining-miningame",
+    "homepageUrl": null,
+    "stars": 0,
+    "language": "Python"
+   }
+  ]
  },
  "profile": {
   "followers": 23,

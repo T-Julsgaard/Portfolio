@@ -1,5 +1,40 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v82 - featured-project dossiers and live previews
+
+The five PORTFOLIO rows are now live project selectors rather than quiet
+placeholders. `PORTFOLIO_PROJECTS` is a curated object array shared by the in-scene
+Welcome rows and the fixed right rail. Each record owns its label, repository,
+launch targets, concise recruiter-facing copy, proof point, visual theme, and
+fallback metadata. The stats workflow adds `GH_STATS.repos.featured`, filtered from
+the already-fetched public repositories, so stars and primary language refresh
+without putting a GitHub token in the browser.
+
+Hovering or keyboard-selecting a project opens `#project-peek`, a compact dossier
+positioned from that row's projected facet coordinates. Clicking/Enter pins it.
+The dossier deliberately remains a DOM companion and is **not** included in
+`buildWelcomeLayout()` or its bounds: adding its width to the facet would shrink the
+greeting, figure, calendar, and both side columns. Its native mini-screens are
+project-specific diagrams that load instantly and require no network access.
+Every project row still assembles from normal terrain items and receives a unique
+`btnKind` (`wproject:<id>`); sharing one kind would merge the rows' item groups and
+make one hover animate all five.
+
+Explicit `TRY LIVE` actions open `#project-live`; hover never loads remote work.
+Entropy Forge and DocuRAG use their GitHub Pages deployments. The Danish wind map
+and Bitcoin miningame fetch their repository's standalone HTML only after launch,
+insert the correct raw-directory `<base>`, and render it in a sandboxed `srcdoc`
+iframe. Chess Review links to the shipped Chrome Web Store product. The viewer
+pauses the portfolio music only when it was playing, restores it only when this
+viewer performed the pause, owns pointer/wheel input, and tears down the iframe on
+close or departure. Escape closes the viewer first, then a pinned dossier, before
+normal journey Escape handling.
+
+The fixed PORTFOLIO rail reuses the same dossiers after Welcome. Pointer hover,
+focus, click-to-pin, keyboard selection, close controls, mobile bottom-sheet
+placement, and the external-open fallback keep the system usable without relying on
+hover alone.
+
 ## v81 - one-shot greeting and animated banner reservation
 
 The seated mini-me waves once per page session. `welcome.wavePlayed` becomes true

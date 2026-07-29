@@ -1,5 +1,22 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v82: Welcome project selectors and projected DOM dossiers
+
+Welcome's five software-project rows now participate in the same live-button
+contract as the stop/CV rows: each is an ordinary scrolled facet row with a unique
+`wproject:<id>` kind, `nav` metadata for arrow-key traversal, its normal button item
+group, and a `project` reference for dispatch. Hover/focus opens the external
+`#project-peek` dossier; click/Enter pins it. The card is positioned from the
+project button's world-to-screen projection in `updateAssembly()` and stays outside
+`lay.w`/`lay.h`, partitioning, absorption, and the glyph budget.
+
+`#project-live` is the explicit-action companion viewer. It never exists as a
+project iframe on hover, and its frame is reset to `about:blank` on close. GitHub
+Pages demos navigate normally; standalone repository artifacts are fetched,
+rebased, and assigned through sandboxed `srcdoc`. This is an intentional DOM
+exception like the projected chess/contact surfaces: the project names themselves
+still obey the complete terrain assembly lifecycle.
+
 ## v81: gaze-aware timelines and quiet Volunteering
 
 Experience and Education no longer keep their current card and persistent timeline

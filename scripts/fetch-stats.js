@@ -29,6 +29,13 @@
 const LOGIN = 'T-Julsgaard';            // the GitHub account being measured
 const TIMEZONE = 'Europe/Copenhagen';   // my local day, stated in the output
 const OUTPUT = 'data/stats.json';       // where the result is written
+const FEATURED_REPOS = [
+  'Chess-Review',
+  'entropy-forge',
+  'DocuRAG',
+  'danish-wind-mapper',
+  'bitcoin-mining-miningame',
+];
 
 const TOKEN = process.env.GH_TOKEN;
 if (!TOKEN) {
@@ -140,7 +147,7 @@ async function main() {
              totalCount
              pageInfo{ hasNextPage endCursor }
              nodes{
-               name description url pushedAt stargazerCount isFork
+               name description url homepageUrl pushedAt stargazerCount isFork
                primaryLanguage{ name }
                languages(first:20, orderBy:{field:SIZE, direction:DESC}){
                  edges{ size node{ name } }
@@ -185,6 +192,18 @@ async function main() {
     pushedAt: recent.pushedAt,
     language: recent.primaryLanguage ? recent.primaryLanguage.name : null,
   };
+  const featured = FEATURED_REPOS.map((name) => {
+    const r = ownRepos.find((repo) => repo.name.toLowerCase() === name.toLowerCase());
+    return r && {
+      name: r.name,
+      description: r.description,
+      url: r.url,
+      homepageUrl: r.homepageUrl,
+      pushedAt: r.pushedAt,
+      stars: r.stargazerCount,
+      language: r.primaryLanguage ? r.primaryLanguage.name : null,
+    };
+  }).filter(Boolean);
 
   /* -- 2. the contribution calendar — GitHub's own last-year window ------- */
   /* Called WITHOUT from/to so the grid is EXACTLY the graph GitHub renders
@@ -295,7 +314,7 @@ async function main() {
       total: totalCommits,
     },
     calendar,
-    repos: { publicCount, totalStars, languages, mostRecent },
+    repos: { publicCount, totalStars, languages, mostRecent, featured },
     profile: { followers, createdAt },
   };
 
