@@ -2,9 +2,23 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v85: selectable Portfolio scrollbar skins
+
+The Journey panel now separates the rail's two visual layers. **Side-link markers**
+(`railStyleSelect`) controls the dots/diamonds beside rows. **Portfolio scrollbar**
+(`railScrollSelect`) controls the real native scroll track and moving thumb at the
+far right of the clipped Portfolio list.
+
+Four scrollbar skins are available: the original two-pixel **Hairline**, a rounded
+**Soft capsule**, a minimal dashed **Segmented track**, and square-ended
+**ASCII · |#|** with a dotted centre rail and stacked block thumb. The value is
+applied as `data-scroll-style` on `#rail-portfolio` and participates in Journey
+reset/user-default handling. Only presentation changes; wheel containment, native
+thumb dragging, keyboard focus, and list routing remain intact.
+
 ## v84: selectable side-link rail markers
 
-Journey settings now expose **Side-link scrollbar** (`railStyleSelect`) for the
+Journey settings now expose **Side-link markers** (`railStyleSelect`) for the
 fixed ABOUT ME / PORTFOLIO rails. The choices are the existing circular
 nodes/project diamonds, compact signal ticks, and ASCII-like brackets. The selected
 value is applied as `data-rail-style` on `#journey-rails`; it participates in the

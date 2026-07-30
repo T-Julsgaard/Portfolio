@@ -29,11 +29,46 @@
     right:18px; align-items:flex-end; max-height:min(150px,48vh);
     overflow-y:auto; overscroll-behavior:contain; padding:18px 8px 18px 2px;
     scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.32) transparent;
+    scrollbar-gutter:stable;
     -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);
     mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);
   }
   #rail-portfolio::-webkit-scrollbar { width:2px; }
   #rail-portfolio::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.32); border-radius:2px; }
+  #rail-portfolio[data-scroll-style="capsule"] { scrollbar-color:rgba(255,255,255,0.52) rgba(255,255,255,0.08); }
+  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar { width:6px; }
+  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar-track {
+    background:rgba(255,255,255,0.07); border-radius:999px;
+  }
+  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar-thumb {
+    background:rgba(255,255,255,0.52); border-radius:999px;
+  }
+  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.82); }
+  #rail-portfolio[data-scroll-style="segments"] { scrollbar-color:rgba(255,255,255,0.72) transparent; }
+  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar { width:6px; }
+  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar-track {
+    background:repeating-linear-gradient(to bottom,rgba(255,255,255,0.22) 0 2px,transparent 2px 6px);
+  }
+  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar-thumb {
+    background:rgba(255,255,255,0.72); border-radius:1px;
+    box-shadow:0 0 5px rgba(255,255,255,0.24);
+  }
+  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar-thumb:hover { background:#fff; }
+  #rail-portfolio[data-scroll-style="ascii"] { scrollbar-color:#d8d8d8 transparent; }
+  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar { width:8px; }
+  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar-track {
+    background:
+      linear-gradient(to right,transparent 3px,rgba(255,255,255,0.28) 3px 4px,transparent 4px),
+      repeating-linear-gradient(to bottom,transparent 0 3px,rgba(255,255,255,0.24) 3px 4px,transparent 4px 7px);
+  }
+  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar-thumb {
+    background:repeating-linear-gradient(to bottom,#f4f4f4 0 3px,#050505 3px 5px);
+    border:1px solid #fff; border-radius:0;
+    box-shadow:0 0 0 1px #000,0 0 6px rgba(255,255,255,0.32);
+  }
+  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar-thumb:hover {
+    background:repeating-linear-gradient(to bottom,#fff 0 3px,#424242 3px 5px);
+  }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
     background:transparent; border:none; padding:2px; cursor:pointer;
@@ -638,11 +673,19 @@
           </select>
         </label>
         <div class="row"><span>Timeline arrows</span><input type="checkbox" id="toggleTimelineArrows" checked></div>
-        <label>Side-link scrollbar
+        <label>Side-link markers
           <select id="railStyleSelect">
             <option value="nodes">Nodes (dots &amp; diamonds)</option>
             <option value="ticks">Signal ticks</option>
             <option value="brackets">ASCII brackets</option>
+          </select>
+        </label>
+        <label>Portfolio scrollbar
+          <select id="railScrollSelect">
+            <option value="hairline">Hairline (minimal)</option>
+            <option value="capsule">Soft capsule</option>
+            <option value="segments">Segmented track</option>
+            <option value="ascii">ASCII &middot; |#|</option>
           </select>
         </label>
         <label>Rotation arrows
@@ -2595,6 +2638,7 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
 let railStyle=ud('railStyleSelect','nodes'); // fixed side-link marker design: nodes | ticks | brackets
+let railScrollStyle=ud('railScrollSelect','hairline'); // Portfolio rail's actual scroll track/thumb
 let timelineStyle=ud('timelineStyleSelect','milestones'); // scroll-mode list presentation: index | editorial | milestones
 let timelineArrows=ud('toggleTimelineArrows',true); // boundary-aware up/down hints on the Work/Education list
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
@@ -6492,7 +6536,8 @@ const DEV_TIPS={
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
   timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.',
   toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.',
-  railStyleSelect:'Changes the dots and project squares used by the fixed side-link scrollbar.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  railStyleSelect:'Changes the dots and project squares beside each fixed side link.',
+  railScrollSelect:'Changes the actual Portfolio scroll track and moving thumb at the far right.', arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
   welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
@@ -6608,6 +6653,10 @@ const railStyleSelect=document.getElementById('railStyleSelect');
 function applyRailStyle(){ railWrap.dataset.railStyle=railStyle; }
 railStyleSelect.value=railStyle; applyRailStyle();
 railStyleSelect.addEventListener('change',()=>{ railStyle=railStyleSelect.value; applyRailStyle(); });
+const railScrollSelect=document.getElementById('railScrollSelect');
+function applyRailScrollStyle(){ railPortfolio.dataset.scrollStyle=railScrollStyle; }
+railScrollSelect.value=railScrollStyle; applyRailScrollStyle();
+railScrollSelect.addEventListener('change',()=>{ railScrollStyle=railScrollSelect.value; applyRailScrollStyle(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -6729,7 +6778,7 @@ const CTRL_DEF={
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
   timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true],
-  railStyleSelect:['select','nodes'], arrowSelect:['select','stream'],
+  railStyleSelect:['select','nodes'], railScrollSelect:['select','hairline'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',0.90], welHalo:['range',0.05],
@@ -6738,7 +6787,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','railStyleSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','railStyleSelect','railScrollSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };
