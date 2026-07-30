@@ -7,6 +7,39 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v85 addendum: Welcome project focus reuses the assembled centre
+
+Welcome's project facet is now centred on the main facet anchor and independently
+scaled up to `main.f * WPF_SCALE` (`1.68`). `WPF_VIEW_FILL=0.84` caps both axes
+against the docked FOV and current aspect. ABOUT ME and PORTFOLIO slide outward but must never
+enter the project stage's fit calculation. Keep every visual and interactive side
+coordinate on the shared `welcomeProjectSideDX()` path: row targets, headings,
+scrollbar art, button centres, scroll hit rectangles, and drag tracks must agree.
+
+The greeting/figure/calendar items carry `welcomePart:'center'`. On selection,
+`startWelcomeProjectFocus()` creates external donor records from those already
+assembled owners plus the completed keyboard-title proxies, assigns them across the
+normalized project target set, and passes their target indices to
+`configureProjectStage()`. The project facet must exclude those indices from its own
+items and reserve only the remainder; drawing both sets at the same target creates
+z-fighting and breaks the claim that the Welcome glyphs became the project.
+
+External donors deliberately expose the small item contract used by project buttons
+and live development (`m/to/s1/L/swapped/done/projectScreen/pD`). Whenever the live
+screen loops project items, include `F.projectDonors` too. Project-to-project changes
+retarget donors from their current positions; never send them home between variants.
+
+The close path has a non-obvious handoff invariant. Because the project plane now
+occupies the main Welcome corridor, its supplemental facet owners must release via
+`facetOut(PF, now, false)`. `noHand=true` sends them home through the restored
+identity scene and visibly floods the centre with portrait terrain. The still-active
+main facet already has absorb records for them and is the correct receiver. Full
+departure/look-away still uses the ordinary no-handoff teardown.
+
+Budget remains the v83 budget: 3,437 Welcome claims + 1,836 project-reserve claims
+out of 13,268, leaving 7,995 spare. Keyboard-title proxies are pooled glyphs rather
+than terrain claims.
+
 ## v84 addendum: optional cover switchers and gated Welcome links
 
 `switchArrows:false` is the supported way for a multi-`vids` cover to omit the

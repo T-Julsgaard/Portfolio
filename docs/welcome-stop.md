@@ -1,5 +1,47 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v85 - centred project-focus composition
+
+Selecting a Welcome project no longer appends its stage beyond PORTFOLIO. The
+project facet shares the main Welcome anchor and camera-facing plane, scales up to
+`main.f * WPF_SCALE` (`1.68`), and replaces the identity spine on the visual axis.
+`WPF_VIEW_FILL=0.84` caps both axes against the real docked FOV/aspect so saved
+Welcome-size preferences cannot clip it. ABOUT ME and
+PORTFOLIO remain live while sliding `8.5` layout units outward over
+`WPF_SIDE_MS=320`; their row/button/scrollbar hit geometry follows the same offset,
+so the project stage is never made smaller by including those rails in its fit.
+The selected project row stays brighter while the focus state is active.
+
+The stage is assembled primarily by glyphs already holding the greeting, seated
+figure, and GitHub calendar. `buildWelcomeLayout()` tags those terrain-owned records
+as `welcomePart:'center'`, while the independent keyboard-title proxies join the
+same donor list after the greeting gate. On selection, current donor positions and
+the selected project's normalized targets are both sorted in reading order; donors
+are spread evenly across the full target list to avoid a directional clump. Their
+target indices are omitted from the project facet's own configuration, so the
+reserved project owners supply only the shortfall. This is a real retargeting of
+the visible Welcome glyphs, not a crossfade between two complete cards.
+
+The rails begin moving first (`WPF_LEAD=190`), then the donor and supplemental
+records assemble together. Switching projects retargets both sets from their
+current positions while the rails stay out. The projected live surface now
+dissolves both ordinary project items and external Welcome donors tagged
+`projectScreen`.
+
+Closing with X or Escape reverses every donor to its saved identity target and
+slides both rails home. The project facet must release with handoff enabled
+(`facetOut(PF, now, false)`): because the stage is now centred inside the main
+Welcome corridor, sending its supplemental owners directly home would visibly
+repopulate the portrait through the restored calendar/figure. The active main
+facet receives them through its existing absorb records instead. The calendar
+develop and commit banner restart only after the identity composition is exact
+again. Looking away cancels the focus mapping before the normal facet lifecycle
+takes over.
+
+The terrain claim budget is unchanged: Welcome still claims 3,437 records and the
+normalized project reserve still claims 1,836 of the real 13,268-glyph pool,
+leaving 7,995 spare. Reused keyboard-title proxies do not add terrain claims.
+
 ## v84 - click-only projects, greeting gate, quieter commit banner
 
 Welcome project rows still brighten and swell on pointer hover or keyboard focus,

@@ -1,5 +1,18 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v85 - Welcome project focus shares targets with the assembled centre
+
+The Welcome project facet now sits on the camera axis at up to
+`main.f * WPF_SCALE` (`1.68`), with an `0.84` docked-FOV/aspect cap; the two
+functional side columns slide outward independently. Greeting, figure, calendar,
+and completed keyboard-title glyphs are external donor records for the selected
+project layout. `configureProjectStage()` omits their target indices and allocates
+only the remaining project specs from its 1,836-record reserve. Project close uses
+normal handoff into the still-active main Welcome facet, preventing centred
+supplemental owners from flying visibly home through the restored identity scene.
+Full mechanics and invariants are in `FACET-ASSEMBLY-MANUAL.md` and
+`docs/welcome-stop.md`.
+
 ## v84: quieter Piano controls and roomier timeline arrows
 
 Piano sets `switchArrows:false`, so its cover no longer lays out the visual

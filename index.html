@@ -2292,13 +2292,14 @@ function showProjectStage(id,pin){
   const wasPinned=projectStageState.id===id&&projectStageState.pinned;
   if(projectLiveOpen&&projectStageState.id!==id) closeProjectLive(false,false);
   projectStageState.id=id; projectStageState.pinned=!!pin||wasPinned;
-  const F=projectStageFacet();
-  if(F&&welcome.active) configureProjectStage(F,p,performance.now());
+  if(welcome.active&&welcome.F&&welcome.F.state==='hold'&&welcomeIntroReady(welcome.F,performance.now()))
+    startWelcomeProjectFocus(p,performance.now());
 }
 function closeProjectStage(){
   closeProjectLive(false,false);
   const F=projectStageFacet();
-  if(F&&(F.state==='in'||F.state==='hold')) facetOut(F,performance.now(),true);
+  if(welcome.active&&welcome.focus) closeWelcomeProjectFocus(performance.now());
+  else if(F&&(F.state==='in'||F.state==='hold')) facetOut(F,performance.now(),true);
   projectStageState.id=null; projectStageState.pinned=false;
 }
 function selectProjectFromRail(id){
@@ -2347,7 +2348,7 @@ function projectLiveReady(token){
   projectLive.classList.add('ready');
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=true; F.projectLiveT0=performance.now();
-    for(const it of F.items) if(it.projectScreen) it.pD=Math.random()*photoStagger(); }
+    for(const it of F.items.concat(F.projectDonors||[])) if(it.projectScreen) it.pD=Math.random()*photoStagger(); }
 }
 function closeProjectLive(restoreStage=true,restoreFocus=true){
   if(!projectLiveOpen) return;
@@ -2356,7 +2357,10 @@ function closeProjectLive(restoreStage=true,restoreFocus=true){
   projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=false; F.projectLiveT0=0;
-    if(restoreStage&&F.project) configureProjectStage(F,F.project,performance.now(),true); }
+    if(restoreStage&&F.project){
+      if(welcome.active&&welcome.focus) startWelcomeProjectFocus(F.project,performance.now(),true);
+      else configureProjectStage(F,F.project,performance.now(),true);
+    } }
   const back=projectLiveReturnFocus; projectLiveReturnFocus=null;
   if(restoreFocus&&back&&back.isConnected) back.focus();
 }
@@ -3465,14 +3469,14 @@ function buildProjectStageReserve(layouts){
   return {items:source.items.map(it=>Object.assign({},it,{btn:undefined,projectHidden:true})),
     w:PROJECT_STAGE_W,h:PROJECT_STAGE_H,btns:[],projectRect:source.projectRect};
 }
-function configureProjectStage(F,p,now,force){
+function configureProjectStage(F,p,now,force,externalTargets){
   if(!F||!F.projectLayouts) return;
   if(!force&&F.project&&F.project.id===p.id&&(F.state==='in'||F.state==='hold')&&!projectLiveOpen) return;
   const lay=F.projectLayouts.get(p.id); if(!lay) return;
-  const specs=lay.items;
+  const specs=externalTargets?lay.items.filter((_,i)=>!externalTargets.has(i)):lay.items;
   F.btns=(lay.btns||[]).map(b=>Object.assign({items:[],hover:false},b));
   for(let i=0;i<F.items.length;i++){
-    const it=F.items[i], spec=specs[i]||null, target=spec||specs[i%specs.length];
+    const it=F.items[i], spec=specs[i]||null, target=spec||(specs.length?specs[i%specs.length]:lay.items[i%lay.items.length]);
     it.lx=target.x; it.ly=target.y;
     it.to.copy(F.anchor).addScaledVector(F.right,target.x*F.f).addScaledVector(F.up,target.y*F.f); it.baseTo.copy(it.to);
     it.s1=(spec?spec.s:Math.max(0.08,target.s*0.35))*F.f;
@@ -3482,7 +3486,176 @@ function configureProjectStage(F,p,now,force){
     if(it.btnKind){ const b=F.btns.find(bb=>bb.kind===it.btnKind); if(b) b.items.push(it); }
   }
   F.lay=lay; F.project=p; F.projectLiveOn=false; F.projectLiveT0=0;
+  F.projectDonors=[];
   F.state='home'; facetIn(F,now); glyphsDirty=true; renderDirty=true;
+}
+/* Welcome project focus: the auxiliary facet is centred and independently scaled, but
+   most of its visible targets are filled by glyphs that are ALREADY holding the greeting,
+   figure, and contribution calendar. The project facet supplies only the shortfall. */
+const WPF_SCALE=1.68, WPF_VIEW_FILL=0.84;
+const WPF_SIDE_SHIFT=8.5, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
+function welcomeProjectSideDX(group){
+  const p=welcome.focus?welcome.focus.sideP:0;
+  return (group==='about'?-WPF_SIDE_SHIFT:WPF_SIDE_SHIFT)*p;
+}
+function welcomeProjectDonors(){
+  const out=[];
+  for(const it of welcome.F.items) if(it.welcomePart==='center') out.push({
+    m:it.m, source:'main', sourceRec:it,
+    identity:{to:it.to.clone(),s1:it.s1,geoA:it.geoA,L:it.L}
+  });
+  const T=welcome.typeTitle;
+  if(T) for(const r of T.cells) out.push({
+    m:r.m, source:'title', sourceRec:r,
+    identity:{to:r.to.clone(),s1:r.s,geoA:glyphGeo('#'),L:null}
+  });
+  return out;
+}
+function welcomeProjectTarget(d,spec,PF,now,delay){
+  const m=d.m;
+  d.from=m.position.clone(); d.s0=Math.max(0.05,m.scale.x||0.05); d.o0=m.visible?m.material.opacity:0;
+  d.hideAtEnd=!spec; d.spec=spec||null; d.btnKind=spec&&spec.btn||null;
+  d.projectScreen=!!(spec&&spec.projectScreen); d.pD=0;
+  d.to=spec
+    ?new THREE.Vector3().copy(PF.anchor).addScaledVector(PF.right,spec.x*PF.f).addScaledVector(PF.up,spec.y*PF.f)
+    :new THREE.Vector3().copy(PF.anchor).addScaledVector(PF.dir,-0.7-delay*0.0002);
+  d.s1=spec?spec.s*PF.f:0.05;
+  d.geoA=spec?(spec.tf?glyphGeoT(spec.ch):glyphGeo(spec.ch)):d.identity.geoA;
+  d.L=spec&&spec.L!==undefined?spec.L:d.identity.L;
+  d.ctrl=new THREE.Vector3().lerpVectors(d.from,d.to,0.5)
+    .addScaledVector(PF.up,1.1+(delay%90)*0.012).addScaledVector(PF.right,((delay%7)-3)*0.10);
+  d.st=now+delay; d.swapped=false; d.done=false;
+  m.visible=true;
+}
+function restartWelcomeBannerAtSink(now){
+  if(!welcome.pool) return;
+  initBanner(now);
+  for(const P of welcome.banner.prep){
+    const m=P.rec.m;
+    m.geometry=P.rec.geo0; m.position.copy(P.sink); m.scale.setScalar(0.05);
+    m.material.opacity=0; m.visible=false; m.material.color.set(asmRestColor());
+    m.userData.asm=false; P.done=true;
+  }
+  welcome.banner.phase='wait'; welcome.banner.t0=now; welcome.banner.first=true;
+}
+function startWelcomeProjectFocus(p,now,force){
+  const main=welcome.F, PF=projectStageFacet();
+  if(!main||main.state!=='hold'||!PF||!p) return;
+  let focus=welcome.focus;
+  if(!force&&focus&&focus.project&&focus.project.id===p.id&&(focus.mode==='in'||focus.mode==='hold')) return;
+  if(!focus){
+    focus={mode:'in',project:p,donors:welcomeProjectDonors(),sideP:0,sideFrom:0,sideTo:1,sideT0:now,t0:now};
+    welcome.focus=focus;
+  } else {
+    focus.project=p; focus.sideFrom=focus.sideP; focus.sideTo=1; focus.sideT0=now;
+  }
+  if(welcome.banner){ for(const rec of welcome.pool){ rec.m.material.opacity=0; rec.m.visible=false; } welcome.banner=null; }
+  if(welcome.typeTitle) for(const r of welcome.typeTitle.cursor){ r.m.material.opacity=0; r.m.visible=false; }
+  hideCalTip();
+
+  const lay=PF.projectLayouts.get(p.id), targets=lay.items.map((spec,index)=>({spec,index}))
+    .sort((a,b)=>Math.abs(b.spec.y-a.spec.y)>0.12?b.spec.y-a.spec.y:a.spec.x-b.spec.x);
+  const sources=focus.donors.slice().sort((a,b)=>{
+    const adx=a.m.position.x-PF.anchor.x, ady=a.m.position.y-PF.anchor.y, adz=a.m.position.z-PF.anchor.z;
+    const bdx=b.m.position.x-PF.anchor.x, bdy=b.m.position.y-PF.anchor.y, bdz=b.m.position.z-PF.anchor.z;
+    const au=adx*PF.right.x+ady*PF.right.y+adz*PF.right.z, ay=adx*PF.up.x+ady*PF.up.y+adz*PF.up.z;
+    const bu=bdx*PF.right.x+bdy*PF.right.y+bdz*PF.right.z, by=bdx*PF.up.x+bdy*PF.up.y+bdz*PF.up.z;
+    return Math.abs(by-ay)>0.12?by-ay:au-bu;
+  });
+  const useN=Math.min(sources.length,targets.length), used=new Set(), assigned=new Map();
+  for(let i=0;i<useN;i++){
+    const ti=useN===1?0:Math.round(i*(targets.length-1)/(useN-1)), target=targets[ti];
+    used.add(target.index); assigned.set(sources[i],target.spec);
+  }
+  const lead=focus.sideP>0.92?0:WPF_LEAD;
+  configureProjectStage(PF,p,now+lead,true,used);
+  PF.projectDonors=[];
+  for(let i=0;i<sources.length;i++){
+    const d=sources[i], spec=assigned.get(d)||null;
+    welcomeProjectTarget(d,spec,PF,now,lead+(i/Math.max(1,sources.length))*WPF_STAG);
+    if(spec&&spec.btn){
+      const b=PF.btns.find(bb=>bb.kind===spec.btn);
+      if(b) b.items.push(d);
+    }
+    PF.projectDonors.push(d);
+  }
+  focus.mode='in'; focus.project=p; focus.t0=now;
+  glyphsDirty=true; renderDirty=true;
+}
+function closeWelcomeProjectFocus(now){
+  const focus=welcome.focus, main=welcome.F, PF=projectStageFacet();
+  if(!focus||!main) return;
+  focus.mode='out'; focus.project=null; focus.sideFrom=focus.sideP; focus.sideTo=0; focus.sideT0=now; focus.t0=now;
+  for(let i=0;i<focus.donors.length;i++){
+    const d=focus.donors[i], id=d.identity, m=d.m;
+    d.from=m.position.clone(); d.s0=Math.max(0.05,m.scale.x||0.05); d.o0=m.visible?m.material.opacity:0;
+    d.to=id.to; d.s1=id.s1; d.geoA=id.geoA; d.L=id.L; d.hideAtEnd=false;
+    d.projectScreen=false; d.btnKind=null;
+    d.ctrl=new THREE.Vector3().lerpVectors(d.from,d.to,0.5)
+      .addScaledVector(main.up,0.9+(i%9)*0.10);
+    d.st=now+(i/Math.max(1,focus.donors.length))*110; d.swapped=false; d.done=false;
+    m.visible=true;
+  }
+  /* The main Welcome facet is still holding the camera-facing corridor. Let its absorb
+     records receive the project facet's supplemental owners instead of flying them home
+     through the newly cleared centre. */
+  if(PF){ PF.projectDonors=[]; if(PF.state==='in'||PF.state==='hold') facetOut(PF,now,false); }
+  glyphsDirty=true; renderDirty=true;
+}
+function cancelWelcomeProjectFocus(){
+  const focus=welcome.focus, F=welcome.F;
+  if(!focus||!F) return;
+  for(const it of F.items){
+    const group=it.welcomeSide||it.ws||it.wsBar||it.wsThumb;
+    if(!group) continue;
+    it.to.addScaledVector(F.right,-welcomeProjectSideDX(group)*F.f); it.baseTo.copy(it.to);
+  }
+  for(const b of F.btns) if(b.ws&&b.welcomeBaseCx!==undefined) b.cx=b.welcomeBaseCx;
+  const PF=projectStageFacet(); if(PF) PF.projectDonors=[];
+  welcome.focus=null;
+}
+function updateWelcomeProjectFocus(now){
+  const focus=welcome.focus;
+  if(!focus) return;
+  const sp=Math.min(1,Math.max(0,(now-focus.sideT0)/WPF_SIDE_MS));
+  focus.sideP=focus.sideFrom+(focus.sideTo-focus.sideFrom)*easeInOut(sp);
+  if(focus.mode==='hold'){ glyphsDirty=true; return; }
+  let busy=false;
+  for(const d of focus.donors){
+    const m=d.m, tt=now-d.st;
+    if(tt<=0){ busy=true; continue; }
+    let p=tt/WPF_FLY; if(p>=1) p=1; else busy=true;
+    if(!d.swapped&&p>=0.48){
+      m.geometry=d.geoA; setImgColor(m.material.color,d.L); m.userData.asm=true; m.userData.asmL=d.L; d.swapped=true;
+    }
+    const e=easeInOut(p), ie=1-e;
+    m.position.set(ie*ie*d.from.x+2*ie*e*d.ctrl.x+e*e*d.to.x,
+      ie*ie*d.from.y+2*ie*e*d.ctrl.y+e*e*d.to.y,
+      ie*ie*d.from.z+2*ie*e*d.ctrl.z+e*e*d.to.z);
+    m.scale.setScalar(Math.max(0.05,d.s0+(d.s1-d.s0)*easeOutCubic(p)));
+    const endOpacity=d.hideAtEnd?0:1;
+    m.material.opacity=d.o0+(endOpacity-d.o0)*e; m.visible=m.material.opacity>0.01;
+    if(p===1){
+      m.geometry=d.geoA; m.position.copy(d.to); m.scale.setScalar(d.s1);
+      setImgColor(m.material.color,d.L); m.material.opacity=endOpacity; m.visible=endOpacity>0;
+      d.swapped=true; d.done=true;
+    }
+  }
+  if(busy||sp<1){ glyphsDirty=true; renderDirty=true; return; }
+  if(focus.mode==='in'){
+    const PF=projectStageFacet();
+    if(PF&&PF.state==='hold') focus.mode='hold';
+  } else {
+    for(const d of focus.donors){
+      const id=d.identity, m=d.m;
+      m.geometry=id.geoA; m.position.copy(id.to); m.scale.setScalar(id.s1);
+      setImgColor(m.material.color,id.L); m.material.opacity=1; m.visible=true;
+      m.userData.asm=true; m.userData.asmL=id.L;
+    }
+    welcome.focus=null; welcome.waveItems=null; welcome.waveT0=null;
+    restartWelcomeBannerAtSink(now);
+  }
+  glyphsDirty=true; renderDirty=true;
 }
 function projectPrimaryAction(F){
   const p=F&&F.project; if(!p) return;
@@ -3518,7 +3691,7 @@ function buildWelcomeLayout(){
      beneath the figure instead of occupying a separate right-hand column. */
   const calShiftX=1.25; // optical midpoint between the asymmetric ABOUT ME / PORTFOLIO columns
   const calEnd=items.length, calDX=-calCX+calShiftX, calDY=-1.35;
-  for(let i=0;i<calEnd;i++){ items[i].x+=calDX; items[i].y+=calDY; }
+  for(let i=0;i<calEnd;i++){ items[i].x+=calDX; items[i].y+=calDY; items[i].welcomePart='center'; }
   for(const cc of calCells){ cc.cx+=calDX; cc.cy+=calDY; }
   let bannerCY=calBot+calDY-WCAL_CH*0.5-1.45;
 
@@ -3527,13 +3700,14 @@ function buildWelcomeLayout(){
   const titleText="HI, I'M THOMAS.", tCell=0.20, tW=stCols(titleText)*tCell, titleTop=13.05, tX0=-tW/2;
   let typeTitle=null;
   if(welcomeTitle==='type') typeTitle=buildWelcomeTypeSpec(titleText,tCell,tX0,titleTop);
-  else layStencilLine(items,titleText,tCell,tX0,titleTop);
+  else { const titleStart=items.length; layStencilLine(items,titleText,tCell,tX0,titleTop);
+    for(let i=titleStart;i<items.length;i++) items[i].welcomePart='center'; }
 
   let waveS=null, waveE=null, waveB1=0, waveB2=0;
   if(wv){ waveS={x:miX0+wv.sc*cwP, y:miTop-wv.sr*chP}; waveE={x:miX0+wv.ec*cwP, y:miTop-wv.er*chP}; waveB1=wv.b1; waveB2=wv.b2; }
   const inWv=(b,c,r)=>c>=b.c0&&c<=b.c1&&r>=b.r0&&r<=b.r1;
   for(let r=0;r<G.rows;r++){ const row=G.g[r]; for(let c=0;c<row.length;c++){ const ch=row[c]; if(ch===' ') continue;
-    const it={ch, x:miX0+c*cwP, y:miTop-r*chP, s:sP, L:COVER_RAMP.indexOf(ch)/9};
+    const it={ch, x:miX0+c*cwP, y:miTop-r*chP, s:sP, L:COVER_RAMP.indexOf(ch)/9, welcomePart:'center'};
     if(wv){ if(inWv(wv.up,c,r)) it.wave=1; else for(const b of wv.lo) if(inWv(b,c,r)){ it.wave=2; break; } }
     items.push(it); } }
 
@@ -3542,22 +3716,25 @@ function buildWelcomeLayout(){
   const btns=[], leftX=-18.0, rightX=11.5, sideTop=8.90, wsRects={}, wsBars={};
   const addStencil=(t,x0,y,cellMax,maxW,extra,L)=>{
     const start=items.length, cell=Math.min(cellMax,maxW/stCols(t)), w=layStencilLine(items,t,cell,x0,y,extra);
-    if(L!==undefined) for(let i=start;i<items.length;i++) items[i].L=L;
+    for(let i=start;i<items.length;i++){
+      if(L!==undefined) items[i].L=L;
+      if(extra&&extra.welcomeSide) items[i].welcomeSide=extra.welcomeSide;
+    }
     return {w,cell};
   };
-  const addSideHeader=(t,x,y,columnW)=>{
+  const addSideHeader=(t,x,y,columnW,group)=>{
     const center=x+columnW/2, dots='.................', ds=0.25, d=layoutLine(dots,ds);
     if(welcomeHeadingStyle==='stencil-center'){
       const cell=0.105, w=stCols(t)*cell, start=items.length;
       layStencilLine(items,t,cell,center-w/2,y+0.22);
-      for(let i=start;i<items.length;i++) items[i].L=0.42;
+      for(let i=start;i<items.length;i++){ items[i].L=0.42; items[i].welcomeSide=group; }
     } else {
       const label=welcomeHeadingStyle==='bracket-center'?'[ '+t+' ]':t, s=0.48, q=layoutLine(label,s);
       const tx=welcomeHeadingStyle==='quiet-left'?x:center-q.w/2;
-      for(let i=0;i<label.length;i++) if(label[i]!==' ') items.push({ch:label[i],x:tx+q.xs[i],y:y+chBase(label[i])*s,s,L:0.42,tf:1});
+      for(let i=0;i<label.length;i++) if(label[i]!==' ') items.push({ch:label[i],x:tx+q.xs[i],y:y+chBase(label[i])*s,s,L:0.42,tf:1,welcomeSide:group});
     }
     const dx=welcomeHeadingStyle==='quiet-left'?x:center-d.w/2;
-    for(let i=0;i<dots.length;i++) items.push({ch:'.',x:dx+d.xs[i],y:y-0.72,s:ds,L:0.18,tf:1});
+    for(let i=0;i<dots.length;i++) items.push({ch:'.',x:dx+d.xs[i],y:y-0.72,s:ds,L:0.18,tf:1,welcomeSide:group});
   };
 
   const about=[
@@ -3576,7 +3753,7 @@ function buildWelcomeLayout(){
   };
   const aboutW=Math.max(...about.map(entry=>welcomeRowWidth('about',entry)));
   const portfolioW=Math.max(...portfolio.map(entry=>welcomeRowWidth('portfolio',entry)));
-  addSideHeader('ABOUT ME',leftX,10.72,aboutW); addSideHeader('PORTFOLIO',rightX,10.72,portfolioW);
+  addSideHeader('ABOUT ME',leftX,10.72,aboutW,'about'); addSideHeader('PORTFOLIO',rightX,10.72,portfolioW,'portfolio');
   const wsVisible={about:welcomeAboutScroll?WNAV_VISIBLE:about.length,portfolio:WNAV_VISIBLE};
   const wsPitch={
     about:welcomeAboutScroll?WNAV_PITCH:WNAV_PITCH*(WNAV_VISIBLE-1)/(about.length-1),
@@ -3589,7 +3766,7 @@ function buildWelcomeLayout(){
     const y=sideTop-Math.min(row,wsVisible[group]-1)*wsPitch[group];
     const live=si>=0||entry.href||entry.project;
     const kind=entry.project?'wproject:'+entry.project.id:(live?(entry.href?'wcv':'nav'+btns.length):null);
-    const extra={ws:group,wsr:row,wsBaseY:y}; if(kind) extra.btn=kind;
+    const extra={ws:group,wsr:row,wsBaseY:y,welcomeSide:group}; if(kind) extra.btn=kind;
     const rowCell=group==='about'&&!welcomeAboutScroll?WNAV_CELL*0.82:WNAV_CELL;
     const q=addStencil(t,x,y,rowCell,WNAV_MAXW,extra);
     if(live) btns.push({kind,nav:btns.length,data:entry.project?entry.project.id:(entry.href||si),ws:group,wsr:row,wsBaseY:y,
@@ -3608,10 +3785,11 @@ function buildWelcomeLayout(){
     for(const side of sides){
       const bx=side==='left'?x-1.05:x+WNAV_MAXW+1.05;
       xs.push(bx);
-      for(let i=0;i<n;i++) items.push({ch:art.track,x:bx,y:top+(bot-top)*i/(n-1),s:0.30,L:0.20,wsBar:group});
-      items.push({ch:art.thumb,x:bx,y:top,s:0.34,L:0.88,wsThumb:group});
+      for(let i=0;i<n;i++) items.push({ch:art.track,x:bx,y:top+(bot-top)*i/(n-1),s:0.30,L:0.20,wsBar:group,welcomeSide:group});
+      items.push({ch:art.thumb,x:bx,y:top,s:0.34,L:0.88,wsThumb:group,welcomeSide:group});
       const ku='wscroll-'+group+'-'+side+'-up', kd='wscroll-'+group+'-'+side+'-down', yu=top+0.72, yd=bot-0.72;
-      items.push({ch:art.up,x:bx,y:yu,s:0.42,L:0.58,btn:ku}); items.push({ch:art.down,x:bx,y:yd,s:0.42,L:0.58,btn:kd});
+      items.push({ch:art.up,x:bx,y:yu,s:0.42,L:0.58,btn:ku,welcomeSide:group});
+      items.push({ch:art.down,x:bx,y:yd,s:0.42,L:0.58,btn:kd,welcomeSide:group});
       btns.push({kind:ku,wsControl:true,ws:group,wsDir:-1,data:group,cx:bx,cy:yu,hw:0.55,hh:0.48},
                 {kind:kd,wsControl:true,ws:group,wsDir: 1,data:group,cx:bx,cy:yd,hw:0.55,hh:0.48});
     }
@@ -3646,7 +3824,7 @@ function buildWelcomeLayout(){
 /* the welcome subsystem: a reserved set of terrain glyphs that stream in from the
    scene, spell a commit stat, then dissolve back — the horizontal waterfall — plus
    the calendar tooltip. Entirely separate from the facet's own item/extra flights. */
-const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, wavePlayed:false, typeTitle:null};
+const welcome={active:false, F:null, pool:null, banner:null, calCells:null, calHW:0, calHH:0, waveItems:null, waveT0:null, wavePlayed:false, typeTitle:null, focus:null};
 const calTip=document.createElement('div'); calTip.id='cal-tip'; document.body.appendChild(calTip);
 /* ── exact GitHub calendar as an in-scene image (welcomeCal==='html') ──────────────────
    Rendered to a canvas → CanvasTexture (no DOM overlay), so the develop machinery can fade
@@ -3868,7 +4046,7 @@ function welcomeWaveWig(tp,W){ // the side-to-side oscillation (rad), 0 outside 
 }
 function updateWelcomeWave(now){
   const F=welcome.F;
-  if(!F||F.state!=='hold'||!F.lay.waveS){ welcome.waveT0=null; return; }
+  if(welcome.focus||!F||F.state!=='hold'||!F.lay.waveS){ welcome.waveT0=null; return; }
   if(welcome.waveItems==null) welcome.waveItems=F.items.filter(it=>it.wave);
   if(!welcome.waveItems.length) return;
   if(welcome.waveT0==null) welcome.waveT0=now+900; // a beat to settle before the first wave
@@ -3918,7 +4096,8 @@ function welcomeScrollHit(x,y){
   const t=_hP.copy(F.anchor).sub(camera.position).dot(F.dir)/denom; if(t<=0) return null;
   _hP.copy(camera.position).addScaledVector(_hRay,t).sub(F.anchor);
   const u=_hP.dot(F.right)/F.f, v=_hP.dot(F.up)/F.f;
-  for(const group in F.lay.wsRects){ const r=F.lay.wsRects[group]; if(Math.abs(u-r.cx)<=r.hw&&Math.abs(v-r.cy)<=r.hh) return group; }
+  for(const group in F.lay.wsRects){ const r=F.lay.wsRects[group], dx=welcomeProjectSideDX(group);
+    if(Math.abs(u-(r.cx+dx))<=r.hw&&Math.abs(v-r.cy)<=r.hh) return group; }
   return null;
 }
 function welcomeScrollBarHit(x,y,onlyGroup,draggingBar){
@@ -3930,7 +4109,8 @@ function welcomeScrollBarHit(x,y,onlyGroup,draggingBar){
   const u=_hP.dot(F.right)/F.f, v=_hP.dot(F.up)/F.f;
   for(const group in F.lay.wsBars){
     if(onlyGroup&&group!==onlyGroup) continue;
-    const bar=F.lay.wsBars[group], nearX=bar.xs&&bar.xs.some(bx=>Math.abs(u-bx)<=(draggingBar?2.2:0.65));
+    const bar=F.lay.wsBars[group], dx=welcomeProjectSideDX(group),
+      nearX=bar.xs&&bar.xs.some(bx=>Math.abs(u-(bx+dx))<=(draggingBar?2.2:0.65));
     if(!nearX||(!draggingBar&&(v>bar.top+0.45||v<bar.bot-0.45))) continue;
     return {group,p:Math.max(0,Math.min(1,(v-bar.top)/(bar.bot-bar.top)))};
   }
@@ -3940,6 +4120,10 @@ function updateWelcomeNav(now,dt){
   const F=welcome.F, holding=F.state==='hold', ready=welcomeIntroReady(F,now),
     hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
   for(const b of F.btns){
+    if(b.ws){
+      if(b.welcomeBaseCx===undefined) b.welcomeBaseCx=b.cx;
+      b.cx=b.welcomeBaseCx+welcomeProjectSideDX(b.ws);
+    }
     if(b.nav!==undefined){
       const count=b.ws&&F.lay.wsVisible?F.lay.wsVisible[b.ws]:WNAV_VISIBLE;
       const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+count));
@@ -3950,12 +4134,20 @@ function updateWelcomeNav(now,dt){
   }
   if(!holding) return;
   for(const it of F.items){
+    const group=it.welcomeSide||it.ws||it.wsBar||it.wsThumb;
+    if(!group||it.ws||it.wsThumb) continue;
+    const lx=it.lx+welcomeProjectSideDX(group);
+    it.to.copy(F.anchor).addScaledVector(F.right,lx*F.f).addScaledVector(F.up,it.ly*F.f); it.baseTo.copy(it.to);
+    if(!hoverKinds.has(it.btnKind)) it.m.position.lerp(it.to,Math.min(1,dt*9));
+  }
+  for(const it of F.items){
     if(it.ws){
       const off=welcomeScrollPos[it.ws]||0, count=F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
       const visible=!welcomeScrollHidden(it), slot=Math.max(-1,Math.min(count,it.wsr-off));
       const pitch=F.lay.wsPitch?F.lay.wsPitch[it.ws]:WNAV_PITCH;
       const ly=F.lay.wsTop-slot*pitch+it.wsDY;
-      it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to);
+      const lx=it.lx+welcomeProjectSideDX(it.ws);
+      it.to.copy(F.anchor).addScaledVector(F.right,lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to);
       if(it.wsAlpha===undefined) it.wsAlpha=visible?1:0;
       it.wsAlpha+=((visible?1:0)-it.wsAlpha)*Math.min(1,dt*9);
       if(it.wsAlpha<0.015){ it.wsAlpha=0; it.m.material.opacity=0; it.m.visible=false; }
@@ -3963,7 +4155,8 @@ function updateWelcomeNav(now,dt){
     } else if(it.wsThumb){
       const bar=F.lay.wsBars[it.wsThumb], max=Math.max(1,bar.count-bar.visible), p=Math.min(1,(welcomeScrollPos[it.wsThumb]||0)/max);
       const ly=bar.top+(bar.bot-bar.top)*p;
-      it.to.copy(F.anchor).addScaledVector(F.right,it.lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to); it.m.position.lerp(it.to,Math.min(1,dt*12));
+      const lx=it.lx+welcomeProjectSideDX(it.wsThumb);
+      it.to.copy(F.anchor).addScaledVector(F.right,lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to); it.m.position.lerp(it.to,Math.min(1,dt*12));
     }
   }
   glyphsDirty=true;
@@ -4017,12 +4210,17 @@ function updateWelcome(now,dt){
   const showing=(welcome.F.state==='in'||welcome.F.state==='hold');
   if(showing){
     glyphsDirty=true;
-    if(!welcome.banner) initBanner(now);
-    updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now,dt); updateWelcomeTitle(now);
-    const PF=projectStageFacet(), p=projectStageState.id&&projectById(projectStageState.id);
-    if(PF&&p&&(!PF.project||PF.project.id!==p.id||PF.state==='home'||PF.state==='out')&&!projectLiveOpen) configureProjectStage(PF,p,now);
+    if(welcome.focus){
+      updateWelcomeProjectFocus(now); updateWelcomeNav(now,dt);
+    } else {
+      if(!welcome.banner) initBanner(now);
+      updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now,dt); updateWelcomeTitle(now);
+      const p=projectStageState.id&&projectById(projectStageState.id);
+      if(p&&welcomeIntroReady(welcome.F,now)&&!projectLiveOpen) startWelcomeProjectFocus(p,now);
+    }
   }
   else {
+    if(welcome.focus) cancelWelcomeProjectFocus();
     releaseWelcomeTypeTitle(); if(welcome.banner){ hideBannerGlyphs(); welcome.banner=null; } hideCalTip();
     const PF=projectStageFacet();
     if(PF&&(PF.state==='in'||PF.state==='hold')) facetOut(PF,now,true);
@@ -4035,7 +4233,7 @@ function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreB
   closeProjectLive(false,false);
   projectStageState.id=null; projectStageState.pinned=false;
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null; hideCalTip(); glyphsDirty=true; }
+  welcome.waveItems=null; welcome.waveT0=null; welcome.focus=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
   const n=cc.count, d=new Date(cc.date+'T00:00:00');
   calTip.textContent=(n===0?'No contributions':n+(n===1?' contribution':' contributions'))+' on '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -4043,7 +4241,7 @@ function showCalTip(x,y,cc){
 }
 function hideCalTip(){ calTip.style.display='none'; }
 function welcomeCalTip(x,y){
-  if(!welcome.active||!welcome.F||!welcome.calCells){ hideCalTip(); return; }
+  if(welcome.focus||!welcome.active||!welcome.F||!welcome.calCells){ hideCalTip(); return; }
   const F=welcome.F; if(F.state!=='in'&&F.state!=='hold'){ hideCalTip(); return; }
   _hRay.set((x/innerWidth)*2-1,-(y/innerHeight)*2+1,0.5).unproject(camera).sub(camera.position).normalize();
   const denom=_hRay.dot(F.dir); if(denom<1e-4){ hideCalTip(); return; }
@@ -4150,7 +4348,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
                  photoKey:d.photoKey, tiles:null, pT0:0, pOn:false, pDone:false, pKill:false, pStart:0,
                  vids:d.vids||null, vIdx:0, vPlane:null, vEl:null, vSrc:null, vOn:false, vT0:0, vEnded:false, vSwap:null,
                   games:d.games||null, cbOn:false, cbIdx:-1, cbT0:0, cbDis:0, // in-scene chess board (v66)
-                  projectStage:!!d.projectStage, projectLayouts:d.projectLayouts||null, project:null, projectLiveOn:false, projectLiveT0:0,
+                  projectStage:!!d.projectStage, projectLayouts:d.projectLayouts||null, project:null, projectDonors:[], projectLiveOn:false, projectLiveT0:0,
                  elist:(d.g&&d.g.list&&!d.g.staticList)?d.g.list:null, eIdx:0,
                  pdfEntry:(d.g&&d.g.pdfEntry!==undefined)?d.g.pdfEntry:null, // v69: DOWNLOAD only shows while THIS list entry is highlighted
                   caseBaseLay:d.lay.caseBaseLay||null, caseDetailLay:d.lay.caseDetailLay||null,
@@ -4162,9 +4360,14 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   if(isWelcome){
     const main=facets[0], PF=facets.find(F=>F.projectStage);
     if(PF){
-      PF.dir.copy(main.dir); PF.right.copy(main.right); PF.up.copy(main.up); PF.f=main.f*0.92;
-      const gap=1.35, off=main.lay.w*main.f/2+PF.lay.w*PF.f/2+gap;
-      PF.anchor.copy(main.anchor).addScaledVector(main.right,off);
+      /* The project is a focus-state replacement for the identity spine, not a card
+         appended beyond PORTFOLIO. Keep it on the camera axis and scale it independently;
+         the side columns slide outward without entering this fit calculation. */
+      const focusViewH=2*Math.tan(THREE.MathUtils.degToRad(JOURNEY_FOV)/2)*main.dist;
+      const focusViewW=focusViewH*camera.aspect;
+      PF.dir.copy(main.dir); PF.right.copy(main.right); PF.up.copy(main.up);
+      PF.f=Math.min(main.f*WPF_SCALE,WPF_VIEW_FILL*focusViewH/PF.lay.h,WPF_VIEW_FILL*focusViewW/PF.lay.w);
+      PF.anchor.copy(main.anchor);
       const fromEye=_aV.copy(PF.anchor).sub(_aP), centreDist=fromEye.length();
       PF.yaw=Math.atan2(fromEye.y,fromEye.x); PF.pitch=Math.asin(Math.max(-1,Math.min(1,fromEye.z/centreDist))); PF.dist=centreDist;
       PF.Ry=Math.atan((PF.lay.w*PF.f/2)/centreDist)+0.08; PF.Rp=Math.atan((PF.lay.h*PF.f/2)/centreDist)+0.08;
@@ -4176,7 +4379,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   let reserved=null;
   clearWelcomeKeyNav();
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
-  welcome.waveItems=null; welcome.waveT0=null;
+  welcome.waveItems=null; welcome.waveT0=null; welcome.focus=null;
   if(isWelcome){ const F0=facets[0]; const rb=reserveWelcomeBanner(F0);
     reserved=rb.reserved; welcome.pool=rb.pool; welcome.active=true; welcome.F=F0;
     welcome.calCells=F0.lay.calCells; welcome.calHW=F0.lay.calHW; welcome.calHH=F0.lay.calHH; }
@@ -4206,6 +4409,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
         wave:li.wave, lx:li.x, ly:li.y, nav:li.nav, wd:li.wd, tw:li.tw, gr:li.gr, vcap:li.vcap,
          ws:li.ws, wsr:li.wsr, wsBaseY:li.wsBaseY, wsDY:li.wsBaseY!==undefined?li.y-li.wsBaseY:0,
          wsBar:li.wsBar, wsThumb:li.wsThumb, tlDir:li.tlDir, btnKind:li.btn,
+         welcomePart:li.welcomePart, welcomeSide:li.welcomeSide,
          gcap:li.gcap, en:li.en, eh:li.eh, gh:li.gh, timelineCaret:li.timelineCaret,
          projectHidden:!!li.projectHidden, projectScreen:!!li.projectScreen,
          pg:(li.btn==='pdf'&&F.pdfEntry!=null)||undefined,
@@ -5152,7 +5356,7 @@ function updateFacet(F,now,dt){
   updateCaseMore(F,now);
   if(F.projectStage&&F.projectLiveOn&&F.state==='hold'){
     let busy=false;
-    for(const it of F.items){
+    for(const it of F.items.concat(F.projectDonors||[])){
       if(!it.projectScreen||!it.done) continue;
       const q=Math.min(1,Math.max(0,(now-F.projectLiveT0-it.pD)/photoTileMs()));
       it.m.material.opacity=Math.min(it.m.material.opacity,1-q); it.m.visible=q<1;
@@ -5178,7 +5382,8 @@ function updateFacet(F,now,dt){
       // nav labels sit at a steady near-white (5 labels throbbing in sync would be noisy);
       // hover pins full bright — plus the swell below — as the click affordance
       const tlActive=isTimeline&&stopFacets&&stopFacets.scrollIndex===b.timeline;
-      const w=b.hover?1:(isTimeline?(tlActive?0.92:0.30):(isNav?0.78:0.45+0.4*(0.5+0.5*Math.sin(now*0.0045))));
+      const projectActive=isNav&&b.project&&projectStageState.id===b.data;
+      const w=b.hover?1:(isTimeline?(tlActive?0.92:0.30):(isNav?(projectActive?0.98:0.72):0.45+0.4*(0.5+0.5*Math.sin(now*0.0045))));
       let pf=1;
       if(b.kind==='pdf'&&F.state==='hold'){
         const pt=(now-F.holdT0-BTN_POP_DELAY)/BTN_POP_MS;
@@ -5218,7 +5423,8 @@ function updateFacet(F,now,dt){
   // the develop: shortly after the ASCII settles, the real front page fades in tile
   // by tile while the image glyphs dissolve beneath it (the title stays as glyphs)
   if(F.photoKey){
-    const holding=(F.state==='hold')&&!F.cbOn&&!F.vOn&&!F.vSwap&&!F.moreDetail&&!F.moreSwap; // alternate in-scene content folds the developed cover
+    const holding=(F.state==='hold')&&!F.cbOn&&!F.vOn&&!F.vSwap&&!F.moreDetail&&!F.moreSwap
+      &&!(welcome.active&&F===welcome.F&&welcome.focus); // project focus folds the calendar image before its donor glyphs reorganise
     if(holding&&!F.pOn){
       if(!F.pT0) F.pT0=now+PHOTO_DELAY;
       else if(now>=F.pT0){
