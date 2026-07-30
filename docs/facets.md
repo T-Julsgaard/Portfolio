@@ -1,10 +1,23 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v84: quieter Piano controls and roomier timeline arrows
+
+Piano sets `switchArrows:false`, so its cover no longer lays out the visual
+`addUDArrows()` pair. Its two caption rows remain clickable and Up/Down keyboard
+switching still works; this is a presentation-only reduction. Other multi-slide
+facets retain the shared vertical-switcher artwork.
+
+Work and Education keep their boundary-aware timeline arrows, with the layout gap
+increased from 0.90 to 1.25 units. `addTimelineArrows()` still returns the complete
+top/bottom bounds and `buildTimelineNavLayout()` still folds those bounds into
+`lay.h`, so fit and clearing remain truthful.
+
 ## v83: Welcome project selectors assemble an auxiliary scene facet
 
 The v82 screen-space dossier was removed. The five project rows remain ordinary
-scrolled Welcome buttons with unique `wproject:<id>` kinds, but hover/focus/click
-now selects one normalized auxiliary `projectStage` facet. That facet is hung on
+scrolled Welcome buttons with unique `wproject:<id>` kinds, but only click/Enter
+selects the normalized auxiliary `projectStage` facet. Hover/focus is visual only.
+That facet is hung on
 the main Welcome plane just beyond PORTFOLIO's right edge and is omitted from the
 main layout's fit bounds, so existing Welcome content neither shifts nor shrinks.
 It is not gaze-fired independently: the row selection assembles it, the main

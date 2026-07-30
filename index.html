@@ -60,6 +60,19 @@
   #journey-rails.docked .rail-project:is(:hover,:focus-visible) { opacity:1; }
   .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
   .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
+  #journey-rails[data-rail-style="ticks"] .rail-stop .dot {
+    width:12px; height:2px; border:0; border-radius:0; transform:none;
+    background:rgba(255,255,255,0.52);
+  }
+  #journey-rails[data-rail-style="ticks"] .rail-project .dot { width:6px; transform:none; }
+  #journey-rails[data-rail-style="ticks"] .rail-stop.done .dot { background:rgba(255,255,255,0.68); }
+  #journey-rails[data-rail-style="ticks"] .rail-stop.current .dot { background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.82); }
+  #journey-rails[data-rail-style="brackets"] .rail-stop .dot {
+    width:11px; height:9px; border-width:0 1px; border-radius:0; transform:none;
+  }
+  #journey-rails[data-rail-style="brackets"] .rail-project .dot {
+    width:8px; height:8px; border-width:1px; transform:none;
+  }
   /* Labels stay expanded while docked, retract during travel, then slide back in at
      touchdown. Welcome hides both rails because its in-scene columns already navigate. */
 
@@ -625,6 +638,13 @@
           </select>
         </label>
         <div class="row"><span>Timeline arrows</span><input type="checkbox" id="toggleTimelineArrows" checked></div>
+        <label>Side-link scrollbar
+          <select id="railStyleSelect">
+            <option value="nodes">Nodes (dots &amp; diamonds)</option>
+            <option value="ticks">Signal ticks</option>
+            <option value="brackets">ASCII brackets</option>
+          </select>
+        </label>
         <label>Rotation arrows
           <select id="arrowSelect">
             <option value="stream">Stream (triple chevron)</option>
@@ -1861,8 +1881,8 @@ const JOURNEY=[
   /* Interests: chess, ONE piano facet holding both recordings, and Volunteering (v68 —
      moved here from Education). The piano still auto-develops into the current
      recording's first frame (v66), PLAY brings it to life on an in-scene video plane,
-     and the up/down pair (v69 — was the skip-track mark) re-assembles the still into the other recording; `vids`
-     lists the recordings ('cap' = its caption line — a clickable tracklist since v68:
+     and the clickable tracklist re-assembles the still into the other recording; `vids`
+     lists the recordings ('cap' = its caption line — clickable since v68:
      the current one renders bright, the other dim), `imgScale` renders the still (and
      thus the video) bigger than a standard cover. The chess cover auto-develops into
      the site's OWN chess.com-style board (v66 — names, ratings and the bullet clocks):
@@ -1876,7 +1896,7 @@ const JOURNEY=[
       {img:'chessboard', title:'Chess', imgScale:1.95, hFit:1.5,
         games:CHESS_GAMES,
         mark:{img:'chessdotcom', href:'https://www.chess.com/member/julsgaard', cap:"Let's play a game :)", s:0.24, side:true, tilt:-0.16}},
-      {img:'piano1', title:'Piano', sub:'Current practice repertoire', imgScale:2.1, hFit:1.4,
+      {img:'piano1', title:'Piano', sub:'Current practice repertoire', imgScale:2.1, hFit:1.4, switchArrows:false,
         vids:[{src:'videos/piano-1.mp4', ascii:'piano1', cap:"Beethoven's Moonlight Sonata - Third Movement (Alternative Interpretation)"},
               {src:'videos/piano-2.mp4', ascii:'piano2', cap:"Beethoven's Pathétique Sonata - Third Movement (Alternative Interpretation)"}],
         btns:[{t:'PLAY',kind:'vplay'}]},
@@ -2574,6 +2594,7 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    shaded ASCII arrows flanks every facet on multi-facet stops — the "there's more around
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
+let railStyle=ud('railStyleSelect','nodes'); // fixed side-link marker design: nodes | ticks | brackets
 let timelineStyle=ud('timelineStyleSelect','milestones'); // scroll-mode list presentation: index | editorial | milestones
 let timelineArrows=ud('toggleTimelineArrows',true); // boundary-aware up/down hints on the Work/Education list
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
@@ -2812,7 +2833,7 @@ function addTimelineArrows(items,btns,listLeft,listW,yTop,yBot){
   if(!timelineArrows||ARROW_STYLE==='off') return null;
   const base=ROT_ARROWS[ARROW_STYLE]||ROT_ARROWS.stream;
   const up=rotateArrowArt(base,false), down=rotateArrowArt(base,true), cell=0.18;
-  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+(listW-w)/2, gap=0.90;
+  const w=Math.max(up[0].length,down[0].length)*cell, x0=listLeft+(listW-w)/2, gap=1.25;
   const upH=up.length*cell, dnH=down.length*cell;
   const upCY=yTop+gap+upH/2, dnCY=yBot-gap-dnH/2;
   layArrowArt(items,up,cell,x0,upCY+upH/2,false,{btn:'tlprev',tlDir:-1});
@@ -2931,9 +2952,7 @@ function buildCoverLayout(g,plainTitle){ // v40: title, subtitle + optional meta
   }
   const imgCY0=imgTop-ih/2; y=imgTop-ih-(A?0.9:0.1);
   const btns=[];
-  if(g.vids&&g.vids.length>1){ // v69: ONE idiom for every multi-slide cover — the up/down pair
-    // (recordings included; the v67 skip-track mark is gone — the user wanted the
-    // Earlier-roles scroller on the piano too)
+  if(g.vids&&g.vids.length>1&&g.switchArrows!==false){ // optional visual switcher; Piano uses its clickable tracklist alone
     const ax0=iw/2+0.8, w=addUDArrows(items,btns,ax0,imgCY0,'vprev','vnext');
     if((ax0+w)*2>maxW) maxW=(ax0+w)*2;
   }
@@ -3635,17 +3654,11 @@ const WB_FLY=360, WB_COL=14, WB_LINGER=4400, WB_GAP=700, WB_FIRST_PAUSE=480;
 const WBAN_CELL=0.15; // nominal stencil cell (matches the section list; long messages shrink to the calendar width)
 function welcomeMessages(){
   if(!statsReady()||!GH_STATS.commits) return ['LOADING COMMITS'];
-  const c=GH_STATS.commits, r=GH_STATS.repos||{}, out=[
+  const c=GH_STATS.commits;
+  return [
     c.today+' COMMITS TODAY', c.month+' COMMITS THIS MONTH',
     c.year+' COMMITS THIS YEAR', c.total+' COMMITS TOTAL'
   ];
-  if(r.mostRecent&&r.mostRecent.description){
-    const readme=asciiSafe(String(r.mostRecent.description)).toUpperCase()
-      .replace(/[^A-Z0-9 .,'&?!:()/-]/g,' ').replace(/\s+/g,' ').trim().slice(0,46);
-    if(readme) out.push('README: '+readme);
-  }
-  if(Number.isFinite(r.totalStars)) out.push(r.totalStars+' GITHUB STARS');
-  return out;
 }
 function hideBannerGlyphs(){ for(const rec of welcome.pool){ rec.m.visible=false; rec.m.material.opacity=0; rec.m.position.copy(rec.home); } }
 function startBannerWrite(now){
@@ -3745,9 +3758,9 @@ function updateWelcomeBanner(now){
   }
   if(b.phase==='wait'){
     if(b.first){
-      const F=welcome.F, spec=F&&F.lay.typeTitle;
+      const F=welcome.F;
       if(!F||F.state!=='hold') return;
-      const titleDone=spec?F.holdT0+WTW_DELAY+welcomeKeyAt(spec.text.length-1)+WTW_POP:F.holdT0;
+      const titleDone=welcomeTitleDoneAt(F);
       if(now>=titleDone+WB_FIRST_PAUSE){ b.first=false; startBannerWrite(now); }
     } else if(now-b.t0>=WB_GAP) startBannerWrite(now);
     return;
@@ -3835,8 +3848,8 @@ function updateWelcomeWave(now){
     it.m.position.copy(F.anchor).addScaledVector(F.right,px*f).addScaledVector(F.up,py*f);
   }
 }
-/* Side-column links are normal facet items now. They become clickable as soon as the main
-   assembly reaches hold; there is no slower second write pass. */
+/* Side-column links are normal facet items now. They stay visible with the main assembly,
+   but their hit targets remain locked until the greeting has completely resolved. */
 function welcomeScrollHidden(it){
   if(!it||!it.ws) return false;
   const F=welcome.F, o=welcomeScrollPos[it.ws]||0;
@@ -3880,12 +3893,13 @@ function welcomeScrollBarHit(x,y,onlyGroup,draggingBar){
   return null;
 }
 function updateWelcomeNav(now,dt){
-  const F=welcome.F, holding=F.state==='hold', hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
+  const F=welcome.F, holding=F.state==='hold', ready=welcomeIntroReady(F,now),
+    hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
   for(const b of F.btns){
     if(b.nav!==undefined){
       const count=b.ws&&F.lay.wsVisible?F.lay.wsVisible[b.ws]:WNAV_VISIBLE;
       const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+count));
-      b.shown=visible;
+      b.shown=ready&&visible;
       if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws], pitch=F.lay.wsPitch?F.lay.wsPitch[b.ws]:WNAV_PITCH; b.cy=F.lay.wsTop-slot*pitch+b.wsDY; }
       for(const it of b.items) it.shown=visible;
     }
@@ -3927,6 +3941,11 @@ function initWelcomeTypeTitle(){
   welcome.typeTitle={F,holdT0:F.holdT0,spec,cells,cursor}; glyphsDirty=true;
 }
 function welcomeKeyAt(key){ return key*WTW_KEY+(key>=3?WTW_GAP:0); }
+function welcomeTitleDoneAt(F){
+  const spec=F&&F.lay&&F.lay.typeTitle;
+  return spec?F.holdT0+WTW_DELAY+welcomeKeyAt(Math.max(0,spec.text.length-1))+WTW_POP:(F?F.holdT0:Infinity);
+}
+function welcomeIntroReady(F,now){ return !!F&&F.state==='hold'&&now>=welcomeTitleDoneAt(F); }
 /* Independent keyboard reveal: every key makes one complete stencil character pop into
    place. These glyphs are freshly allocated and never leave holes in the portrait. */
 function updateWelcomeTitle(now){
@@ -4484,7 +4503,6 @@ function welcomeKeyMove(key){
   if(!next) return false;
   if(welcomeKeyBtn&&welcomeKeyBtn!==next) welcomeKeyBtn.hover=false;
   welcomeKeyBtn=next; welcomeKeyBtn.hover=true; renderDirty=true; glyphsDirty=true;
-  if(next.project) showProjectStage(next.data,false);
   return true;
 }
 function welcomeKeyActivate(){
@@ -6101,7 +6119,6 @@ addEventListener('pointermove',e=>{
     const barHit=!dragging&&welcome.active?welcomeScrollBarHit(e.clientX,e.clientY):null;
     for(const F of stopFacets.facets) for(const b of F.btns) b.hover=!!(hit&&hit.b===b);
     renderer.domElement.style.cursor=(hit||barHit)?'pointer':'';
-    if(!dragging&&hit&&hit.b.project) showProjectStage(hit.b.data,false);
     if(welcome.active){ if(dragging) hideCalTip(); else welcomeCalTip(e.clientX,e.clientY); } // calendar hover tooltip
   }
   if(!dragging) return;
@@ -6474,7 +6491,8 @@ const DEV_TIPS={
   toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.', toggleCursorSway:'Adds a subtle passive camera response to pointer position while docked.',
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
   timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.',
-  toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.',
+  railStyleSelect:'Changes the dots and project squares used by the fixed side-link scrollbar.', arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
   welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
@@ -6586,6 +6604,10 @@ timelineStyleSelect.addEventListener('change',()=>{ timelineStyle=timelineStyleS
 const timelineArrowCheck=document.getElementById('toggleTimelineArrows');
 timelineArrowCheck.checked=timelineArrows;
 timelineArrowCheck.addEventListener('change',()=>{ timelineArrows=timelineArrowCheck.checked; reassembleDocked(); });
+const railStyleSelect=document.getElementById('railStyleSelect');
+function applyRailStyle(){ railWrap.dataset.railStyle=railStyle; }
+railStyleSelect.value=railStyle; applyRailStyle();
+railStyleSelect.addEventListener('change',()=>{ railStyle=railStyleSelect.value; applyRailStyle(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -6706,7 +6728,8 @@ const CTRL_DEF={
   uiFontSelect:['select',UI_FONT_DEFAULT],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
-  timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true], arrowSelect:['select','stream'],
+  timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true],
+  railStyleSelect:['select','nodes'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',0.90], welHalo:['range',0.05],
@@ -6715,7 +6738,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','railStyleSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };

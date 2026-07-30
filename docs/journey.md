@@ -2,6 +2,15 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v84: selectable side-link rail markers
+
+Journey settings now expose **Side-link scrollbar** (`railStyleSelect`) for the
+fixed ABOUT ME / PORTFOLIO rails. The choices are the existing circular
+nodes/project diamonds, compact signal ticks, and ASCII-like brackets. The selected
+value is applied as `data-rail-style` on `#journey-rails`; it participates in the
+Journey reset and user-default system without changing rail state, scrolling,
+keyboard navigation, or destination routing.
+
 ## v81: dock-expanded rails
 
 The split ABOUT ME / PORTFOLIO rails now use explicit journey states instead of

@@ -7,6 +7,23 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v84 addendum: optional cover switchers and gated Welcome links
+
+`switchArrows:false` is the supported way for a multi-`vids` cover to omit the
+visual `addUDArrows()` pair while retaining caption clicks and keyboard switching.
+Do not remove the `vids` array or special-case the input handlers to achieve the
+same visual result.
+
+Welcome side-column rows may be visually present before they are actionable.
+`updateWelcomeNav()` keeps each row item's `shown` state tied to scroll visibility,
+while the button's `shown` state also requires `welcomeIntroReady()`. Preserve that
+split: hiding the row items until the title completes would reintroduce a second,
+unrelated assembly sequence.
+
+Timeline-arrow spacing belongs inside `addTimelineArrows()`. Its returned `top` and
+`bottom` bounds must continue to include any larger gap so the list layout's fit and
+clearing region remain correct.
+
 ## v83 addendum: Welcome projects use an auxiliary in-scene facet
 
 The v82 projected DOM dossier is gone. Welcome now allocates one `projectStage`

@@ -1,5 +1,22 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v84 - click-only projects, greeting gate, quieter commit banner
+
+Welcome project rows still brighten and swell on pointer hover or keyboard focus,
+but neither interaction assembles the auxiliary project stage. A pointer click or
+Enter is now the only way to select and display a project; clicking a project in
+the fixed Portfolio rail remains an explicit selection and still carries it back
+to Welcome.
+
+The side-column destinations remain visible while the greeting types, but their
+hit targets (`b.shown`) stay disabled until the final title glyph finishes its
+pop. `welcomeTitleDoneAt()` is the shared timing source for this interaction gate
+and the commit banner's first-message pause. Classic assembled-title mode unlocks
+when the main facet reaches `hold`.
+
+`welcomeMessages()` is again limited to the four commit totals. The v81 README
+description and repository-star messages are no longer displayed.
+
 ## v83 - featured projects assemble beside PORTFOLIO
 
 The five PORTFOLIO rows are now live project selectors rather than quiet
@@ -10,7 +27,7 @@ fallback metadata. The stats workflow adds `GH_STATS.repos.featured`, filtered f
 the already-fetched public repositories, so stars and primary language refresh
 without putting a GitHub token in the browser.
 
-Hovering or keyboard-selecting a project assembles a second, world-stationary facet
+Clicking or keyboard-activating a project assembles a second, world-stationary facet
 to PORTFOLIO's right. It is deliberately **not** part of
 `buildWelcomeLayout()` or the main facet's bounds: folding it into those bounds
 would shrink the greeting, figure, calendar, and side columns. Instead, its anchor
@@ -27,8 +44,8 @@ facet claims 3,437, so the real 13,268-glyph pool retains 7,995 spare.
 
 Every project row still receives a unique `btnKind` (`wproject:<id>`); sharing one
 kind would merge the rows' item groups and make one hover animate all five. Pointer
-hover previews without fetching, click/Enter pins, a second keyboard Enter activates
-the primary action, and Escape or the assembled X sends the stage home.
+hover only highlights a row. Click/Enter selects it, a second keyboard Enter
+activates the primary action, and Escape or the assembled X sends the stage home.
 
 Explicit `OPEN PROJECT` actions open `#project-live`; hover never loads remote work.
 Entropy Forge and DocuRAG use their GitHub Pages deployments. The Danish wind map
