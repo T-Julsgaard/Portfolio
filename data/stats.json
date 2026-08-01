@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-01T21:53:51.635Z",
+  "generatedAt": "2026-08-01T22:53:25.480Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 0,
@@ -22,48 +22,6 @@
     "total": 221
   },
   "calendar": [
-    {
-      "date": "2025-07-27",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 0
-    },
-    {
-      "date": "2025-07-28",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 1
-    },
-    {
-      "date": "2025-07-29",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 2
-    },
-    {
-      "date": "2025-07-30",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 3
-    },
-    {
-      "date": "2025-07-31",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 4
-    },
-    {
-      "date": "2025-08-01",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 5
-    },
-    {
-      "date": "2025-08-02",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 6
-    },
     {
       "date": "2025-08-03",
       "count": 0,
@@ -2247,6 +2205,12 @@
       "count": 0,
       "level": "NONE",
       "weekday": 6
+    },
+    {
+      "date": "2026-08-02",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 0
     }
   ],
   "repos": {
