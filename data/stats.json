@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T20:08:05.596Z",
+  "generatedAt": "2026-08-07T21:10:04.541Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 0,
@@ -2245,7 +2245,7 @@
   ],
   "repos": {
     "publicCount": 6,
-    "totalStars": 10,
+    "totalStars": 11,
     "languages": [
       {
         "name": "HTML",
@@ -2292,7 +2292,7 @@
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
         "pushedAt": "2026-07-06T19:05:39Z",
-        "stars": 10,
+        "stars": 11,
         "language": "JavaScript"
       },
       {
