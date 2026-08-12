@@ -1,5 +1,44 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v87 - source-faithful project previews
+
+The five project ASCII screens now depict the first UI that replaces them rather
+than an abstract system diagram: Chess Review's extension popup, Entropy Forge's
+desktop rack, DocuRAG's login, the Danish wind map with its collapsed Data Filter,
+and Bitcoin Miner's launch menu. Automatic development begins after 1,150 ms and
+uses project-local 0.70 stagger / 0.80 tile-duration factors for a quicker morph.
+
+The developed surface bar is consistent: OPEN REPOSITORY for every project (OPEN
+REPO on Chess to make room for its additional GET EXTENSION action), plus a compact
+full-screen/GitHub-Pages icon only for Entropy Forge and DocuRAG, the two records
+with deployed Pages URLs. The former bar X was removed; the assembled X above the
+screen still closes the complete project focus.
+
+Entropy Forge and DocuRAG set `desktop:true`, giving their iframes a 1440x742
+internal viewport sampled down at 0.5. Entropy therefore crosses its 1080px desktop
+breakpoint and renders the three-column rack; DocuRAG keeps its desktop sidebar and
+topbar. This also supplies a denser text raster before the scene homography scales
+the surface.
+
+DocuRAG's deployed HTML is fetched, rebased to its Pages root, and patched only at
+the embed seam: the injected Preview badge is hidden, `#delete-chat-btn` is pinned
+to the top-right and relabelled Close mode, and a capture listener routes it through
+the app's existing Switch action. Search and Ask now return to the knowledge-base
+mode chooser instead of deleting the active chat; Dashboard keeps its own matching
+close path.
+
+Danish Wind Mapper now loads the exact repository artifact requested by the owner:
+`wind-asset-map/Interactive_wind_map_preview.html`. It is the full 11 MB Folium
+document, rebased from raw GitHub content; the old representative local Leaflet
+mock is no longer selected. Browser validation reached the real Data Filter and
+6,987 Leaflet paths. Chess Review now starts on the repository's toolbar-popup UI
+and its Analyze action opens a static walkthrough of the real modular analyzer,
+driven by the existing real PGN positions and moves.
+
+Budget validation against embedded `asciiData`: 13,268 terrain glyphs, 3,437 main
+Welcome claims, and 870 records for the largest current project layout, leaving
+8,961 spare.
+
 ## v86 - automatic project development and fluid navigation
 
 Selected portfolio projects now read as assembled ASCII before developing into

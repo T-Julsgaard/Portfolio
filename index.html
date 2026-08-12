@@ -91,9 +91,15 @@
     color:rgba(255,255,255,.78); font:7px/1 inherit; letter-spacing:.11em; text-decoration:none; cursor:pointer;
     display:inline-flex; align-items:center; justify-content:center; }
   .pl-bar a:hover,.pl-bar button:hover,.pl-bar a:focus-visible,.pl-bar button:focus-visible { color:#000;background:#fff;outline:none; }
-  #pl-close { width:25px; padding:0; font-size:14px; }
+  .pl-actions { display:flex; align-items:center; gap:6px; flex:none; }
+  .pl-actions [hidden] { display:none; }
+  #pl-fullscreen { width:25px; padding:0; }
+  #pl-fullscreen svg { width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.5; }
   .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#f3f3ef; }
   #pl-frame { width:100%; height:100%; border:0; display:block; background:#f3f3ef; }
+  /* Some projects use real desktop-only layouts above 1080px. Render those at a
+     2x internal viewport, then sample them down into the 720px in-scene surface. */
+  #pl-frame.pl-desktop { width:1440px; height:742px; transform:scale(.5); transform-origin:top left; }
   #pl-load { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
     background:#080808; color:rgba(255,255,255,.62); font-size:8px; letter-spacing:.16em; text-transform:uppercase;
     transition:opacity .24s; pointer-events:none; }
@@ -1933,17 +1939,20 @@ const PORTFOLIO_PROJECTS=[
   {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
    repo:'https://github.com/T-Julsgaard/entropy-forge',
    live:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html',
+   fullscreen:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', desktop:true,
    extra:'https://t-julsgaard.github.io/entropy-forge/web/harvest-manual.html', extraLabel:'FIELD MANUAL',
     visual:'entropy', accent:'#ef6f55',
    blurb:'Harvests earthquakes, weather, solar wind, the Bitcoin mempool, and human input into auditable public randomness.'},
   {id:'docurag', label:'DocuRAG', repoName:'DocuRAG',
    repo:'https://github.com/T-Julsgaard/DocuRAG',
    live:'https://t-julsgaard.github.io/DocuRAG/',
+   liveMode:'rebased', liveBase:'https://t-julsgaard.github.io/DocuRAG/',
+   fullscreen:'https://t-julsgaard.github.io/DocuRAG/', desktop:true,
     visual:'rag', accent:'#7aa2ff',
    blurb:'A plug-and-play document knowledge base with free keyword search, grounded agentic answers, accounts, limits, and usage analytics.'},
   {id:'danish-wind-mapper', label:'Danish wind mapper', repoName:'danish-wind-mapper',
    repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
-    preview:'wind',
+   liveMode:'raw', desktop:true,
    live:'https://raw.githubusercontent.com/T-Julsgaard/danish-wind-mapper/main/wind-asset-map/Interactive_wind_map_preview.html',
    liveBase:'https://raw.githubusercontent.com/T-Julsgaard/danish-wind-mapper/main/wind-asset-map/',
     visual:'wind', accent:'#69c7d5',
@@ -2217,13 +2226,16 @@ projectLive.id='project-live'; projectLive.setAttribute('role','region'); projec
 projectLive.innerHTML=
   '<div class="pl-shell"><div class="pl-bar"><i class="pl-status"></i><div class="pl-names">'+
   '<div id="pl-title"></div><div id="pl-sub"></div></div>'+
-  '<a class="pl-external" id="pl-external" target="_blank" rel="noopener">OPEN SEPARATELY ↗</a>'+
-  '<button id="pl-close" title="Close live project" aria-label="Close live project">×</button></div>'+
+  '<div class="pl-actions"><a id="pl-extension" target="_blank" rel="noopener" hidden>GET EXTENSION &nearr;</a>'+
+  '<a id="pl-repo" target="_blank" rel="noopener">OPEN REPOSITORY &nearr;</a>'+
+  '<a id="pl-fullscreen" target="_blank" rel="noopener" title="Open full-screen site" aria-label="Open full-screen site" hidden>'+
+  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></a></div></div>'+
   '<div class="pl-stage"><iframe id="pl-frame" title="Live project"></iframe><div id="pl-load">LOADING LIVE PROJECT</div></div></div>';
 document.body.appendChild(projectLive);
 
 const plFrame=projectLive.querySelector('#pl-frame'), plLoad=projectLive.querySelector('#pl-load');
-const plTitle=projectLive.querySelector('#pl-title'), plSub=projectLive.querySelector('#pl-sub'), plExternal=projectLive.querySelector('#pl-external');
+const plTitle=projectLive.querySelector('#pl-title'), plSub=projectLive.querySelector('#pl-sub');
+const plRepo=projectLive.querySelector('#pl-repo'), plExtension=projectLive.querySelector('#pl-extension'), plFullscreen=projectLive.querySelector('#pl-fullscreen');
 const projectStageState={id:null,pinned:false,previewDismissed:false};
 let projectLiveOpen=false, projectLoadToken=0, projectLiveReturnFocus=null;
 
@@ -2267,6 +2279,36 @@ function projectChessPreviewHtml(){
     return Math.round(v*100)/100;
   });
   const data=JSON.stringify({positions,sans,moveCoords,clocks,qualities,evals,w:g.w,wr:g.wr,b:g.b,br:g.br,base:g.base,flip:g.me==='b'});
+  return `<!doctype html><html data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#14130f;color:#f3f1ea;font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea{font:inherit}.screen{display:none;width:100%;height:100%}.screen.active{display:flex}
+#popup{align-items:center;justify-content:center;background:radial-gradient(120% 90% at 50% -20%,#1a1916,#14130f 65%)}.popup-card{width:318px;padding:16px 16px 18px;background:radial-gradient(120% 90% at 50% -20%,#1a1916,#14130f 65%);border:1px solid #34322c;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.38)}.popup-brand{display:flex;align-items:center;gap:10px;margin-bottom:16px}.brand-mark{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(160deg,#7fb45f,#6aa14a);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}.brand-mark img{width:20px;height:20px}.brand-name{font-weight:800;letter-spacing:.14em;font-size:13px;text-transform:uppercase}.brand-name span{color:#807c70;font-weight:600}.primary{width:100%;padding:13px;border:0;border-radius:10px;background:linear-gradient(160deg,#7fb45f,#6aa14a);color:#11210a;font-size:14px;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 8px 20px -12px #7fb45f}.primary:hover{filter:brightness(1.07)}details{margin-top:14px;border-top:1px solid #2a2823;color:#b8b4a8}summary{list-style:none;cursor:pointer;padding:12px 2px 4px;font-size:12px;font-weight:600}summary::-webkit-details-marker{display:none}summary:before{content:'›';display:inline-block;margin-right:7px;transition:transform .15s}details[open] summary:before{transform:rotate(90deg)}label{display:block;margin:9px 0 4px;color:#807c70;font-size:10px}input,textarea{width:100%;padding:7px 9px;color:#f3f1ea;background:#262521;border:1px solid #34322c;border-radius:8px;font-size:11px}textarea{height:50px;resize:none}.ghost{width:100%;margin-top:7px;padding:7px;color:#f3f1ea;background:#262521;border:1px solid #34322c;border-radius:8px;font-size:11px}
+#analysis{flex-direction:column;background:radial-gradient(120% 80% at 50% -10%,#1a1916,#14130f 60%)}.topbar{height:36px;flex:none;display:flex;align-items:center;gap:11px;padding:0 12px;border-bottom:1px solid #34322c;background:rgba(31,30,26,.84)}.topbar .brand-mark{width:22px;height:22px;border-radius:6px}.topbar .brand-mark img{width:16px;height:16px}.topbar .brand-name{font-size:9px}.meta{display:flex;gap:12px;margin-left:6px;color:#807c70;font-size:7px}.meta b{color:#b8b4a8}.top-actions{margin-left:auto;display:flex;gap:4px}.icon-btn{width:24px;height:24px;padding:0;border:1px solid #34322c;border-radius:6px;background:#262521;color:#b8b4a8;display:grid;place-items:center;cursor:pointer;font-size:11px}.icon-btn:hover{border-color:#7fb45f;color:#f3f1ea}.workspace{height:calc(100% - 36px);display:grid;grid-template-columns:320px minmax(0,1fr);gap:8px;padding:7px 8px}.board-col{min-width:0;display:grid;grid-template-rows:21px minmax(0,1fr) 21px 25px;gap:3px}.player{display:flex;align-items:center;gap:6px;padding:0 6px;background:#1f1e1a;border:1px solid #34322c;border-radius:6px;font-size:8px;font-weight:700}.elo{color:#807c70;font-size:7px}.clock{margin-left:auto;padding:2px 6px;border-radius:4px;background:#2e2c27;color:#b8b4a8;font:8px ui-monospace,monospace}.clock.on{background:#f1efe7;color:#1a1a1a}.board-wrap{min-height:0;display:flex;align-items:center;justify-content:center;gap:4px}.evalbar{width:14px;height:100%;max-height:266px;position:relative;overflow:hidden;border-radius:4px;background:#26241f;border:1px solid #34322c}.evalfill{position:absolute;left:0;right:0;bottom:0;height:50%;background:#f1efe7;transition:height .18s}.evaltxt{position:absolute;left:0;right:0;bottom:3px;text-align:center;color:#1a1a1a;font:5px ui-monospace,monospace;z-index:2}.board{height:100%;max-height:266px;aspect-ratio:1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);border-radius:7px;overflow:hidden;box-shadow:0 0 0 1px #34322c,0 18px 34px -24px #000}.sq{position:relative;display:grid;place-items:center}.sq.l{background:#e9edcc}.sq.d{background:#6f9c54}.sq.hl:before{content:'';position:absolute;inset:0;background:rgba(255,224,64,.46)}.piece{position:relative;z-index:1;width:88%;height:88%;object-fit:contain}.co{position:absolute;z-index:2;font:5px ui-monospace,monospace;color:rgba(38,67,30,.72)}.cr{left:2px;top:1px}.cf{right:2px;bottom:1px}.controls{display:flex;align-items:center;justify-content:center;gap:4px}.controls button{height:22px;min-width:25px;padding:0;border:1px solid #34322c;border-radius:5px;background:#262521;color:#b8b4a8;cursor:pointer}.controls button:hover{color:#11210a;background:#7fb45f}.ply{min-width:48px;text-align:center;color:#807c70;font:7px ui-monospace,monospace}
+.modules{min-width:0;height:100%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:64px 111px 65px 67px;gap:6px}.panel{min-height:0;background:#1f1e1a;border:1px solid #34322c;border-radius:7px;overflow:hidden;box-shadow:0 12px 28px -22px #000}.panel-head{height:20px;display:flex;align-items:center;padding:0 7px;border-bottom:1px solid #2a2823;color:#b8b4a8;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.panel-head .count{margin-left:auto;color:#807c70}.review{grid-column:1/-1;display:grid;grid-template-columns:1fr 145px}.review-main{padding:6px 8px}.opening{color:#7fb45f;font:6px ui-monospace,monospace;font-weight:700}.move-head{display:flex;align-items:center;gap:6px;margin-top:5px}.badge{width:15px;height:15px;display:grid;place-items:center;border-radius:4px;background:#81b64c;color:#11210a;font-size:7px;font-weight:900}.san{font:800 9px ui-monospace,monospace}.quality{font-size:6px;font-weight:800;color:#81b64c}.ev{margin-left:auto;font:800 7px ui-monospace,monospace}.comment{margin:3px 0 0;color:#807c70;font:6px/1.25 ui-monospace,monospace}.coach{border-left:1px solid #2a2823;padding:6px 8px;display:flex;align-items:center;gap:7px}.coach-face{width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#2e2c27,#14130f);border:1px solid #4b493f;color:#7fb45f;font-weight:800}.coach b{display:block;font-size:7px}.coach span{display:block;margin-top:2px;color:#807c70;font-size:6px}.moves{grid-row:2/4;display:flex;flex-direction:column}.move-list{min-height:0;overflow:auto;padding:3px}.move-row{display:grid;grid-template-columns:20px 1fr 1fr;gap:2px;min-height:15px;align-items:center;color:#b8b4a8;font:6px ui-monospace,monospace}.move-row .n{color:#615e55;text-align:right;padding-right:3px}.move-row button{height:14px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;padding:0 3px;cursor:pointer;white-space:nowrap}.move-row button:hover,.move-row button.on{background:#2e2c27;color:#f3f1ea}.q{display:inline-block;width:4px;height:4px;border-radius:50%;margin-right:3px;background:#81b64c}.q.MISTAKE{background:#f9a85a}.q.BRILLIANT{background:#26c2a3}.stats{display:grid;grid-template-columns:1fr 1fr}.stat{display:flex;align-items:center;gap:5px;padding:5px 7px}.stat+.stat{border-left:1px solid #2a2823}.acc{font:800 16px ui-monospace,monospace}.who{font-size:5px;color:#807c70;text-transform:uppercase}.rating{font:6px ui-monospace,monospace;color:#b8b4a8}.graph{padding:5px 7px}.graph svg{width:100%;height:100%}.zero{stroke:#34322c;stroke-width:1}.line{fill:none;stroke:#7fb45f;stroke-width:1.7}.cursor{stroke:#f3f1ea;stroke-width:1;opacity:.65}.engine{grid-column:1/-1;display:grid;grid-template-columns:72px 1fr}.engine-score{display:grid;place-items:center;border-right:1px solid #2a2823;color:#7fb45f;font:800 15px ui-monospace,monospace}.pv{padding:6px 8px;color:#b8b4a8;font:6px/1.7 ui-monospace,monospace}.pv b{color:#f3f1ea}
+</style></head><body><section id="popup" class="screen active"><div class="popup-card"><div class="popup-brand"><div class="brand-mark"><img src="https://raw.githubusercontent.com/T-Julsgaard/Chess-Review/main/pieces-img/cburnett/wN.svg" alt=""></div><div class="brand-name">Chess <span>/ Review</span></div></div><button class="primary" id="analyze" onclick="window.enterChessPreview()">Analyze this game</button><details><summary>Manual setup</summary><label>Username — usually detected automatically</label><input value="Julsgaard"><label>Older game — Chess.com / Lichess URL, PGN, or FEN</label><textarea placeholder="Paste a game URL, PGN, or FEN"></textarea><button class="ghost" id="analyze-pasted" onclick="window.enterChessPreview()">Analyze pasted</button></details></div></section>
+<section id="analysis" class="screen"><header class="topbar"><div class="brand-mark"><img src="https://raw.githubusercontent.com/T-Julsgaard/Chess-Review/main/pieces-img/cburnett/wN.svg" alt=""></div><div class="brand-name">Chess <span>/ Review</span></div><div class="meta"><span><b>Chess.com</b> · Bullet</span><span>Game review</span></div><div class="top-actions"><button class="icon-btn" id="flip" title="Flip board">⇅</button><button class="icon-btn" title="Share game">↗</button><button class="icon-btn" title="Settings">⚙</button><button class="icon-btn" id="back" title="Back to extension popup">←</button></div></header><div class="workspace"><section class="board-col"><div class="player" id="top"></div><div class="board-wrap"><div class="evalbar"><div class="evalfill" id="evalfill"></div><div class="evaltxt" id="evaltxt"></div></div><div class="board" id="board"></div></div><div class="player" id="bottom"></div><div class="controls"><button data-go="first">|«</button><button data-go="prev">‹</button><span class="ply" id="ply"></span><button data-go="next">›</button><button data-go="last">»|</button></div></section><aside class="modules"><section class="panel review"><div class="review-main"><div class="opening">A01 · NIMZO-LARSEN ATTACK</div><div class="move-head"><span class="badge" id="badge">✓</span><span class="san" id="san">—</span><span class="quality" id="quality"></span><span class="ev" id="ev"></span></div><p class="comment" id="comment"></p></div><div class="coach"><div class="coach-face">CR</div><div><b>Review coach</b><span id="coach-line">Position insight</span></div></div></section><section class="panel moves"><div class="panel-head">Moves <span class="count" id="move-count"></span></div><div class="move-list" id="moves"></div></section><section class="panel stats"><div class="stat"><span class="acc">88.4</span><span><div class="who">Nixkram</div><div class="rating">EST. 2470</div></span></div><div class="stat"><span class="acc">93.1</span><span><div class="who">Julsgaard</div><div class="rating">EST. 2230</div></span></div></section><section class="panel graph"><svg viewBox="0 0 360 52" preserveAspectRatio="none"><line class="zero" x1="0" y1="26" x2="360" y2="26"></line><polyline class="line" id="graph"></polyline><line class="cursor" id="cursor" y1="0" y2="52"></line></svg></section><section class="panel engine"><div class="engine-score" id="engine-score">+0.2</div><div class="pv"><b>Engine · depth 18</b><br><span id="pv-line">1. Nf3 d5 2. b3 Nf6 3. Bb2</span></div></section></aside></div></section><script>
+const D=${data};let ply=Math.min(42,D.sans.length);const board=document.getElementById('board'),moves=document.getElementById('moves'),pieceRoot='https://raw.githubusercontent.com/T-Julsgaard/Chess-Review/main/pieces-img/cburnett/';
+for(let s=0;s<64;s++){const d=document.createElement('div');d.className='sq '+((((s>>3)+(s&7))%2)?'d':'l');board.appendChild(d)}
+function secs(v){let t=D.base;for(let i=v?0:1;i<ply&&i<D.clocks.length;i+=2)t=D.clocks[i];return t}function fmt(t){const m=Math.floor(t/60),s=t-m*60;return m+':'+String(Math.floor(s)).padStart(2,'0')+'.'+Math.min(9,Math.round((s-Math.floor(s))*10))}function player(el,name,rating,white){el.innerHTML='<b>'+name+'</b><span class="elo">('+rating+')</span><span class="clock">'+fmt(secs(white))+'</span>'}
+function moveList(){let h='';for(let i=0;i<D.sans.length;i+=2){h+='<div class="move-row"><span class="n">'+(i/2+1)+'.</span>';for(let j=0;j<2;j++){const k=i+j;if(k<D.sans.length)h+='<button data-p="'+(k+1)+'" class="'+(ply===k+1?'on':'')+'"><i class="q '+D.qualities[k]+'"></i>'+D.sans[k]+'</button>';else h+='<span></span>'}h+='</div>'}moves.innerHTML=h;const on=moves.querySelector('.on');if(on)moves.scrollTop=Math.max(0,on.offsetTop-moves.clientHeight/2+on.clientHeight/2)}
+function show(){const b=D.positions[ply],last=ply?D.moveCoords[ply-1]:null,sqs=board.children;for(let s=0;s<64;s++){const i=D.flip?63-s:s,el=sqs[s];el.innerHTML='';const pc=b[i];if(pc&&pc!==' '){const x=document.createElement('img');x.className='piece';x.src=pieceRoot+(pc===pc.toUpperCase()?'w':'b')+pc.toUpperCase()+'.svg';x.alt='';el.appendChild(x)}el.classList.toggle('hl',!!last&&(i===last[0]||i===last[1]));if((s&7)===0){const c=document.createElement('span');c.className='co cr';c.textContent=D.flip?(s>>3)+1:8-(s>>3);el.appendChild(c)}if((s>>3)===7){const c=document.createElement('span');c.className='co cf';c.textContent=String.fromCharCode(D.flip?104-(s&7):97+(s&7));el.appendChild(c)}}const whiteTurn=ply%2===0,topWhite=D.flip;player(document.getElementById('top'),topWhite?D.w:D.b,topWhite?D.wr:D.br,topWhite);player(document.getElementById('bottom'),topWhite?D.b:D.w,topWhite?D.br:D.wr,!topWhite);document.querySelectorAll('.clock').forEach((c,i)=>c.classList.toggle('on',i===(whiteTurn==topWhite?0:1)));const e=D.evals[ply],share=Math.max(8,Math.min(92,50+e*8));document.getElementById('evalfill').style.height=share+'%';document.getElementById('evaltxt').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('engine-score').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('ply').textContent=ply+' / '+D.sans.length;document.getElementById('move-count').textContent=D.sans.length+' ply';const q=ply?D.qualities[ply-1]:'START',san=ply?D.sans[ply-1]:'Starting position';document.getElementById('san').textContent=san;document.getElementById('quality').textContent=q;document.getElementById('ev').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('badge').textContent=q==='MISTAKE'?'!':q==='BRILLIANT'?'!!':'✓';const line=q==='MISTAKE'?'That loses part of the advantage.':q==='BRILLIANT'?'A sharp tactical idea.':q==='BOOK'?'Known opening theory.':'A precise move that keeps the plan.';document.getElementById('comment').textContent=line;document.getElementById('coach-line').textContent=line;document.getElementById('pv-line').textContent=(D.sans.slice(ply,ply+7).join(' ')||'End of game');moveList();const x=360*ply/Math.max(1,D.sans.length);document.getElementById('cursor').setAttribute('x1',x);document.getElementById('cursor').setAttribute('x2',x)}
+document.getElementById('graph').setAttribute('points',D.evals.map((e,i)=>(360*i/(D.evals.length-1))+','+(26-Math.max(-4,Math.min(4,e))*5.4)).join(' '));function enterDemo(){document.getElementById('popup').classList.remove('active');document.getElementById('analysis').classList.add('active');show()}window.enterChessPreview=enterDemo;document.getElementById('analyze').addEventListener('click',enterDemo);document.getElementById('analyze-pasted').addEventListener('click',enterDemo);document.getElementById('back').addEventListener('click',()=>{document.getElementById('analysis').classList.remove('active');document.getElementById('popup').classList.add('active')});document.getElementById('flip').addEventListener('click',()=>{D.flip=!D.flip;show()});document.querySelector('.controls').addEventListener('click',e=>{const a=e.target.dataset.go;if(!a)return;ply=a==='first'?0:a==='last'?D.sans.length:a==='prev'?Math.max(0,ply-1):Math.min(D.sans.length,ply+1);show()});moves.addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b){ply=+b.dataset.p;show()}});document.body.dataset.previewReady='1';
+<\/script></body></html>`;
+}
+function projectChessPreviewHtmlLegacy(){
+  const g=CHESS_GAMES[0], positions=[], sans=[], moveCoords=[];
+  let st=cvStart(); positions.push(st.b.join(''));
+  for(const tok of cvTokens(g.pgn)){
+    const move=cvSan(st,tok); if(!move) break;
+    st=cvApply(st,move); sans.push(tok); moveCoords.push([move.from,move.to]); positions.push(st.b.join(''));
+  }
+  const clocks=[...g.pgn.matchAll(/\[%clk ([\d:.]+)\]/g)].map(m=>cvSecs(m[1]));
+  const qualities=sans.map((_,i)=>i<15?'BOOK':i===71?'BRILLIANT':i%23===0?'MISTAKE':i%17===0?'GREAT':i%11===0?'EXCELLENT':'BEST');
+  const evals=positions.map((_,i)=>{
+    let v=0.22*Math.sin(i*0.31)+0.10*Math.cos(i*0.13);
+    if(i>44) v-=0.012*(i-44); if(i>72) v-=0.045*(i-72); if(i>92) v-=0.18*(i-92);
+    return Math.round(v*100)/100;
+  });
+  const data=JSON.stringify({positions,sans,moveCoords,clocks,qualities,evals,w:g.w,wr:g.wr,b:g.b,br:g.br,base:g.base,flip:g.me==='b'});
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 .layout{min-height:0;overflow:hidden}.board-col,.side{min-height:0;max-height:100%;overflow:hidden}.moves{min-height:0;overflow:hidden}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#14130f;color:#f3f1ea;font-family:"Segoe UI",sans-serif}button{font:inherit}.app{height:100%;padding:8px;background:radial-gradient(110% 85% at 50% -15%,#24231e,#14130f 62%)}.head{height:28px;display:flex;align-items:center;gap:8px;padding:0 8px 7px;border-bottom:1px solid #34322c}.mark{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;background:#7fb45f;color:#11210a;font-weight:900}.brand{font-size:11px;font-weight:800;letter-spacing:.14em}.brand span{color:#807c70}.showcase{margin-left:auto;color:#807c70;font:8px ui-monospace,monospace;letter-spacing:.12em}.layout{height:calc(100% - 28px);display:grid;grid-template-columns:310px minmax(0,1fr);gap:9px;padding-top:8px}.board-col{min-width:0;height:100%;display:grid;grid-template-rows:22px minmax(0,1fr) 22px 25px;gap:3px}.player{display:flex;align-items:center;gap:7px;padding:0 5px;background:#1f1e1a;border:1px solid #34322c;border-radius:6px;font-size:10px;font-weight:700}.elo{color:#807c70;font-size:8px}.clock{margin-left:auto;padding:2px 6px;border-radius:4px;background:#2e2c27;color:#b8b4a8;font:10px ui-monospace,monospace}.clock.on{background:#f0eee5;color:#222}.board-wrap{min-height:0;display:flex;align-items:center;justify-content:center;gap:5px}.evalbar{width:18px;height:260px;position:relative;overflow:hidden;border-radius:4px;background:#262421;border:1px solid #34322c}.evalfill{position:absolute;left:0;right:0;bottom:0;height:50%;background:#f0eee5;transition:height .18s}.evaltxt{position:absolute;left:0;right:0;bottom:3px;text-align:center;color:#222;font:7px ui-monospace,monospace;z-index:2}.board{width:260px;height:260px;flex:0 0 260px;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);box-shadow:0 8px 22px rgba(0,0,0,.32)}.sq{position:relative;display:grid;place-items:center;font-family:"Segoe UI Symbol","Arial Unicode MS",serif;font-size:min(4.7vh,27px);line-height:1}.sq.l{background:#e9edcc}.sq.d{background:#6f9c54}.sq.hl{box-shadow:inset 0 0 0 999px rgba(255,235,60,.34)}.co{position:absolute;font:6px ui-monospace,monospace;color:rgba(30,45,20,.68)}.cr{left:2px;top:1px}.cf{right:2px;bottom:1px}.controls{display:flex;align-items:center;justify-content:center;gap:5px}.controls button{height:23px;min-width:27px;border:1px solid #34322c;border-radius:5px;background:#262521;color:#b8b4a8;cursor:pointer}.controls button:hover{color:#11210a;background:#7fb45f}.ply{min-width:54px;text-align:center;color:#807c70;font:9px ui-monospace,monospace}.side{min-width:0;height:100%;display:grid;grid-template-rows:auto 52px minmax(76px,1fr) 50px;gap:7px}.panel{min-height:0;background:#1f1e1a;border:1px solid #34322c;border-radius:8px;overflow:hidden}.opening{height:24px;padding:6px 9px;border-bottom:1px solid #2a2823;color:#7fb45f;font:8px ui-monospace,monospace;font-weight:700}.insight{padding:7px 9px}.move-head{display:flex;align-items:center;gap:7px;height:18px}.badge{width:16px;height:16px;display:grid;place-items:center;border-radius:4px;background:#81b64c;color:#11210a;font-size:9px;font-weight:900}.san{font:800 11px ui-monospace,monospace}.quality{font-size:8px;font-weight:800;color:#81b64c}.ev{margin-left:auto;font:800 9px ui-monospace,monospace}.comment{margin:4px 0 0;color:#b8b4a8;font:8px/1.35 ui-monospace,monospace}.stats{display:grid;grid-template-columns:1fr 1fr}.stat{display:flex;align-items:center;gap:8px;padding:6px 9px}.stat+.stat{border-left:1px solid #2a2823}.acc{font:800 20px ui-monospace,monospace}.who{font-size:7px;color:#807c70;text-transform:uppercase;letter-spacing:.08em}.rating{font:8px ui-monospace,monospace;color:#b8b4a8}.moves{display:flex;flex-direction:column}.panel-title{height:22px;padding:6px 9px;border-bottom:1px solid #2a2823;color:#b8b4a8;font-size:7px;font-weight:800;letter-spacing:.12em}.move-list{min-height:0;overflow:auto;padding:3px}.move-row{display:grid;grid-template-columns:22px 1fr 1fr;gap:2px;min-height:17px;align-items:center;border-radius:4px;color:#b8b4a8;font:8px ui-monospace,monospace}.move-row .n{color:#615e55;text-align:right;padding-right:3px}.move-row button{height:16px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;padding:0 4px;cursor:pointer;white-space:nowrap}.move-row button:hover,.move-row button.on{background:#2e2c27;color:#f3f1ea}.q{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:4px;background:#81b64c}.q.MISTAKE{background:#f9a85a}.q.BRILLIANT{background:#26c2a3}.graph{padding:5px 8px 4px}.graph svg{width:100%;height:100%}.zero{stroke:#34322c;stroke-width:1}.line{fill:none;stroke:#7fb45f;stroke-width:1.7}.cursor{stroke:#f3f1ea;stroke-width:1;opacity:.65}@media(max-width:560px){.layout{grid-template-columns:45% 1fr}.showcase{display:none}.comment{display:none}}
@@ -2283,7 +2325,22 @@ function projectWindPreviewHtml(){
   const points=[{"lat":56.25596186586127,"lon":8.280008213419357,"cap":900,"size":1},{"lat":54.89366737538251,"lon":10.61399948304226,"cap":130,"size":1},{"lat":55.22720654441105,"lon":8.697010747194076,"cap":150,"size":3},{"lat":55.40792784421826,"lon":11.2723177839674,"cap":200,"size":3},{"lat":56.79828887023552,"lon":8.762216768218018,"cap":500,"size":9},{"lat":56.77862836630458,"lon":8.402478976815257,"cap":600,"size":8},{"lat":57.03648001063156,"lon":10.17224566458411,"cap":600,"size":2},{"lat":55.03960376926553,"lon":15.04268950841753,"cap":225,"size":3},{"lat":55.76097042060487,"lon":8.475529805382552,"cap":600,"size":5},{"lat":55.79672389517198,"lon":8.310121864955958,"cap":600,"size":4},{"lat":56.5175565566116,"lon":10.13544568432784,"cap":600,"size":5},{"lat":56.65250996305068,"lon":8.912461528228455,"cap":600,"size":8},{"lat":55.30446832119804,"lon":11.37349554596834,"cap":750,"size":9},{"lat":55.78147067835113,"lon":9.89628427799197,"cap":750,"size":3},{"lat":55.13666154827761,"lon":8.952804292172994,"cap":600,"size":25},{"lat":56.46181485094729,"lon":8.832821470769638,"cap":750,"size":4},{"lat":56.86271103412351,"lon":8.802509040049264,"cap":660,"size":7},{"lat":55.05338867195536,"lon":12.02494989817843,"cap":660,"size":3},{"lat":54.77799539839072,"lon":11.94645214039524,"cap":660,"size":3},{"lat":56.26017076220214,"lon":9.977607894989719,"cap":750,"size":5},{"lat":56.42525120292869,"lon":8.86236023799873,"cap":1000,"size":7},{"lat":55.16478406042523,"lon":10.68676924183028,"cap":900,"size":3},{"lat":56.95483371919782,"lon":10.00058517909833,"cap":750,"size":12},{"lat":55.48833790039432,"lon":7.808928573729868,"cap":2000,"size":80},{"lat":56.66792103040591,"lon":8.217522709704511,"cap":2000,"size":12},{"lat":57.23636070520774,"lon":9.940474748801805,"cap":1500,"size":14},{"lat":55.58043059258716,"lon":7.554919303432045,"cap":2300,"size":91},{"lat":54.54476653788551,"lon":11.60895246127316,"cap":2300,"size":90},{"lat":57.31394222215163,"lon":10.48105036379682,"cap":2000,"size":10},{"lat":56.59278063711137,"lon":11.26054483065457,"cap":3600,"size":111},{"lat":56.68540425688152,"lon":8.967865578277275,"cap":3000,"size":11},{"lat":56.37583546362236,"lon":8.371087618423624,"cap":3450,"size":27},{"lat":55.83161800111292,"lon":8.727372658192726,"cap":3600,"size":6},{"lat":55.66157313136281,"lon":7.668805425273567,"cap":8300,"size":5},{"lat":54.97309875706843,"lon":12.80385837152251,"cap":8400,"size":2}];
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:"Segoe UI",sans-serif;background:#102025;color:#eef8f5}#fallback,#map{position:absolute;inset:0}#fallback{background:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),radial-gradient(circle at 55% 45%,#18353c,#0b191d 72%);background-size:36px 36px,36px 36px,auto}#fallback svg{width:100%;height:100%;opacity:.8}.leaflet-container{background:transparent}.toolbar{position:absolute;z-index:800;left:10px;top:10px;width:190px;padding:10px 11px;background:rgba(9,24,28,.92);border:1px solid rgba(157,222,218,.34);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.35)}h1{font-size:12px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 3px}p{font-size:8px;line-height:1.35;color:#a9c4c5;margin:0 0 8px}.tabs{display:flex;gap:4px;margin-bottom:8px}.tabs button{border:1px solid #31565d;background:#132c32;color:#a9c4c5;border-radius:4px;font-size:7px;padding:4px 6px}.tabs button.on{background:#69c7d5;color:#071518;border-color:#69c7d5}.lab{display:flex;justify-content:space-between;font-size:7px;color:#a9c4c5}.lab b{color:#eef8f5}input{width:100%;accent-color:#69c7d5}.legend{display:flex;gap:9px;margin-top:6px;font-size:7px;color:#a9c4c5}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;background:#69c7d5}.dot.big{background:#f0b35b}.fallback-point{position:absolute;width:7px;height:7px;border:1px solid #d9ffff;border-radius:50%;background:#69c7d5;box-shadow:0 0 8px rgba(105,199,213,.65);transform:translate(-50%,-50%)}.leaflet-popup-content{font:11px/1.4 "Segoe UI",sans-serif}.leaflet-control-attribution{font-size:7px}</style><script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"><\/script></head><body><div id="fallback"><svg viewBox="0 0 720 405" preserveAspectRatio="none"><path d="M287 18l32 25 1 39 25 18-14 36 26 32-8 42 31 22-23 27-44-4-16 26-41-9-19-38 9-35-26-30 18-38-7-44 20-21zM408 198l30-10 22 18-5 34-32 10-24-21zM485 248l32-12 28 18-9 33-36 6-22-21zM560 219l15-12 16 10-4 19-19 4z" fill="#284c4d" stroke="#7eb7b1" stroke-width="2"/><path d="M0 330c130-24 202-4 303 22s228 17 417-10v63H0z" fill="#0d252a"/></svg></div><div id="map"></div><aside class="toolbar"><h1>Danish wind mapper</h1><p>Representative assets from the project dataset. Pan, zoom, filter and inspect capacity.</p><div class="tabs"><button class="on">TURBINES</button><button>WIND PARKS</button><button>OWNERS</button></div><div class="lab"><span>MINIMUM CAPACITY</span><b id="cap">0 kW</b></div><input id="range" type="range" min="0" max="8400" step="100" value="0"><div class="legend"><span><i class="dot"></i>Onshore</span><span><i class="dot big"></i>Utility scale</span></div></aside><script>const pts=${JSON.stringify(points)};let markers=[];function fallback(){const host=document.getElementById('fallback');pts.forEach(p=>{const d=document.createElement('i');d.className='fallback-point';d.style.left=(18+(p.lon-7.4)/(15.2-7.4)*75)+'%';d.style.top=(8+(57.6-p.lat)/(57.6-54.4)*82)+'%';d.dataset.cap=p.cap;host.appendChild(d)});markers=[...host.querySelectorAll('.fallback-point')]}if(window.L){const map=L.map('map',{zoomControl:true,attributionControl:true}).setView([56.05,10.15],6);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);markers=pts.map(p=>L.circleMarker([p.lat,p.lon],{radius:Math.max(3,Math.min(9,3+p.cap/1600)),color:'#d9ffff',weight:1,fillColor:p.cap>=1500?'#f0b35b':'#69c7d5',fillOpacity:.82}).bindPopup('<b>Wind asset</b><br>'+p.cap.toLocaleString()+' kW capacity<br>'+p.size+' installation'+(p.size===1?'':'s')).addTo(map));setTimeout(()=>map.invalidateSize(),80)}else fallback();const range=document.getElementById('range');range.oninput=()=>{const v=+range.value;document.getElementById('cap').textContent=v.toLocaleString()+' kW';markers.forEach((m,i)=>{const on=pts[i].cap>=v;if(m.setStyle)m.setStyle({opacity:on?1:.08,fillOpacity:on?0.82:0.04});else m.style.opacity=on?1:.08})};document.querySelector('.tabs').onclick=e=>{if(e.target.tagName==='BUTTON'){document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));e.target.classList.add('on')}};<\/script></body></html>`;
 }
-function projectPreviewHtml(p){ return p.preview==='chess'?projectChessPreviewHtml():p.preview==='wind'?projectWindPreviewHtml():null; }
+function projectPreviewHtml(p){ return p.preview==='chess'?projectChessPreviewHtml():null; }
+function projectEmbedPatch(p){
+  if(!p||p.id!=='docurag') return '';
+  return `<style>
+#docurag-preview-badge{display:none!important}
+#topbar{position:relative!important}
+#delete-chat-btn{margin-left:auto!important;order:99!important;flex:0 0 auto!important}
+</style><script>(function(){
+  function patchClose(){
+    var b=document.getElementById('delete-chat-btn'); if(!b||b.dataset.portfolioClose)return;
+    b.dataset.portfolioClose='1'; b.title='Close mode'; b.setAttribute('aria-label','Close mode and return to knowledge base');
+    b.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var s=document.getElementById('sidebar-switch-btn')||document.getElementById('topbar-switch-btn');if(s)s.click()},true);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patchClose);else patchClose();
+})()<\/script>`;
+}
 function projectCanPreview(p){ return !!(p&&(p.preview||p.live)); }
 async function openProjectLive(id){
   const p=projectById(id), inline=p&&projectPreviewHtml(p); if(!p||(!p.live&&!inline)) return;
@@ -2294,22 +2351,25 @@ async function openProjectLive(id){
   const token=projectLoadToken;
   projectLive.style.visibility=''; projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
   projectLive.setAttribute('aria-hidden','false');
-  plTitle.textContent=p.label; plSub.textContent='INTERACTIVE PREVIEW';
-  plExternal.href=p.launch||p.repo||p.live;
-  plExternal.textContent=p.launch?'GET EXTENSION ↗':p.preview||p.liveMode==='raw'?'OPEN REPOSITORY ↗':'OPEN SEPARATELY ↗';
-  plLoad.textContent=inline?'DEVELOPING PROJECT PREVIEW':p.liveMode==='raw'?'PREPARING STANDALONE HTML':'LOADING LIVE PROJECT';
+  plTitle.textContent=p.label; plSub.textContent=p.preview==='chess'?'STATIC PRODUCT WALKTHROUGH':'INTERACTIVE PREVIEW';
+  plRepo.href=p.repo; plRepo.textContent=p.preview==='chess'?'OPEN REPO ↗':'OPEN REPOSITORY ↗';
+  plExtension.hidden=!p.launch; if(p.launch) plExtension.href=p.launch;
+  const fullTarget=p.fullscreen||null; plFullscreen.hidden=!fullTarget; if(fullTarget) plFullscreen.href=fullTarget;
+  plFrame.classList.toggle('pl-desktop',!!p.desktop);
+  plLoad.textContent=inline?'DEVELOPING PROJECT PREVIEW':p.liveMode==='raw'?'LOADING ORIGINAL PROJECT FILE':p.liveMode==='rebased'?'PREPARING INTERACTIVE PREVIEW':'LOADING LIVE PROJECT';
   plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
   try{
     if(inline){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-popups');
       plFrame.onload=()=>projectLiveReady(token);
       plFrame.srcdoc=inline;
-    } else if(p.liveMode==='raw'){
-      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-downloads allow-popups');
+    } else if(p.liveMode==='raw'||p.liveMode==='rebased'){
+      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups');
       const r=await fetch(p.live,{cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status);
       let html=await r.text(); if(token!==projectLoadToken||!projectLiveOpen) return;
       const base='<base href="'+p.liveBase+'">';
       html=/<head[\s>]/i.test(html)?html.replace(/<head([^>]*)>/i,'<head$1>'+base):base+html;
+      const patch=projectEmbedPatch(p); if(patch) html=/<\/body>/i.test(html)?html.replace(/<\/body>/i,patch+'</body>'):html+patch;
       plFrame.onload=()=>projectLiveReady(token);
       plFrame.srcdoc=html;
     } else {
@@ -2322,14 +2382,14 @@ async function openProjectLive(id){
     projectLive.classList.add('failed');
     plLoad.textContent='THE EMBED COULD NOT LOAD · USE OPEN REPOSITORY ABOVE';
   }
-  projectLive.querySelector('#pl-close').focus();
+  (p.launch?plExtension:plRepo).focus();
 }
 function projectLiveReady(token){
   if(token!==projectLoadToken||!projectLiveOpen) return;
   projectLive.classList.add('ready');
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=true; F.projectLiveT0=performance.now();
-    for(const it of F.items.concat(F.projectDonors||[])) if(it.projectScreen) it.pD=Math.random()*photoStagger(); }
+    for(const it of F.items.concat(F.projectDonors||[])) if(it.projectScreen) it.pD=Math.random()*photoStagger()*0.70; }
 }
 function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=false){
   if(!projectLiveOpen) return;
@@ -2346,7 +2406,6 @@ function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=fal
   const back=projectLiveReturnFocus; projectLiveReturnFocus=null;
   if(restoreFocus&&back&&back.isConnected) back.focus();
 }
-projectLive.querySelector('#pl-close').addEventListener('click',()=>closeProjectLive(true,true,true));
 projectLive.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
 
 function railSet(k){ railEls.forEach(r=>{ r.el.classList.toggle('current',r.k===k); r.el.classList.toggle('done',k>=0&&r.k<k); }); }
@@ -3330,59 +3389,59 @@ const PROJECT_STAGE_W=21.5, PROJECT_STAGE_H=19.0;
 const PROJECT_SCREEN_W=19.4, PROJECT_SCREEN_H=10.91; // 16:9, matches PROJECT_LIVE_W/H
 function projectStageArt(type){
   if(type==='chess') return [
-    '  +----------------+     LOCAL ANALYSIS ',
-    '  | . # . # . # .|     EVAL      +0.38 ',
-    '  | # . # . # . #|     ACCURACY   94.7 ',
-    '  | . # . # . # .|                       ',
-    '  | # . # K # . #|     BEST       ====== ',
-    '  | . # . # . # .|     GOOD       ====   ',
-    '  | # . # . # . #|     INACCURACY ==     ',
-    '  | . # . # . # .|                       ',
-    '  +----------------+     LOCAL - PRIVATE  '
+    '       +--------------------------+       ',
+    '       | N   CHESS / REVIEW       |       ',
+    '       |                          |       ',
+    '       | [ ANALYZE THIS GAME ]    |       ',
+    '       |                          |       ',
+    '       | ------------------------ |       ',
+    '       | > MANUAL SETUP           |       ',
+    '       +--------------------------+       ',
+    '          PRIVATE - LOCAL REVIEW          '
   ];
   if(type==='entropy') return [
-    ' WEATHER       ========       01          ',
-    ' QUAKES        =====          02          ',
-    ' MEMPOOL       ==========     03          ',
-    ' SOLAR WIND    =======        04          ',
-    ' TIDES         ========       01          ',
-    ' BIOSPHERE     ====           02          ',
-    ' DRAND         ===========    03          ',
-    ' LOCAL JITTER  ======         04          ',
-    ' 13 SOURCES  ->  SHA-256  ->  RECEIPT     '
+    ' ENTROPY-FORGE  EF-1       [ HARVEST ]    ',
+    ' + SOURCES ----+ + OUTPUT -+ + INSPECTOR+ ',
+    ' | WEATHER   --| | SHA-256 | | MAP.POOL | ',
+    ' | QUAKES    --| | HEX     | | .:*..:   | ',
+    ' | MEMPOOL   --| | UUID    | | :..*.:   | ',
+    ' | BIOSPHERE --| +---------+ +-----------+ ',
+    ' | TIDES     --| + POOL 512 BITS --------+ ',
+    ' | DRAND     --| | ATMOS GEO CHAIN LOCAL | ',
+    ' +-------------+ +------------------------+ '
   ];
   if(type==='rag') return [
-    '                         +--------------+ ',
-    '                         | DAILY LIMIT? | ',
-    ' +--------------------------------------+ ',
-    ' | SET THE ALLOWANCE IN THE ADMIN PANEL | ',
-    ' | THE ANSWER CITES THE POLICY ARTICLE. | ',
-    ' +--------------------------------------+ ',
-    ' SOURCES   [ POLICY ] [ GUIDE ] [ FAQ ]   ',
-    '                         +--------------+ ',
-    '                         | SHOW SOURCE  | '
+    '              DOCU-RAG                    ',
+    '           KNOWLEDGE BASE                 ',
+    '       +--------------------------+       ',
+    '       | USERNAME                 |       ',
+    '       +--------------------------+       ',
+    '       | PASSWORD                 |       ',
+    '       +--------------------------+       ',
+    '       |         LOG IN           |       ',
+    '       +--------------------------+       '
   ];
   if(type==='wind') return [
-    '                JUTLAND                    ',
-    '             ..::#::..       *             ',
-    '       *   .:#:::::::#.   *     *          ',
-    '          .::::#::::::.                    ',
-    '   *      .::#::::#::::.       *           ',
-    '           .::::#:::::.    FUNEN  ZEALAND  ',
-    '        *   .::::::::.       .::.  .:::.   ',
-    '             ..::..       *  :::  ::#::   ',
-    ' TURBINES  *  OWNERSHIP  *  CAPACITY       '
+    ' . . . . . . . . . . . . . . . . . . .  ',
+    ' .   *  JUTLAND *  *   .  * . . . . . .  ',
+    ' . *  :#:::::#: *  *      . . . . . . .  ',
+    ' .  * :::#:::::    *   *   . . . . . . . ',
+    ' .    ::::#:::: *          . . . . . . .  ',
+    ' .  *  :::::::   FUNEN  ZEALAND  * . . .  ',
+    ' . *    .::.      .::   .:::.      . . .  ',
+    ' . . . . . . . . . . +-------------+ . . ',
+    ' . . . . . . . . . . | DATA FILTER ^| . '
   ];
   return [
-    ' BLOCK 884201       BLOCK 884202            ',
-    ' +----------+      +-------------+          ',
-    ' | 381 TX   |----->| 508 TX      |          ',
-    ' +----------+      +-------------+          ',
-    '          BLOCK 884203         NEXT          ',
-    '          +--------------+   +---------+     ',
-    ' -------->| 762 TX       |-->| LIVE    |     ',
-    '          +--------------+   +---------+     ',
-    ' MEMPOOL PRESSURE  ========  74 PCT           '
+    '              BITCOIN MINER                  ',
+    '       ==============================        ',
+    '                                              ',
+    '       CLICK TRANSACTIONS TO MINE BTC        ',
+    '       LIVE ON-CHAIN TRANSACTION DATA         ',
+    '       CURRENT BLOCK HEIGHT: LOADING          ',
+    '                                              ',
+    '       [ START MINING ] [ LEADERBOARD ]       ',
+    '                                              '
   ];
 }
 function buildProjectStageLayout(p){
@@ -3466,7 +3525,7 @@ function configureProjectStage(F,p,now,force,externalTargets){
    figure, and contribution calendar. The project facet supplies only the shortfall. */
 const WPF_SCALE=1.68, WPF_VIEW_FILL=0.84;
 const WPF_SIDE_SHIFT=10.5, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
-const PROJECT_PREVIEW_DELAY=1700; // let the assembled ASCII project read before it develops into the live surface
+const PROJECT_PREVIEW_DELAY=1150; // a short read, then a brisk ASCII-to-project development
 function welcomeProjectSideDX(group){
   const p=welcome.focus?welcome.focus.sideP:0;
   return (group==='about'?-WPF_SIDE_SHIFT:WPF_SIDE_SHIFT)*p;
@@ -5345,7 +5404,7 @@ function updateFacet(F,now,dt){
     let busy=false;
     for(const it of F.items.concat(F.projectDonors||[])){
       if(!it.projectScreen||!it.done) continue;
-      const q=Math.min(1,Math.max(0,(now-F.projectLiveT0-it.pD)/photoTileMs()));
+      const q=Math.min(1,Math.max(0,(now-F.projectLiveT0-it.pD)/(photoTileMs()*0.80)));
       it.m.material.opacity=Math.min(it.m.material.opacity,1-q); it.m.visible=q<1;
       if(q<1) busy=true;
     }

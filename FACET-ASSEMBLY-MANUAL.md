@@ -7,6 +7,44 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v87 addendum: project previews mirror their real first screen
+
+`projectStageArt()` is now a low-resolution composition of the first surface that
+actually develops: the Chess Review toolbar popup, Entropy Forge's three-column
+instrument rack, DocuRAG's login, the real Folium map plus collapsed Data Filter,
+and Bitcoin Miner's title/menu. Keep this one-to-one relationship when a deployed
+project changes; the ASCII is no longer a generic diagram of the project's idea.
+
+The handoff starts after `PROJECT_PREVIEW_DELAY=1,150 ms`. Project-screen records
+use `0.70 * photoStagger()` and `0.80 * photoTileMs()`; these project-only factors
+make the morph brisker without changing the Journey's global image develop control.
+
+The live bar has repository-first semantics. Every project gets OPEN REPOSITORY
+(Chess uses the intentionally shorter OPEN REPO), Chess additionally gets GET
+EXTENSION, and the old live-surface X is gone. `#pl-fullscreen` occupies that compact
+slot only when a real GitHub Pages deployment exists. The assembled stage X remains
+the close control for the whole project focus; Escape may still fold only the live
+surface back to ASCII.
+
+`desktop:true` renders a project's iframe at 1440x742 and samples it down by 0.5.
+This is required for Entropy Forge's >=1080px rack and DocuRAG's full sidebar/topbar,
+and it also improves text sampling under the outer homography. Do not remove the
+inner scale while leaving those flags in the project records.
+
+Wind is the explicit exception to the old lightweight-preview rule: the owner asked
+for the real 11 MB `Interactive_wind_map_preview.html`, so it now loads as trusted
+rebased raw HTML with the full Folium data and filter UI. DocuRAG is also rebased
+through `srcdoc` so `projectEmbedPatch()` can hide its injected Preview badge and
+capture `#delete-chat-btn` before the app's delete listener, routing X through the
+existing Switch/knowledge-base path. Chess remains self-contained but now begins
+with the repository's real popup design and continues into a static, PGN-driven
+version of the repository's modular analyzer.
+
+Current real-data budget after the compact v86 layout and v87 art update: 13,268
+terrain glyphs; Welcome claims 3,437 and the largest project variant (Wind) needs
+870, leaving 8,961 spare. The older 1,836 project-reserve figure below is historical
+to the information-heavy v83-v85 layouts.
+
 ## v86 addendum: project stages develop without an OPEN button
 
 `buildProjectStageLayout()` now lays out title, concise body copy, then the 16:9

@@ -1,5 +1,29 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v87 - project preview fidelity and controls
+
+Welcome's project art is now first-frame art: each nine-row ASCII composition is a
+coarse version of the UI that develops over it. The automatic handoff was shortened
+to a 1,150 ms read, 70% of the shared photo stagger, and 80% of the shared tile
+duration. These factors apply only to `projectScreen` records.
+
+The projected live bar now owns repository/launch actions only. OPEN REPOSITORY is
+always present; Chess adds GET EXTENSION and uses the shorter OPEN REPO label. The
+bar X was replaced by `#pl-fullscreen`, shown only for a genuine Pages target, while
+the facet's assembled X remains the project-focus close control.
+
+`#pl-frame.pl-desktop` renders a 1440x742 source viewport at half scale. Entropy
+Forge consequently uses its >=1080px three-column rack instead of its mobile-first
+stack, and DocuRAG retains its desktop navigation. DocuRAG is loaded as rebased
+Pages HTML so a narrow embed patch can remove the Preview badge and make the app's
+top-right X call its existing mode-switch path. The Danish map uses the requested
+full raw Folium artifact rather than `projectWindPreviewHtml()`; Chess uses the real
+extension-popup design followed by a static PGN-driven modular analyzer.
+
+Real-data count for these current layouts: main Welcome 3,437 + largest project
+variant 870 = 4,307 of 13,268 glyphs, leaving 8,961 spare. The 1,836-record figure
+in the v83-v85 history predates the compact v86 stage.
+
 ## v86 - project ASCII-to-preview handoff
 
 Welcome projects now use one reading sequence: title and explanation at the top,
