@@ -7,6 +7,29 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v86 addendum: project stages develop without an OPEN button
+
+`buildProjectStageLayout()` now lays out title, concise body copy, then the 16:9
+ASCII screen. Do not restore the old index/kind/proof/meta/divider/button bands:
+the selected terrain composition is the project's first view, and
+`updateWelcomeProjectPreview()` develops it automatically only after the focus and
+project facet both reach `hold` plus `PROJECT_PREVIEW_DELAY` (1,700 ms). The compact
+stage is `21.5 x 19.0` layout units. Side columns use `WPF_SIDE_SHIFT=10.5`; their
+visual targets and hit geometry must continue to share `welcomeProjectSideDX()`.
+
+The live close path has a third `dismissPreview` argument. A visitor closing the
+surface must get the assembled ASCII screen back without a reopen loop, so X and
+Escape pass `true`; switching, departing, and teardown pass or default to `false`.
+`previewDismissed` resets when a project is selected. Inline previews (`preview:
+'chess'` / `preview:'wind'`) use trusted `srcdoc` in the same 720x405 homography as
+deployed live projects, and all ordinary plus external donor records tagged
+`projectScreen` still participate in the develop/reassemble dissolve.
+
+Chess is deliberately a precomputed showcase: real PGN-derived positions and SAN,
+but no browser Stockfish. Wind is deliberately lightweight: do not reintroduce the
+upstream multi-megabyte raw HTML fetch, because that was the white-screen failure
+mode. Its SVG layer is a required no-network fallback, not decorative duplication.
+
 ## v85 addendum: Welcome project focus reuses the assembled centre
 
 Welcome's project facet is now centred on the main facet anchor and independently

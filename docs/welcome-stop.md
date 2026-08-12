@@ -1,5 +1,34 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v86 - automatic project development and fluid navigation
+
+Selected portfolio projects now read as assembled ASCII before developing into
+their interactive surface automatically. `PROJECT_PREVIEW_DELAY=1700` begins only
+after the focused project facet reaches `hold`, so terrain flight time never eats
+the reading pause. Closing a developed surface sets `previewDismissed` for the
+current selection; it restores the ASCII screen without immediately reopening it.
+Selecting another project clears that suppression. The old OPEN PROJECT / VIEW
+CODE row and the proof, language, stars, repository-type, and index bands are gone.
+Every project stage now starts with its stencil title, concise explanation, and
+then the 16:9 ASCII screen. ABOUT ME and PORTFOLIO move `10.5` layout units outward
+while project focus is active.
+
+Chess Review uses a self-contained `srcdoc` showcase generated from the real
+preselected `CHESS_GAMES[0]` PGN. It recreates the extension's board, clocks,
+review insight, move classifications, accuracy/estimated-rating cards, move list,
+and evaluation graph without shipping Stockfish or requiring another host. Its
+evaluation/classification values are intentionally precomputed presentation data;
+the game positions and SAN sequence are real. Danish wind mapper no longer fetches
+and parses the multi-megabyte upstream preview. It uses a lightweight local map
+surface with representative coordinates from the project data, capacity filtering,
+pan/zoom, and an SVG fallback beneath Leaflet, preventing the former white screen.
+
+Welcome's two in-scene lists now scroll fractionally instead of rounding to whole
+rows. Wheel deltas are scaled by `WELCOME_SCROLL_WHEEL=0.0035`; row targets and
+opacity interpolate continuously at the viewport edges. The GitHub calendar month
+labels are anchored to actual first-of-month cells and laid out with a running
+collision boundary, so adjacent labels such as Jul/Aug cannot overlap.
+
 ## v85 - centred project-focus composition
 
 Selecting a Welcome project no longer appends its stage beyond PORTFOLIO. The

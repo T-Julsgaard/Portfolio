@@ -1,5 +1,23 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v86 - project ASCII-to-preview handoff
+
+Welcome projects now use one reading sequence: title and explanation at the top,
+then an ASCII screen assembled from terrain, then an automatic develop into the
+live 720x405 surface after a 1,700 ms hold. The former proof/metadata bands and OPEN
+PROJECT / VIEW CODE stencil controls were removed. `previewDismissed` prevents a
+manual live close from reopening until the visitor makes another project selection.
+The narrower vertical layout (`PROJECT_STAGE_H=19.0`) still uses the normalized
+project reserve and the v85 centre-donor mapping; screen targets from both sources
+must dissolve and reassemble together.
+
+`projectChessPreviewHtml()` derives a fixed showcase game from the existing PGN and
+renders the recognizable Chess Review board/review layout entirely in `srcdoc`, so
+it needs neither Stockfish nor GitHub Pages. `projectWindPreviewHtml()` replaces the
+oversized raw upstream map with representative project coordinates, a capacity
+filter, Leaflet pan/zoom, and a persistent SVG fallback. External launch/repository
+links remain in the slim live-surface bar rather than consuming terrain glyphs.
+
 ## v85 - Welcome project focus shares targets with the assembled centre
 
 The Welcome project facet now sits on the camera axis at up to

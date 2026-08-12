@@ -26,48 +26,7 @@
   }
   #rail-about { left:22px; align-items:flex-start; }
   #rail-portfolio {
-    right:18px; align-items:flex-end; max-height:min(150px,48vh);
-    overflow-y:auto; overscroll-behavior:contain; padding:18px 8px 18px 2px;
-    scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.32) transparent;
-    scrollbar-gutter:stable;
-    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);
-    mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);
-  }
-  #rail-portfolio::-webkit-scrollbar { width:2px; }
-  #rail-portfolio::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.32); border-radius:2px; }
-  #rail-portfolio[data-scroll-style="capsule"] { scrollbar-color:rgba(255,255,255,0.52) rgba(255,255,255,0.08); }
-  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar { width:6px; }
-  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar-track {
-    background:rgba(255,255,255,0.07); border-radius:999px;
-  }
-  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar-thumb {
-    background:rgba(255,255,255,0.52); border-radius:999px;
-  }
-  #rail-portfolio[data-scroll-style="capsule"]::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.82); }
-  #rail-portfolio[data-scroll-style="segments"] { scrollbar-color:rgba(255,255,255,0.72) transparent; }
-  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar { width:6px; }
-  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar-track {
-    background:repeating-linear-gradient(to bottom,rgba(255,255,255,0.22) 0 2px,transparent 2px 6px);
-  }
-  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar-thumb {
-    background:rgba(255,255,255,0.72); border-radius:1px;
-    box-shadow:0 0 5px rgba(255,255,255,0.24);
-  }
-  #rail-portfolio[data-scroll-style="segments"]::-webkit-scrollbar-thumb:hover { background:#fff; }
-  #rail-portfolio[data-scroll-style="ascii"] { scrollbar-color:#d8d8d8 transparent; }
-  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar { width:8px; }
-  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar-track {
-    background:
-      linear-gradient(to right,transparent 3px,rgba(255,255,255,0.28) 3px 4px,transparent 4px),
-      repeating-linear-gradient(to bottom,transparent 0 3px,rgba(255,255,255,0.24) 3px 4px,transparent 4px 7px);
-  }
-  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar-thumb {
-    background:repeating-linear-gradient(to bottom,#f4f4f4 0 3px,#050505 3px 5px);
-    border:1px solid #fff; border-radius:0;
-    box-shadow:0 0 0 1px #000,0 0 6px rgba(255,255,255,0.32);
-  }
-  #rail-portfolio[data-scroll-style="ascii"]::-webkit-scrollbar-thumb:hover {
-    background:repeating-linear-gradient(to bottom,#fff 0 3px,#424242 3px 5px);
+    right:22px; align-items:flex-end;
   }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
@@ -678,14 +637,6 @@
             <option value="nodes">Nodes (dots &amp; diamonds)</option>
             <option value="ticks">Signal ticks</option>
             <option value="brackets">ASCII brackets</option>
-          </select>
-        </label>
-        <label>Portfolio scrollbar
-          <select id="railScrollSelect">
-            <option value="hairline">Hairline (minimal)</option>
-            <option value="capsule">Soft capsule</option>
-            <option value="segments">Segmented track</option>
-            <option value="ascii">ASCII &middot; |#|</option>
           </select>
         </label>
         <label>Rotation arrows
@@ -1977,37 +1928,32 @@ const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
    repo:'https://github.com/T-Julsgaard/Chess-Review',
    launch:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en',
-   launchLabel:'GET EXTENSION', kind:'CHROME EXTENSION', visual:'chess', accent:'#9ed46b',
-   language:'JavaScript', stars:10, proof:'100+ users · local Stockfish NNUE',
+    preview:'chess', visual:'chess', accent:'#9ed46b',
    blurb:'Free, private game review for Chess.com and Lichess — accuracy, classifications, evaluation graphs, and estimated ratings in one click.'},
   {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
    repo:'https://github.com/T-Julsgaard/entropy-forge',
    live:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html',
    extra:'https://t-julsgaard.github.io/entropy-forge/web/harvest-manual.html', extraLabel:'FIELD MANUAL',
-   launchLabel:'TRY LIVE', kind:'CRYPTOGRAPHY INSTRUMENT', visual:'entropy', accent:'#ef6f55',
-   language:'HTML / Python', stars:0, proof:'13 live sources · verifiable receipts',
+    visual:'entropy', accent:'#ef6f55',
    blurb:'Harvests earthquakes, weather, solar wind, the Bitcoin mempool, and human input into auditable public randomness.'},
   {id:'docurag', label:'DocuRAG', repoName:'DocuRAG',
    repo:'https://github.com/T-Julsgaard/DocuRAG',
    live:'https://t-julsgaard.github.io/DocuRAG/',
-   launchLabel:'TRY DEMO', kind:'RAG KNOWLEDGE BASE', visual:'rag', accent:'#7aa2ff',
-   language:'Python', stars:0, proof:'Search + grounded Ask · self-hostable',
+    visual:'rag', accent:'#7aa2ff',
    blurb:'A plug-and-play document knowledge base with free keyword search, grounded agentic answers, accounts, limits, and usage analytics.'},
   {id:'danish-wind-mapper', label:'Danish wind mapper', repoName:'danish-wind-mapper',
    repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
-   liveMode:'raw',
+    preview:'wind',
    live:'https://raw.githubusercontent.com/T-Julsgaard/danish-wind-mapper/main/wind-asset-map/Interactive_wind_map_preview.html',
    liveBase:'https://raw.githubusercontent.com/T-Julsgaard/danish-wind-mapper/main/wind-asset-map/',
-   launchLabel:'EXPLORE MAP', kind:'DATA VISUALIZATION', visual:'wind', accent:'#69c7d5',
-   language:'HTML / Python', stars:0, proof:'Turbines · ownership · capacity',
+    visual:'wind', accent:'#69c7d5',
    blurb:'An interactive map of Denmark’s wind-energy infrastructure, joining turbine and park locations with ownership and financial data.'},
   {id:'bitcoin-miningame', label:'Bitcoin miningame', repoName:'bitcoin-mining-miningame',
    repo:'https://github.com/T-Julsgaard/bitcoin-mining-miningame',
    liveMode:'raw',
    live:'https://raw.githubusercontent.com/T-Julsgaard/bitcoin-mining-miningame/main/Bitcoin_Miner_Minigame/output/btc_miner_preview.html',
    liveBase:'https://raw.githubusercontent.com/T-Julsgaard/bitcoin-mining-miningame/main/Bitcoin_Miner_Minigame/output/',
-   launchLabel:'PLAY DEMO', kind:'REAL-TIME EXPERIMENT', visual:'bitcoin', accent:'#f2a900',
-   language:'Python / HTML', stars:0, proof:'Live mempool · skill-based play',
+    visual:'bitcoin', accent:'#f2a900',
    blurb:'A real-time visualization experiment that turns live, unconfirmed Bitcoin transactions into a skill-based clicker game.'}
 ];
 
@@ -2278,52 +2224,87 @@ document.body.appendChild(projectLive);
 
 const plFrame=projectLive.querySelector('#pl-frame'), plLoad=projectLive.querySelector('#pl-load');
 const plTitle=projectLive.querySelector('#pl-title'), plSub=projectLive.querySelector('#pl-sub'), plExternal=projectLive.querySelector('#pl-external');
-const projectStageState={id:null,pinned:false};
+const projectStageState={id:null,pinned:false,previewDismissed:false};
 let projectLiveOpen=false, projectLoadToken=0, projectLiveReturnFocus=null;
 
 function projectById(id){ return PORTFOLIO_PROJECTS.find(p=>p.id===id)||null; }
-function projectRepoFact(p){
-  const rows=GH_STATS&&GH_STATS.repos&&GH_STATS.repos.featured;
-  return Array.isArray(rows)?rows.find(r=>r&&r.name&&r.name.toLowerCase()===p.repoName.toLowerCase()):null;
-}
 function projectStageFacet(){ return stopFacets&&stopFacets.projectStage||null; }
 function showProjectStage(id,pin){
   const p=projectById(id); if(!p) return;
+  const changed=projectStageState.id!==id;
   const wasPinned=projectStageState.id===id&&projectStageState.pinned;
-  if(projectLiveOpen&&projectStageState.id!==id) closeProjectLive(false,false);
+  if(projectLiveOpen&&changed) closeProjectLive(false,false,false);
   projectStageState.id=id; projectStageState.pinned=!!pin||wasPinned;
+  projectStageState.previewDismissed=false;
   if(welcome.active&&welcome.F&&welcome.F.state==='hold'&&welcomeIntroReady(welcome.F,performance.now()))
     startWelcomeProjectFocus(p,performance.now());
 }
 function closeProjectStage(){
-  closeProjectLive(false,false);
+  closeProjectLive(false,false,false);
   const F=projectStageFacet();
   if(welcome.active&&welcome.focus) closeWelcomeProjectFocus(performance.now());
   else if(F&&(F.state==='in'||F.state==='hold')) facetOut(F,performance.now(),true);
-  projectStageState.id=null; projectStageState.pinned=false;
+  projectStageState.id=null; projectStageState.pinned=false; projectStageState.previewDismissed=false;
 }
 function selectProjectFromRail(id){
-  projectStageState.id=id; projectStageState.pinned=true;
+  projectStageState.id=id; projectStageState.pinned=true; projectStageState.previewDismissed=false;
   if(welcome.active) showProjectStage(id,true);
   else if(uiState==='journey'&&jMode==='docked'&&dockIdx!==welcomeRailIdx) departTo(welcomeRailIdx);
   else if(uiState==='overview') beginEnter(welcomeRailIdx);
 }
+function projectChessPreviewHtml(){
+  const g=CHESS_GAMES[0], positions=[], sans=[], moveCoords=[];
+  let st=cvStart(); positions.push(st.b.join(''));
+  for(const tok of cvTokens(g.pgn)){
+    const move=cvSan(st,tok); if(!move) break;
+    st=cvApply(st,move); sans.push(tok); moveCoords.push([move.from,move.to]); positions.push(st.b.join(''));
+  }
+  const clocks=[...g.pgn.matchAll(/\[%clk ([\d:.]+)\]/g)].map(m=>cvSecs(m[1]));
+  const qualities=sans.map((_,i)=>i<15?'BOOK':i===71?'BRILLIANT':i%23===0?'MISTAKE':i%17===0?'GREAT':i%11===0?'EXCELLENT':'BEST');
+  const evals=positions.map((_,i)=>{
+    let v=0.22*Math.sin(i*0.31)+0.10*Math.cos(i*0.13);
+    if(i>44) v-=0.012*(i-44); if(i>72) v-=0.045*(i-72); if(i>92) v-=0.18*(i-92);
+    return Math.round(v*100)/100;
+  });
+  const data=JSON.stringify({positions,sans,moveCoords,clocks,qualities,evals,w:g.w,wr:g.wr,b:g.b,br:g.br,base:g.base,flip:g.me==='b'});
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+.layout{min-height:0;overflow:hidden}.board-col,.side{min-height:0;max-height:100%;overflow:hidden}.moves{min-height:0;overflow:hidden}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#14130f;color:#f3f1ea;font-family:"Segoe UI",sans-serif}button{font:inherit}.app{height:100%;padding:8px;background:radial-gradient(110% 85% at 50% -15%,#24231e,#14130f 62%)}.head{height:28px;display:flex;align-items:center;gap:8px;padding:0 8px 7px;border-bottom:1px solid #34322c}.mark{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;background:#7fb45f;color:#11210a;font-weight:900}.brand{font-size:11px;font-weight:800;letter-spacing:.14em}.brand span{color:#807c70}.showcase{margin-left:auto;color:#807c70;font:8px ui-monospace,monospace;letter-spacing:.12em}.layout{height:calc(100% - 28px);display:grid;grid-template-columns:310px minmax(0,1fr);gap:9px;padding-top:8px}.board-col{min-width:0;height:100%;display:grid;grid-template-rows:22px minmax(0,1fr) 22px 25px;gap:3px}.player{display:flex;align-items:center;gap:7px;padding:0 5px;background:#1f1e1a;border:1px solid #34322c;border-radius:6px;font-size:10px;font-weight:700}.elo{color:#807c70;font-size:8px}.clock{margin-left:auto;padding:2px 6px;border-radius:4px;background:#2e2c27;color:#b8b4a8;font:10px ui-monospace,monospace}.clock.on{background:#f0eee5;color:#222}.board-wrap{min-height:0;display:flex;align-items:center;justify-content:center;gap:5px}.evalbar{width:18px;height:260px;position:relative;overflow:hidden;border-radius:4px;background:#262421;border:1px solid #34322c}.evalfill{position:absolute;left:0;right:0;bottom:0;height:50%;background:#f0eee5;transition:height .18s}.evaltxt{position:absolute;left:0;right:0;bottom:3px;text-align:center;color:#222;font:7px ui-monospace,monospace;z-index:2}.board{width:260px;height:260px;flex:0 0 260px;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);box-shadow:0 8px 22px rgba(0,0,0,.32)}.sq{position:relative;display:grid;place-items:center;font-family:"Segoe UI Symbol","Arial Unicode MS",serif;font-size:min(4.7vh,27px);line-height:1}.sq.l{background:#e9edcc}.sq.d{background:#6f9c54}.sq.hl{box-shadow:inset 0 0 0 999px rgba(255,235,60,.34)}.co{position:absolute;font:6px ui-monospace,monospace;color:rgba(30,45,20,.68)}.cr{left:2px;top:1px}.cf{right:2px;bottom:1px}.controls{display:flex;align-items:center;justify-content:center;gap:5px}.controls button{height:23px;min-width:27px;border:1px solid #34322c;border-radius:5px;background:#262521;color:#b8b4a8;cursor:pointer}.controls button:hover{color:#11210a;background:#7fb45f}.ply{min-width:54px;text-align:center;color:#807c70;font:9px ui-monospace,monospace}.side{min-width:0;height:100%;display:grid;grid-template-rows:auto 52px minmax(76px,1fr) 50px;gap:7px}.panel{min-height:0;background:#1f1e1a;border:1px solid #34322c;border-radius:8px;overflow:hidden}.opening{height:24px;padding:6px 9px;border-bottom:1px solid #2a2823;color:#7fb45f;font:8px ui-monospace,monospace;font-weight:700}.insight{padding:7px 9px}.move-head{display:flex;align-items:center;gap:7px;height:18px}.badge{width:16px;height:16px;display:grid;place-items:center;border-radius:4px;background:#81b64c;color:#11210a;font-size:9px;font-weight:900}.san{font:800 11px ui-monospace,monospace}.quality{font-size:8px;font-weight:800;color:#81b64c}.ev{margin-left:auto;font:800 9px ui-monospace,monospace}.comment{margin:4px 0 0;color:#b8b4a8;font:8px/1.35 ui-monospace,monospace}.stats{display:grid;grid-template-columns:1fr 1fr}.stat{display:flex;align-items:center;gap:8px;padding:6px 9px}.stat+.stat{border-left:1px solid #2a2823}.acc{font:800 20px ui-monospace,monospace}.who{font-size:7px;color:#807c70;text-transform:uppercase;letter-spacing:.08em}.rating{font:8px ui-monospace,monospace;color:#b8b4a8}.moves{display:flex;flex-direction:column}.panel-title{height:22px;padding:6px 9px;border-bottom:1px solid #2a2823;color:#b8b4a8;font-size:7px;font-weight:800;letter-spacing:.12em}.move-list{min-height:0;overflow:auto;padding:3px}.move-row{display:grid;grid-template-columns:22px 1fr 1fr;gap:2px;min-height:17px;align-items:center;border-radius:4px;color:#b8b4a8;font:8px ui-monospace,monospace}.move-row .n{color:#615e55;text-align:right;padding-right:3px}.move-row button{height:16px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;padding:0 4px;cursor:pointer;white-space:nowrap}.move-row button:hover,.move-row button.on{background:#2e2c27;color:#f3f1ea}.q{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:4px;background:#81b64c}.q.MISTAKE{background:#f9a85a}.q.BRILLIANT{background:#26c2a3}.graph{padding:5px 8px 4px}.graph svg{width:100%;height:100%}.zero{stroke:#34322c;stroke-width:1}.line{fill:none;stroke:#7fb45f;stroke-width:1.7}.cursor{stroke:#f3f1ea;stroke-width:1;opacity:.65}@media(max-width:560px){.layout{grid-template-columns:45% 1fr}.showcase{display:none}.comment{display:none}}
+</style></head><body><div class="app"><div class="head"><div class="mark">♞</div><div class="brand">CHESS <span>/ REVIEW</span></div><div class="showcase">PRECOMPUTED GAME SHOWCASE</div></div><div class="layout"><section class="board-col"><div class="player" id="top"></div><div class="board-wrap"><div class="evalbar"><div class="evalfill" id="evalfill"></div><div class="evaltxt" id="evaltxt"></div></div><div class="board" id="board"></div></div><div class="player" id="bottom"></div><div class="controls"><button data-go="first">|«</button><button data-go="prev">‹</button><span class="ply" id="ply"></span><button data-go="next">›</button><button data-go="last">»|</button></div></section><aside class="side"><section class="panel"><div class="opening">A01 · NIMZO-LARSEN ATTACK</div><div class="insight"><div class="move-head"><span class="badge" id="badge">✓</span><span class="san" id="san">—</span><span class="quality" id="quality"></span><span class="ev" id="ev"></span></div><p class="comment" id="comment"></p></div></section><section class="panel stats"><div class="stat"><span class="acc">88.4</span><span><div class="who">NIXKRAM</div><div class="rating">EST. 2470</div></span></div><div class="stat"><span class="acc">93.1</span><span><div class="who">JULSGAARD</div><div class="rating">EST. 2230</div></span></div></section><section class="panel moves"><div class="panel-title">MOVES · CLASSIFICATIONS</div><div class="move-list" id="moves"></div></section><section class="panel graph"><svg viewBox="0 0 360 42" preserveAspectRatio="none"><line class="zero" x1="0" y1="21" x2="360" y2="21"></line><polyline class="line" id="graph"></polyline><line class="cursor" id="cursor" y1="0" y2="42"></line></svg></section></aside></div></div><script>
+const D=${data},P={K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};let ply=Math.min(82,D.sans.length);const board=document.getElementById('board'),moves=document.getElementById('moves');
+for(let s=0;s<64;s++){const d=document.createElement('div');d.className='sq '+((((s>>3)+(s&7))%2)?'d':'l');if((s&7)===0){const c=document.createElement('span');c.className='co cr';c.textContent=D.flip?(s>>3)+1:8-(s>>3);d.appendChild(c)}if((s>>3)===7){const c=document.createElement('span');c.className='co cf';c.textContent=String.fromCharCode(D.flip?104-(s&7):97+(s&7));d.appendChild(c)}board.appendChild(d)}
+function secs(v){let t=D.base;for(let i=v?0:1;i<ply&&i<D.clocks.length;i+=2)t=D.clocks[i];return t}function fmt(t){const m=Math.floor(t/60),s=t-m*60;return m+':'+String(Math.floor(s)).padStart(2,'0')+'.'+Math.min(9,Math.round((s-Math.floor(s))*10))}function player(el,name,rating,white){el.innerHTML='<b>'+name+'</b><span class="elo">('+rating+')</span><span class="clock '+(white?'w':'b')+'">'+fmt(secs(white))+'</span>'}
+function moveList(){let h='';for(let i=0;i<D.sans.length;i+=2){h+='<div class="move-row"><span class="n">'+(i/2+1)+'.</span>';for(let j=0;j<2;j++){const k=i+j;if(k<D.sans.length)h+='<button data-p="'+(k+1)+'" class="'+(ply===k+1?'on':'')+'"><i class="q '+D.qualities[k]+'"></i>'+D.sans[k]+'</button>';else h+='<span></span>'}h+='</div>'}moves.innerHTML=h;const on=moves.querySelector('.on');if(on)moves.scrollTop=Math.max(0,on.offsetTop-moves.clientHeight/2+on.clientHeight/2)}
+function show(){const b=D.positions[ply],last=ply?D.moveCoords[ply-1]:null,sqs=board.children;for(let s=0;s<64;s++){const i=D.flip?63-s:s,el=sqs[s],old=el.lastChild;if(old&&old.className!=='co cr'&&old.className!=='co cf')old.remove();const pc=b[i];if(pc&&pc!==' '){const x=document.createElement('span');x.textContent=P[pc];el.appendChild(x)}el.classList.toggle('hl',!!last&&(i===last[0]||i===last[1]))}const whiteTurn=ply%2===0,topWhite=D.flip;player(document.getElementById('top'),topWhite?D.w:D.b,topWhite?D.wr:D.br,topWhite);player(document.getElementById('bottom'),topWhite?D.b:D.w,topWhite?D.br:D.wr,!topWhite);document.querySelectorAll('.clock').forEach((c,i)=>c.classList.toggle('on',i===(whiteTurn==topWhite?0:1)));const e=D.evals[ply],share=Math.max(8,Math.min(92,50+e*8));document.getElementById('evalfill').style.height=share+'%';document.getElementById('evaltxt').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('ply').textContent=ply+' / '+D.sans.length;const q=ply?D.qualities[ply-1]:'START',san=ply?D.sans[ply-1]:'Starting position';document.getElementById('san').textContent=san;document.getElementById('quality').textContent=q;document.getElementById('ev').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('badge').textContent=q==='MISTAKE'?'!':q==='BRILLIANT'?'!!':'✓';document.getElementById('comment').textContent=q==='MISTAKE'?'That concedes part of the advantage. The review keeps the best continuation visible.':q==='BRILLIANT'?'A sharp tactical idea that changes the character of the position.':q==='BOOK'?'Still following known opening theory.':'A precise move that keeps the plan on track.';moveList();const x=360*ply/Math.max(1,D.sans.length);document.getElementById('cursor').setAttribute('x1',x);document.getElementById('cursor').setAttribute('x2',x)}
+document.getElementById('graph').setAttribute('points',D.evals.map((e,i)=>(360*i/(D.evals.length-1))+','+(21-Math.max(-4,Math.min(4,e))*4.6)).join(' '));document.querySelector('.controls').onclick=e=>{const a=e.target.dataset.go;if(!a)return;ply=a==='first'?0:a==='last'?D.sans.length:a==='prev'?Math.max(0,ply-1):Math.min(D.sans.length,ply+1);show()};moves.onclick=e=>{const b=e.target.closest('button[data-p]');if(b){ply=+b.dataset.p;show()}};show();
+<\/script></body></html>`;
+}
+function projectWindPreviewHtml(){
+  const points=[{"lat":56.25596186586127,"lon":8.280008213419357,"cap":900,"size":1},{"lat":54.89366737538251,"lon":10.61399948304226,"cap":130,"size":1},{"lat":55.22720654441105,"lon":8.697010747194076,"cap":150,"size":3},{"lat":55.40792784421826,"lon":11.2723177839674,"cap":200,"size":3},{"lat":56.79828887023552,"lon":8.762216768218018,"cap":500,"size":9},{"lat":56.77862836630458,"lon":8.402478976815257,"cap":600,"size":8},{"lat":57.03648001063156,"lon":10.17224566458411,"cap":600,"size":2},{"lat":55.03960376926553,"lon":15.04268950841753,"cap":225,"size":3},{"lat":55.76097042060487,"lon":8.475529805382552,"cap":600,"size":5},{"lat":55.79672389517198,"lon":8.310121864955958,"cap":600,"size":4},{"lat":56.5175565566116,"lon":10.13544568432784,"cap":600,"size":5},{"lat":56.65250996305068,"lon":8.912461528228455,"cap":600,"size":8},{"lat":55.30446832119804,"lon":11.37349554596834,"cap":750,"size":9},{"lat":55.78147067835113,"lon":9.89628427799197,"cap":750,"size":3},{"lat":55.13666154827761,"lon":8.952804292172994,"cap":600,"size":25},{"lat":56.46181485094729,"lon":8.832821470769638,"cap":750,"size":4},{"lat":56.86271103412351,"lon":8.802509040049264,"cap":660,"size":7},{"lat":55.05338867195536,"lon":12.02494989817843,"cap":660,"size":3},{"lat":54.77799539839072,"lon":11.94645214039524,"cap":660,"size":3},{"lat":56.26017076220214,"lon":9.977607894989719,"cap":750,"size":5},{"lat":56.42525120292869,"lon":8.86236023799873,"cap":1000,"size":7},{"lat":55.16478406042523,"lon":10.68676924183028,"cap":900,"size":3},{"lat":56.95483371919782,"lon":10.00058517909833,"cap":750,"size":12},{"lat":55.48833790039432,"lon":7.808928573729868,"cap":2000,"size":80},{"lat":56.66792103040591,"lon":8.217522709704511,"cap":2000,"size":12},{"lat":57.23636070520774,"lon":9.940474748801805,"cap":1500,"size":14},{"lat":55.58043059258716,"lon":7.554919303432045,"cap":2300,"size":91},{"lat":54.54476653788551,"lon":11.60895246127316,"cap":2300,"size":90},{"lat":57.31394222215163,"lon":10.48105036379682,"cap":2000,"size":10},{"lat":56.59278063711137,"lon":11.26054483065457,"cap":3600,"size":111},{"lat":56.68540425688152,"lon":8.967865578277275,"cap":3000,"size":11},{"lat":56.37583546362236,"lon":8.371087618423624,"cap":3450,"size":27},{"lat":55.83161800111292,"lon":8.727372658192726,"cap":3600,"size":6},{"lat":55.66157313136281,"lon":7.668805425273567,"cap":8300,"size":5},{"lat":54.97309875706843,"lon":12.80385837152251,"cap":8400,"size":2}];
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:"Segoe UI",sans-serif;background:#102025;color:#eef8f5}#fallback,#map{position:absolute;inset:0}#fallback{background:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),radial-gradient(circle at 55% 45%,#18353c,#0b191d 72%);background-size:36px 36px,36px 36px,auto}#fallback svg{width:100%;height:100%;opacity:.8}.leaflet-container{background:transparent}.toolbar{position:absolute;z-index:800;left:10px;top:10px;width:190px;padding:10px 11px;background:rgba(9,24,28,.92);border:1px solid rgba(157,222,218,.34);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.35)}h1{font-size:12px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 3px}p{font-size:8px;line-height:1.35;color:#a9c4c5;margin:0 0 8px}.tabs{display:flex;gap:4px;margin-bottom:8px}.tabs button{border:1px solid #31565d;background:#132c32;color:#a9c4c5;border-radius:4px;font-size:7px;padding:4px 6px}.tabs button.on{background:#69c7d5;color:#071518;border-color:#69c7d5}.lab{display:flex;justify-content:space-between;font-size:7px;color:#a9c4c5}.lab b{color:#eef8f5}input{width:100%;accent-color:#69c7d5}.legend{display:flex;gap:9px;margin-top:6px;font-size:7px;color:#a9c4c5}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;background:#69c7d5}.dot.big{background:#f0b35b}.fallback-point{position:absolute;width:7px;height:7px;border:1px solid #d9ffff;border-radius:50%;background:#69c7d5;box-shadow:0 0 8px rgba(105,199,213,.65);transform:translate(-50%,-50%)}.leaflet-popup-content{font:11px/1.4 "Segoe UI",sans-serif}.leaflet-control-attribution{font-size:7px}</style><script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"><\/script></head><body><div id="fallback"><svg viewBox="0 0 720 405" preserveAspectRatio="none"><path d="M287 18l32 25 1 39 25 18-14 36 26 32-8 42 31 22-23 27-44-4-16 26-41-9-19-38 9-35-26-30 18-38-7-44 20-21zM408 198l30-10 22 18-5 34-32 10-24-21zM485 248l32-12 28 18-9 33-36 6-22-21zM560 219l15-12 16 10-4 19-19 4z" fill="#284c4d" stroke="#7eb7b1" stroke-width="2"/><path d="M0 330c130-24 202-4 303 22s228 17 417-10v63H0z" fill="#0d252a"/></svg></div><div id="map"></div><aside class="toolbar"><h1>Danish wind mapper</h1><p>Representative assets from the project dataset. Pan, zoom, filter and inspect capacity.</p><div class="tabs"><button class="on">TURBINES</button><button>WIND PARKS</button><button>OWNERS</button></div><div class="lab"><span>MINIMUM CAPACITY</span><b id="cap">0 kW</b></div><input id="range" type="range" min="0" max="8400" step="100" value="0"><div class="legend"><span><i class="dot"></i>Onshore</span><span><i class="dot big"></i>Utility scale</span></div></aside><script>const pts=${JSON.stringify(points)};let markers=[];function fallback(){const host=document.getElementById('fallback');pts.forEach(p=>{const d=document.createElement('i');d.className='fallback-point';d.style.left=(18+(p.lon-7.4)/(15.2-7.4)*75)+'%';d.style.top=(8+(57.6-p.lat)/(57.6-54.4)*82)+'%';d.dataset.cap=p.cap;host.appendChild(d)});markers=[...host.querySelectorAll('.fallback-point')]}if(window.L){const map=L.map('map',{zoomControl:true,attributionControl:true}).setView([56.05,10.15],6);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);markers=pts.map(p=>L.circleMarker([p.lat,p.lon],{radius:Math.max(3,Math.min(9,3+p.cap/1600)),color:'#d9ffff',weight:1,fillColor:p.cap>=1500?'#f0b35b':'#69c7d5',fillOpacity:.82}).bindPopup('<b>Wind asset</b><br>'+p.cap.toLocaleString()+' kW capacity<br>'+p.size+' installation'+(p.size===1?'':'s')).addTo(map));setTimeout(()=>map.invalidateSize(),80)}else fallback();const range=document.getElementById('range');range.oninput=()=>{const v=+range.value;document.getElementById('cap').textContent=v.toLocaleString()+' kW';markers.forEach((m,i)=>{const on=pts[i].cap>=v;if(m.setStyle)m.setStyle({opacity:on?1:.08,fillOpacity:on?0.82:0.04});else m.style.opacity=on?1:.08})};document.querySelector('.tabs').onclick=e=>{if(e.target.tagName==='BUTTON'){document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));e.target.classList.add('on')}};<\/script></body></html>`;
+}
+function projectPreviewHtml(p){ return p.preview==='chess'?projectChessPreviewHtml():p.preview==='wind'?projectWindPreviewHtml():null; }
+function projectCanPreview(p){ return !!(p&&(p.preview||p.live)); }
 async function openProjectLive(id){
-  const p=projectById(id); if(!p||!p.live) return;
+  const p=projectById(id), inline=p&&projectPreviewHtml(p); if(!p||(!p.live&&!inline)) return;
   const F=projectStageFacet(); if(!F||!F.project||F.project.id!==id) return;
   projectLiveReturnFocus=document.activeElement;
   projectStageState.pinned=true;
   projectLiveOpen=true; projectLoadToken++;
   const token=projectLoadToken;
-  projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
+  projectLive.style.visibility=''; projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
   projectLive.setAttribute('aria-hidden','false');
-  plTitle.textContent=p.label; plSub.textContent=p.kind+' · INTERACTIVE PREVIEW';
-  plExternal.href=p.liveMode==='raw'?p.repo:p.live;
-  plExternal.textContent=p.liveMode==='raw'?'OPEN REPOSITORY ↗':'OPEN SEPARATELY ↗';
-  plLoad.textContent=p.liveMode==='raw'?'PREPARING STANDALONE HTML':'LOADING LIVE PROJECT';
+  plTitle.textContent=p.label; plSub.textContent='INTERACTIVE PREVIEW';
+  plExternal.href=p.launch||p.repo||p.live;
+  plExternal.textContent=p.launch?'GET EXTENSION ↗':p.preview||p.liveMode==='raw'?'OPEN REPOSITORY ↗':'OPEN SEPARATELY ↗';
+  plLoad.textContent=inline?'DEVELOPING PROJECT PREVIEW':p.liveMode==='raw'?'PREPARING STANDALONE HTML':'LOADING LIVE PROJECT';
   plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
   try{
-    if(p.liveMode==='raw'){
+    if(inline){
+      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-popups');
+      plFrame.onload=()=>projectLiveReady(token);
+      plFrame.srcdoc=inline;
+    } else if(p.liveMode==='raw'){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-downloads allow-popups');
       const r=await fetch(p.live,{cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status);
       let html=await r.text(); if(token!==projectLoadToken||!projectLiveOpen) return;
@@ -2350,8 +2331,9 @@ function projectLiveReady(token){
   if(F){ F.projectLiveOn=true; F.projectLiveT0=performance.now();
     for(const it of F.items.concat(F.projectDonors||[])) if(it.projectScreen) it.pD=Math.random()*photoStagger(); }
 }
-function closeProjectLive(restoreStage=true,restoreFocus=true){
+function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=false){
   if(!projectLiveOpen) return;
+  if(dismissPreview&&projectStageState.id) projectStageState.previewDismissed=true;
   projectLiveOpen=false; projectLoadToken++; projectLive.classList.remove('open','ready','failed');
   projectLive.style.visibility='hidden';
   projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
@@ -2364,13 +2346,14 @@ function closeProjectLive(restoreStage=true,restoreFocus=true){
   const back=projectLiveReturnFocus; projectLiveReturnFocus=null;
   if(restoreFocus&&back&&back.isConnected) back.focus();
 }
-projectLive.querySelector('#pl-close').addEventListener('click',()=>closeProjectLive(true,true));
+projectLive.querySelector('#pl-close').addEventListener('click',()=>closeProjectLive(true,true,true));
 projectLive.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
 
 function railSet(k){ railEls.forEach(r=>{ r.el.classList.toggle('current',r.k===k); r.el.classList.toggle('done',k>=0&&r.k<k); }); }
 let railSeen=false; // v69: the rail only appears once the visitor first travels beyond Welcome
 function railReveal(){ if(!railSeen){ railSeen=true; railWrap.classList.add('seen'); } }
 function railTravel(){ railWrap.classList.remove('docked','at-welcome'); }
+function railRoam(){ railSeen=false; railWrap.classList.remove('seen','docked','at-welcome'); }
 function railDock(k){
   const atWelcome=STOPS[k]&&STOPS[k].id==='welcome';
   railWrap.classList.toggle('at-welcome',atWelcome);
@@ -2615,7 +2598,7 @@ let welcomeHeadingStyle=localStorage.getItem('pf_welcome_heading')||ud('welHeadi
 const _welcomeAboutSaved=localStorage.getItem('pf_welcome_about_scroll');
 let welcomeAboutScroll=_welcomeAboutSaved==null?ud('toggleWelAboutScroll',false):_welcomeAboutSaved==='1';
 const welcomeScrollPos={about:0,portfolio:0};
-const welcomeScrollWheel={about:0,portfolio:0};
+const WELCOME_SCROLL_WHEEL=0.0035; // continuous rows per wheel delta; keeps trackpads and mouse wheels fluid
 /* keyboard-style greeting: fresh stencil cells (never terrain claims) appear one key at
    a time, with a short punctuation beat and a quick mechanical key-pop. */
 const WTW_KEY=105, WTW_GAP=380, WTW_DELAY=260, WTW_POP=100;
@@ -2642,7 +2625,6 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
 let railStyle=ud('railStyleSelect','nodes'); // fixed side-link marker design: nodes | ticks | brackets
-let railScrollStyle=ud('railScrollSelect','hairline'); // Portfolio rail's actual scroll track/thumb
 let timelineStyle=ud('timelineStyleSelect','milestones'); // scroll-mode list presentation: index | editorial | milestones
 let timelineArrows=ud('toggleTimelineArrows',true); // boundary-aware up/down hints on the Work/Education list
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
@@ -3344,7 +3326,7 @@ function buildWelcomeTypeSpec(t,cell,x0,yTop){
   }
   return {text:t, cells, cursorX, yTop, cell, w:stCols(t)*cell, h:7*cell};
 }
-const PROJECT_STAGE_W=21.5, PROJECT_STAGE_H=22.0;
+const PROJECT_STAGE_W=21.5, PROJECT_STAGE_H=19.0;
 const PROJECT_SCREEN_W=19.4, PROJECT_SCREEN_H=10.91; // 16:9, matches PROJECT_LIVE_W/H
 function projectStageArt(type){
   if(type==='chess') return [
@@ -3422,17 +3404,16 @@ function buildProjectStageLayout(p){
     items.push({ch:':',x:-halfW,y,s:0.28,L:0.20});
     items.push({ch:':',x: halfW,y,s:0.28,L:0.20});
   }
-  const fact=projectRepoFact(p), index=PORTFOLIO_PROJECTS.indexOf(p)+1;
-  const stars=fact&&Number.isFinite(fact.stars)?fact.stars:p.stars;
-  const language=(fact&&fact.language)||p.language;
-  putLine(String(index).padStart(2,'0')+' / '+String(PORTFOLIO_PROJECTS.length).padStart(2,'0')+' - FEATURED PROJECT',0.38,top-0.72,16.2,0.40);
   putLine('X',0.48,top-0.72,0.7,0.72,{btn:'project-close'});
   const closeItems=items.filter(it=>it.btn==='project-close');
   for(const it of closeItems) it.x+=halfW-1.05;
   btns.push({kind:'project-close',cx:halfW-1.05,cy:top-0.72,hw:0.62,hh:0.62});
-  putLine(p.kind,0.37,top-1.42,W-2.2,0.58);
+  const title=stencilSafe(p.label), titleCell=Math.min(0.18,(W-2.0)/stCols(title)), titleW=stCols(title)*titleCell, titleTop=top-0.65;
+  layStencilLine(items,title,titleCell,-titleW/2,titleTop);
+  const body=wrapText(asciiSafe(p.blurb),48).slice(0,3), bodyTop=titleTop-7*titleCell-0.62;
+  body.forEach((line,i)=>putLine(line,0.37,bodyTop-i*0.52,W-2.0,0.68));
 
-  const screenCY=3.65, screenTop=screenCY+PROJECT_SCREEN_H/2, screenBot=screenCY-PROJECT_SCREEN_H/2;
+  const screenCY=-0.80, screenTop=screenCY+PROJECT_SCREEN_H/2, screenBot=screenCY-PROJECT_SCREEN_H/2;
   const sx0=-PROJECT_SCREEN_W/2, sx1=PROJECT_SCREEN_W/2, edgeCell=0.44;
   for(let x=sx0;x<=sx1+0.01;x+=edgeCell){
     items.push({ch:'-',x:Math.min(sx1,x),y:screenTop,s:0.31,L:0.32,projectScreen:true});
@@ -3452,15 +3433,6 @@ function buildProjectStageLayout(p){
     }
   });
 
-  const title=stencilSafe(p.label), titleCell=Math.min(0.18,(W-2.0)/stCols(title)), titleW=stCols(title)*titleCell, titleTop=screenBot-0.72;
-  layStencilLine(items,title,titleCell,-titleW/2,titleTop);
-  const body=wrapText(asciiSafe(p.blurb),48).slice(0,3), bodyTop=titleTop-7*titleCell-0.72;
-  body.forEach((line,i)=>putLine(line,0.37,bodyTop-i*0.52,W-2.0,0.68));
-  putLine(p.proof,0.34,bodyTop-1.95,W-2.0,0.55);
-  putLine(language+'  /  '+stars+' STARS  /  PUBLIC REPO',0.32,bodyTop-2.58,W-2.0,0.38);
-  const dots='........................................................', dq=layoutLine(dots,0.22);
-  for(let i=0;i<dots.length;i++) items.push({ch:'.',x:-dq.w/2+dq.xs[i],y:bodyTop-3.18,s:0.22,L:0.16,tf:1});
-  layBtnRow(items,btns,[{t:'OPEN PROJECT',kind:'project-open'},{t:'VIEW CODE',kind:'project-code'}],bodyTop-3.62,W-1.2,0.16);
   return {items,w:W,h:H,btns,projectRect:{cx:0,cy:screenCY,w:PROJECT_SCREEN_W,h:PROJECT_SCREEN_H},project:p};
 }
 function buildProjectStageReserve(layouts){
@@ -3493,7 +3465,8 @@ function configureProjectStage(F,p,now,force,externalTargets){
    most of its visible targets are filled by glyphs that are ALREADY holding the greeting,
    figure, and contribution calendar. The project facet supplies only the shortfall. */
 const WPF_SCALE=1.68, WPF_VIEW_FILL=0.84;
-const WPF_SIDE_SHIFT=8.5, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
+const WPF_SIDE_SHIFT=10.5, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
+const PROJECT_PREVIEW_DELAY=1700; // let the assembled ASCII project read before it develops into the live surface
 function welcomeProjectSideDX(group){
   const p=welcome.focus?welcome.focus.sideP:0;
   return (group==='about'?-WPF_SIDE_SHIFT:WPF_SIDE_SHIFT)*p;
@@ -3644,7 +3617,7 @@ function updateWelcomeProjectFocus(now){
   if(busy||sp<1){ glyphsDirty=true; renderDirty=true; return; }
   if(focus.mode==='in'){
     const PF=projectStageFacet();
-    if(PF&&PF.state==='hold') focus.mode='hold';
+    if(PF&&PF.state==='hold'){ focus.mode='hold'; focus.holdT0=now; }
   } else {
     for(const d of focus.donors){
       const id=d.identity, m=d.m;
@@ -3657,10 +3630,10 @@ function updateWelcomeProjectFocus(now){
   }
   glyphsDirty=true; renderDirty=true;
 }
-function projectPrimaryAction(F){
-  const p=F&&F.project; if(!p) return;
-  if(p.live) openProjectLive(p.id);
-  else if(p.launch) window.open(p.launch,'_blank','noopener');
+function updateWelcomeProjectPreview(now){
+  const focus=welcome.focus, F=projectStageFacet(), p=focus&&focus.project;
+  if(!focus||focus.mode!=='hold'||!F||F.state!=='hold'||!p||F.project!==p||projectLiveOpen||projectStageState.previewDismissed||!projectCanPreview(p)) return;
+  if(now-(focus.holdT0||now)>=PROJECT_PREVIEW_DELAY) openProjectLive(p.id);
 }
 
 function buildWelcomeLayout(){
@@ -3679,11 +3652,23 @@ function buildWelcomeLayout(){
     if(cell.date) calCells.push({cx:x, cy:y, date:cell.date, count:cell.count});
   }
   const calW=(ncol-1)*WCAL_CW, calCX=calW/2, calTop=0, calBot=-6*WCAL_CH;
-  let lastM=-1;
-  for(let c=0;c<ncol;c++){ const first=cols[c][0]; if(!first||!first.date) continue;
-    const m=+first.date.slice(5,7)-1;
-    if(m!==lastM&&c<ncol-1){ lastM=m; const t=MONTHS[m], adv=ASM_ADV*WLBL_S;
-      for(let i=0;i<t.length;i++) items.push({ch:t[i], x:c*WCAL_CW+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6+chBase(t[i])*WLBL_S, s:WLBL_S, L:null, tf:1}); } }
+  /* Anchor labels to the actual first day of each month, not the first Sunday after it.
+     The old week-first shortcut could delay a late-starting month until the next column,
+     leaving adjacent labels (notably Jul/Aug) nearly on top of one another. */
+  const monthMarks=[], seenMonths=new Set(), adv=ASM_ADV*WLBL_S;
+  for(let c=0;c<ncol;c++) for(const cell of cols[c]){
+    if(!cell.date) continue;
+    const key=cell.date.slice(0,7), day=cell.date.slice(8,10);
+    if(seenMonths.has(key)) continue;
+    if(day==='01'||seenMonths.size===0){ seenMonths.add(key); monthMarks.push({c,m:+cell.date.slice(5,7)-1}); }
+  }
+  let monthEnd=-Infinity;
+  for(const mark of monthMarks){
+    const t=MONTHS[mark.m], w=(t.length-1)*adv+WLBL_S, x=Math.max(mark.c*WCAL_CW,monthEnd+WLBL_S*0.85);
+    if(x+w>calW+WCAL_CW*0.8) continue;
+    for(let i=0;i<t.length;i++) items.push({ch:t[i], x:x+i*adv, y:calTop+WCAL_CH*0.5+WLBL_S*1.6+chBase(t[i])*WLBL_S, s:WLBL_S, L:null, tf:1});
+    monthEnd=x+w;
+  }
   [[1,'Mon'],[3,'Wed'],[5,'Fri']].forEach(a=>{ const t=a[1], adv=ASM_ADV*WLBL_S, w=(t.length-1)*adv;
     for(let i=0;i<t.length;i++) items.push({ch:t[i], x:-1.2-w+i*adv, y:-a[0]*WCAL_CH+chBase(t[i])*WLBL_S, s:WLBL_S, L:null, tf:1}); });
 
@@ -4073,10 +4058,14 @@ function updateWelcomeWave(now){
 /* Side-column links are normal facet items now. They stay visible with the main assembly,
    but their hit targets remain locked until the greeting has completely resolved. */
 function welcomeScrollHidden(it){
-  if(!it||!it.ws) return false;
+  return welcomeScrollAlpha(it)<=0.001;
+}
+function welcomeScrollAlpha(it){
+  if(!it||!it.ws) return 1;
   const F=welcome.F, o=welcomeScrollPos[it.ws]||0;
   const visible=F&&F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
-  return it.wsr<o||it.wsr>=o+visible;
+  const slot=it.wsr-o;
+  return Math.max(0,Math.min(1,slot+1,visible-slot));
 }
 function welcomeScrollBy(group,dir){
   const F=welcome.F, count=F&&F.lay.wsCounts&&F.lay.wsCounts[group]; if(!count) return;
@@ -4086,7 +4075,7 @@ function welcomeScrollBy(group,dir){
 }
 function welcomeScrollTo(group,p){
   const F=welcome.F, bar=F&&F.lay.wsBars&&F.lay.wsBars[group]; if(!bar) return;
-  const next=Math.round(Math.max(0,Math.min(1,p))*Math.max(0,bar.count-bar.visible));
+  const next=Math.max(0,Math.min(1,p))*Math.max(0,bar.count-bar.visible);
   if(next!==welcomeScrollPos[group]){ welcomeScrollPos[group]=next; glyphsDirty=true; renderDirty=true; }
 }
 function welcomeScrollHit(x,y){
@@ -4125,8 +4114,7 @@ function updateWelcomeNav(now,dt){
       b.cx=b.welcomeBaseCx+welcomeProjectSideDX(b.ws);
     }
     if(b.nav!==undefined){
-      const count=b.ws&&F.lay.wsVisible?F.lay.wsVisible[b.ws]:WNAV_VISIBLE;
-      const visible=holding&&(!b.ws||(b.wsr>=welcomeScrollPos[b.ws]&&b.wsr<welcomeScrollPos[b.ws]+count));
+      const visible=holding&&(!b.ws||welcomeScrollAlpha(b)>0.55);
       b.shown=ready&&visible;
       if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws], pitch=F.lay.wsPitch?F.lay.wsPitch[b.ws]:WNAV_PITCH; b.cy=F.lay.wsTop-slot*pitch+b.wsDY; }
       for(const it of b.items) it.shown=visible;
@@ -4143,13 +4131,13 @@ function updateWelcomeNav(now,dt){
   for(const it of F.items){
     if(it.ws){
       const off=welcomeScrollPos[it.ws]||0, count=F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
-      const visible=!welcomeScrollHidden(it), slot=Math.max(-1,Math.min(count,it.wsr-off));
+      const alpha=welcomeScrollAlpha(it), visible=alpha>0.001, slot=Math.max(-1,Math.min(count,it.wsr-off));
       const pitch=F.lay.wsPitch?F.lay.wsPitch[it.ws]:WNAV_PITCH;
       const ly=F.lay.wsTop-slot*pitch+it.wsDY;
       const lx=it.lx+welcomeProjectSideDX(it.ws);
       it.to.copy(F.anchor).addScaledVector(F.right,lx*F.f).addScaledVector(F.up,ly*F.f); it.baseTo.copy(it.to);
-      if(it.wsAlpha===undefined) it.wsAlpha=visible?1:0;
-      it.wsAlpha+=((visible?1:0)-it.wsAlpha)*Math.min(1,dt*9);
+      if(it.wsAlpha===undefined) it.wsAlpha=alpha;
+      it.wsAlpha+=(alpha-it.wsAlpha)*Math.min(1,dt*12);
       if(it.wsAlpha<0.015){ it.wsAlpha=0; it.m.material.opacity=0; it.m.visible=false; }
       else { it.m.visible=true; it.m.material.opacity=it.wsAlpha; if(!hoverKinds.has(it.btnKind)) it.m.position.lerp(it.to,Math.min(1,dt*11)); }
     } else if(it.wsThumb){
@@ -4211,7 +4199,7 @@ function updateWelcome(now,dt){
   if(showing){
     glyphsDirty=true;
     if(welcome.focus){
-      updateWelcomeProjectFocus(now); updateWelcomeNav(now,dt);
+      updateWelcomeProjectFocus(now); updateWelcomeProjectPreview(now); updateWelcomeNav(now,dt);
     } else {
       if(!welcome.banner) initBanner(now);
       updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now,dt); updateWelcomeTitle(now);
@@ -4231,7 +4219,7 @@ function releaseWelcome(){ if(!welcome.active) return; if(welcome.pool) restoreB
   clearWelcomeKeyNav();
   releaseWelcomeTypeTitle();
   closeProjectLive(false,false);
-  projectStageState.id=null; projectStageState.pinned=false;
+  projectStageState.id=null; projectStageState.pinned=false; projectStageState.previewDismissed=false;
   welcome.active=false; welcome.F=null; welcome.pool=null; welcome.banner=null; welcome.calCells=null;
   welcome.waveItems=null; welcome.waveT0=null; welcome.focus=null; hideCalTip(); glyphsDirty=true; }
 function showCalTip(x,y,cc){
@@ -4757,8 +4745,7 @@ function welcomeKeyActivate(){
   const b=welcomeKeyBtn, F=welcome.F;
   if(!F||!b||!b.shown) return false;
   if(b.project){
-    if(projectStageState.id===b.data&&projectStageState.pinned) projectPrimaryAction(projectStageFacet());
-    else showProjectStage(b.data,true);
+    showProjectStage(b.data,true);
   }
   else if(b.kind==='wcv') window.open(b.data,'_blank','noopener');
   else if(b.nav!==undefined) departTo(b.data);
@@ -6027,7 +6014,7 @@ function beginExit(){
   dockZoomT=1; // the scroll-zoom eases out with the exit
   tourReset(); // the guided sweep re-arms at the overview framing (exact pose the exit lands on)
   exitFromPos.copy(camera.position); exitFromQuat.copy(camera.quaternion);
-  railTravel(); hidePanel(); hideHint(); disassemble(false); syncButtons();
+  railRoam(); hidePanel(); hideHint(); disassemble(false); syncButtons();
 }
 /* Every new journey begins at Welcome; "Free roam" returns to orbiting. */
 enterBtn.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(0); });
@@ -6277,8 +6264,7 @@ addEventListener('wheel',e=>{
   }
   if(uiState!=='journey'||jMode!=='docked'||performance.now()<dockCool) return;
   if(welcome.active){ const group=welcomeScrollHit(e.clientX,e.clientY); if(group){
-    welcomeScrollWheel[group]+=e.deltaY;
-    if(Math.abs(welcomeScrollWheel[group])>=55){ welcomeScrollBy(group,welcomeScrollWheel[group]>0?1:-1); welcomeScrollWheel[group]=0; }
+    welcomeScrollBy(group,e.deltaY*WELCOME_SCROLL_WHEEL);
     return;
   } }
   if(stopInfoMode==='assemble'&&stopFacets&&stopFacets.scrollMode){
@@ -6335,8 +6321,6 @@ addEventListener('pointerup',e=>{
       else if(hit.b.kind==='rotl'||hit.b.kind==='rotr') rotateDock(hit.b.data); // rotation-hint arrows: turn one facet step
       else if(hit.b.kind==='send') cformSubmit(); // the embedded contact form's stencil SEND
       else if(hit.b.wsControl) welcomeScrollBy(hit.b.ws,hit.b.wsDir);
-      else if(hit.b.kind==='project-open') projectPrimaryAction(hit.F);
-      else if(hit.b.kind==='project-code'&&hit.F.project) window.open(hit.F.project.repo,'_blank','noopener');
       else if(hit.b.kind==='project-close') closeProjectStage();
       else if(hit.b.project) showProjectStage(hit.b.data,true);
       else if(hit.b.kind==='wcv') window.open(hit.b.data,'_blank','noopener');
@@ -6387,7 +6371,7 @@ addEventListener('keydown',e=>{
   if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA') return;
   if(uiState==='overview'&&/^Arrow/.test(e.key)){ enterBtn.focus(); e.preventDefault(); return; }
   if(e.key==='Enter'&&uiState==='overview'){ beginEnter(0); e.preventDefault(); return; }
-  if(e.key==='Escape'&&projectLiveOpen){ closeProjectLive(true,true); return; }
+  if(e.key==='Escape'&&projectLiveOpen){ closeProjectLive(true,true,true); return; }
   if(e.key==='Escape'&&projectStageState.id){ closeProjectStage(); return; }
   if(projectLive.contains(e.target)) return;
   if(e.key==='Escape'&&moreOpen){ hideMore(); return; } // close the read-more card first
@@ -6742,8 +6726,7 @@ const DEV_TIPS={
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
   timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.',
   toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.',
-  railStyleSelect:'Changes the dots and project squares beside each fixed side link.',
-  railScrollSelect:'Changes the actual Portfolio scroll track and moving thumb at the far right.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  railStyleSelect:'Changes the dots and project squares beside each fixed side link.', arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
   welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
@@ -6800,7 +6783,7 @@ introSelect.value=introMode;
 document.getElementById('introReplay').addEventListener('click',()=>{
   if(!FONT) return; // portrait not built yet
   dragging=false; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1;
-  uiState='overview'; hidePanel(); hideHint(); railSet(-1); railTravel(); syncButtons();
+  uiState='overview'; hidePanel(); hideHint(); railSet(-1); railRoam(); syncButtons();
   rawCheck.checked=true; applyRaw(true);
   beginIntro(introSelect.value); // replay the chosen load animation from the overview
 });
@@ -6859,10 +6842,6 @@ const railStyleSelect=document.getElementById('railStyleSelect');
 function applyRailStyle(){ railWrap.dataset.railStyle=railStyle; }
 railStyleSelect.value=railStyle; applyRailStyle();
 railStyleSelect.addEventListener('change',()=>{ railStyle=railStyleSelect.value; applyRailStyle(); });
-const railScrollSelect=document.getElementById('railScrollSelect');
-function applyRailScrollStyle(){ railPortfolio.dataset.scrollStyle=railScrollStyle; }
-railScrollSelect.value=railScrollStyle; applyRailScrollStyle();
-railScrollSelect.addEventListener('change',()=>{ railScrollStyle=railScrollSelect.value; applyRailScrollStyle(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -6984,7 +6963,7 @@ const CTRL_DEF={
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
   timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true],
-  railStyleSelect:['select','nodes'], railScrollSelect:['select','hairline'], arrowSelect:['select','stream'],
+  railStyleSelect:['select','nodes'], arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',0.90], welHalo:['range',0.05],
@@ -6993,7 +6972,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','railStyleSelect','railScrollSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','railStyleSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };
@@ -7139,7 +7118,7 @@ function genRun(){
   introActive=false; introCamActive=false; if(progActive){ progActive=false; progCleanup(); } // stop any running intro
   disassemble(true); // and return any assembled stop text to the relief
   revealPortraitInstant(); // settle mid-animation glyphs so genRestore brings back the full portrait, not a frozen partial reveal
-  uiState='overview'; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1; hidePanel(); hideHint(); railTravel(); syncButtons();
+  uiState='overview'; flight=null; jMode='docked'; depart=0; dockZoom=dockZoomT=1; hidePanel(); hideHint(); railRoam(); syncButtons();
   controls.enabled=true; controls.target.copy(faceCenter); controls.update();
   const o={ charsetName:genEl('genCharset').value, customChars:genEl('genCustom').value, cols:parseInt(genEl('genCols').value),
     N:parseInt(genEl('genSamples').value), weight:parseFloat(genEl('genWeight').value), depthScale:parseFloat(genEl('genDepth').value),

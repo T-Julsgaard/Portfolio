@@ -2,6 +2,21 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v86: complete Portfolio rail and clean Roam reset
+
+The right Portfolio rail is no longer a clipped native scroll viewport. All seven
+destinations are displayed together, with `overflow-y`, the mask, scrollbar skins,
+and the `railScrollSelect` Journey setting removed. `railStyleSelect` still controls
+the dot/diamond/bracket marker treatment; wheel events over the rail remain isolated
+from journey navigation even though the rail itself no longer scrolls.
+
+`railRoam()` is now the single overview/free-roam reset. It clears `railSeen` and
+removes `seen`, `docked`, and `at-welcome` from `#journey-rails`, so both columns and
+their dots disappear immediately when Roam is pressed. Normal stop-to-stop travel
+continues to use `railTravel()`, preserving the v81 behavior where already-revealed
+dots stay visible during a flight. Intro replay and generator resets also use the
+clean roam state.
+
 ## v85: selectable Portfolio scrollbar skins
 
 The Journey panel now separates the rail's two visual layers. **Side-link markers**
