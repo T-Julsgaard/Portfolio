@@ -7,6 +7,17 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v90 addendum: Pages-backed Wind and Bitcoin previews
+
+Danish Wind Mapper and Bitcoin Miningame now have first-class GitHub Pages
+deployments. Their `PORTFOLIO_PROJECTS` records fetch the exact generated artifact
+from its `github.io` URL, keep the existing rebased `srcdoc` path, and expose the
+root Pages URL through `#pl-fullscreen`. Keep `live` pointed at the concrete HTML
+file and `liveBase` pointed at that file's Pages directory: the distinction is what
+lets relative resources resolve correctly after the document is inserted into
+`srcdoc`. Wind still passes through `projectEmbedPatch()` for its dark first-load
+background, and iframe retention remains unchanged.
+
 ## v89 addendum: one-time Welcome title and immediate navigation
 
 The keyboard greeting is no longer replayed on every Welcome assembly. `dock()` owns

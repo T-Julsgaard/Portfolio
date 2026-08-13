@@ -1,5 +1,15 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v90 - GitHub Pages for Wind and Bitcoin
+
+Danish Wind Mapper and Bitcoin Miningame now use their own GitHub Pages origins.
+Each project record keeps the rebased fetch path so the generated standalone HTML
+still develops into the retained sandboxed `srcdoc` surface, but `live` and
+`liveBase` now resolve under `t-julsgaard.github.io`. Both records also set
+`fullscreen` to the Pages root, so the compact full-screen control is available in
+the developed-surface bar. Wind's dark embed patch, 1440x742 desktop sampling, and
+full 11 MB Folium artifact are otherwise unchanged.
+
 ## v89 - first-visit Welcome typing and ungated facet links
 
 Welcome's keyboard title is now scoped to the first Welcome dock in a page session.

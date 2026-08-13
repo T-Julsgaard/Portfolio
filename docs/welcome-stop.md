@@ -1,5 +1,15 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v90 - GitHub Pages for Wind and Bitcoin
+
+Danish Wind Mapper and Bitcoin Miningame are now deployed alongside Entropy Forge
+and DocuRAG on GitHub Pages. Their project records fetch the concrete generated HTML
+file from the Pages origin, rebase it to that file's Pages directory, and retain the
+existing sandboxed `srcdoc` lifecycle. The full-screen icon now appears for these
+two projects as well and opens each repository's clean Pages root. This changes only
+hosting and launch targets: the project ASCII screens, develop timing, Wind's dark
+first-load patch, iframe retention, and terrain-glyph budgets are unchanged.
+
 ## v89 - one-time greeting, immediate links, and larger identity frame
 
 The default keyboard greeting is now a first-visit event per page session.
