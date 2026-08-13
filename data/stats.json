@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-08-13T21:42:07.003Z",
+  "generatedAt": "2026-08-13T22:38:50.627Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 10,
-    "month": 10,
-    "year": 208,
-    "total": 243,
-    "currentStreak": 0,
+    "today": 12,
+    "month": 14,
+    "year": 212,
+    "total": 247,
+    "currentStreak": 3,
     "longestStreak": 9,
     "breakdown": {
-      "commits": 203,
+      "commits": 207,
       "issues": 0,
       "pullRequests": 0,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 10,
-    "month": 10,
-    "year": 203,
-    "total": 234
+    "today": 12,
+    "month": 14,
+    "year": 207,
+    "total": 238
   },
   "calendar": [
     {
@@ -2148,8 +2148,8 @@
     },
     {
       "date": "2026-07-30",
-      "count": 0,
-      "level": "NONE",
+      "count": 3,
+      "level": "FIRST_QUARTILE",
       "weekday": 4
     },
     {
@@ -2226,44 +2226,50 @@
     },
     {
       "date": "2026-08-12",
-      "count": 0,
-      "level": "NONE",
+      "count": 2,
+      "level": "FIRST_QUARTILE",
       "weekday": 3
     },
     {
       "date": "2026-08-13",
-      "count": 0,
-      "level": "NONE",
+      "count": 12,
+      "level": "SECOND_QUARTILE",
       "weekday": 4
+    },
+    {
+      "date": "2026-08-14",
+      "count": 5,
+      "level": "FIRST_QUARTILE",
+      "weekday": 5
     }
   ],
   "repos": {
-    "publicCount": 6,
+    "publicCount": 7,
     "totalStars": 11,
     "languages": [
       {
         "name": "HTML",
-        "bytes": 11450333,
-        "percent": 93.1
+        "bytes": 57057251,
+        "percent": 98.5
       },
       {
         "name": "JavaScript",
-        "bytes": 503939,
-        "percent": 4.1
+        "bytes": 517055,
+        "percent": 0.9
       },
       {
         "name": "Python",
         "bytes": 246422,
-        "percent": 2
+        "percent": 0.4
       },
       {
         "name": "CSS",
         "bytes": 102649,
-        "percent": 0.8
+        "percent": 0.2
       },
       {
         "name": "Batchfile",
-        "bytes": 526,
+        "bytes": 1473,
         "percent": 0
       },
       {
@@ -2273,10 +2279,10 @@
       }
     ],
     "mostRecent": {
-      "name": "danish-wind-mapper",
-      "description": "A Python application for visualizing Denmark's wind energy infrastructure on an interactive HTML map, including turbine locations, ownership data, and related metadata.",
-      "url": "https://github.com/T-Julsgaard/danish-wind-mapper",
-      "pushedAt": "2026-08-13T19:58:36Z",
+      "name": "Portfolio",
+      "description": null,
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-08-13T22:33:48Z",
       "language": "HTML"
     },
     "featured": [
