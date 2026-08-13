@@ -17,6 +17,8 @@ the single down arrow changes to up while expanded, and `aria-expanded`,
 `aria-controls`, and the action label stay synchronized. Expansion is independent per
 side and persists while moving between non-Welcome stops. Wheel events over these
 non-scrollable rails are no longer stopped, so zoom remains available under the cursor.
+The bracketed headings use 11px type (links remain 9px), giving the group label clear
+visual priority without widening either rail beyond its existing item list.
 
 ## v88: uniform hollow rails with a short dock slide
 
