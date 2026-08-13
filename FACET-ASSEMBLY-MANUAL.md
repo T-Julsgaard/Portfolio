@@ -7,6 +7,36 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v88 addendum: projected form fields and retained project surfaces
+
+The Contact inputs are no longer positioned with an axis-aligned screen rectangle.
+`updateContactForm()` projects every field's four world-space corners and feeds the
+result to the same `cbQuadTransform()` homography used by the scene-mounted chess
+board. Each control has a fixed internal canvas (`CF_DOM_PPU=64`) and
+`transform-origin:top left`; width, height, font size, and padding are authored in
+that internal coordinate system before the single matrix3d is applied. Keep all
+four corners in the projection path. A two-corner translate/scale approximation
+will make typed text swim outside its glyph frame as soon as drag-look introduces
+perspective. Formspree failures now render only `Could not send right now.`
+
+Welcome project previews now retain the already-loaded iframe when the live surface
+folds back to ASCII. Returning to the same project reuses that document and applies
+a deterministic 12x7 CSS-mask tile reveal while the `projectScreen` glyphs dissolve.
+Do not clear `srcdoc` in `closeProjectLive()`; that was the source of the Danish map's
+white reload border. `projectEmbedPatch()` also forces a dark Wind document backdrop.
+
+Chess develops directly into the analysis workspace (board, moves, accuracy,
+evaluation, engine, and the single Old Soviet coach); its former Analyze landing
+screen is retired. DocuRAG develops directly into its Search/Ask mode chooser, with
+the login surface and Logout control suppressed at the embed seam. The matching
+ASCII screens must continue to depict those actual first surfaces.
+
+The focused project stage is 25% larger than v87 (`WPF_SCALE=2.10`,
+`WPF_VIEW_FILL=0.94`) and the side columns move to `WPF_SIDE_SHIFT=13.1` so their
+visuals and hit geometry remain clear. Current validation is still 13,268 terrain
+glyphs; Chess uses 861 records and Wind remains the largest project variant at 870,
+so Welcome's 3,437 claims plus the active maximum leave 8,961 spare.
+
 ## v87 addendum: project previews mirror their real first screen
 
 `projectStageArt()` is now a low-resolution composition of the first surface that

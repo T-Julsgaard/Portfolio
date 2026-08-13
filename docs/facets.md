@@ -1,5 +1,29 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v88 - contact homography and project develop continuity
+
+Contact fields now use a true four-corner world-to-screen projection. For each
+`F.fields` rectangle, `updateContactForm()` projects TL/TR/BR/BL and maps a fixed
+`CF_DOM_PPU=64` internal input surface through `cbQuadTransform()`. The field's text,
+padding, and box are transformed together, so typed copy stays inside the assembled
+glyph frame during breathing and off-axis drag-look. Degenerate quads hide the form
+for that frame. The previous two-corner translate/scale path must not be restored.
+
+The form still POSTs JSON-style form data to Formspree form `mbdlvnjo`. The endpoint
+owner must disable reCAPTCHA for this custom fetch integration (or later add an
+explicit reCAPTCHA token flow). A failed request now sets only `Could not send right
+now.`; it no longer adds the LinkedIn fallback sentence.
+
+Welcome's project live layer now behaves like the Journey image develop: the surface
+is revealed through a staggered 12x7 CSS mask while its `projectScreen` glyphs
+dissolve. `projectHtmlCache` avoids repeated fetch/preprocess work, and
+`projectLoadedId` keeps the mounted iframe across close/reopen of the same project.
+That retention is required for the full Danish Folium document: blanking `srcdoc`
+would bring back the white reload edge. Chess starts in the analysis workspace with
+only the repository's Old Soviet coach; DocuRAG starts at Search/Ask rather than its
+login screen. Real layout counts are Chess 861, Entropy 868, DocuRAG 676, Wind 870,
+and Bitcoin 801 of the 13,268-glyph pool.
+
 ## v87 - project preview fidelity and controls
 
 Welcome's project art is now first-frame art: each nine-row ASCII composition is a

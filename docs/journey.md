@@ -2,6 +2,21 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v88: uniform hollow rails with a short dock slide
+
+The ABOUT ME and PORTFOLIO rails now have one marker language: every stop and every
+project is a hollow circular node. `.current` and `.done` retain their semantic
+classes for routing/state inspection, but no longer fill or glow the dot; project
+rows no longer rotate a square into a diamond. `data-rail-style` is fixed to
+`nodes`, and the Side-link markers selector plus its persisted Journey control were
+removed. Do not reintroduce visual completion state through those classes.
+
+Both rail columns are fully hidden and non-interactive whenever `#journey-rails`
+lacks `.docked`. The left/right columns wait at -7/+7 px respectively, then fade and
+slide to zero over roughly 160-180 ms when docking adds the class. This replaces the
+v81 rule that kept previously revealed dots visible in flight; Roam and Welcome
+still clear the rail wrapper through their existing state paths.
+
 ## v86: complete Portfolio rail and clean Roam reset
 
 The right Portfolio rail is no longer a clipped native scroll viewport. All seven

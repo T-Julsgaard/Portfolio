@@ -22,12 +22,14 @@
   #journey-rails.at-welcome .journey-rail { pointer-events:none; }
   .journey-rail {
     position:fixed; top:50%; transform:translateY(-50%);
-    display:flex; flex-direction:column; gap:9px; pointer-events:auto;
+    display:flex; flex-direction:column; gap:9px; pointer-events:none; opacity:0;
+    transition:opacity .16s ease, transform .18s cubic-bezier(.22,.8,.28,1);
   }
-  #rail-about { left:22px; align-items:flex-start; }
+  #rail-about { left:22px; align-items:flex-start; transform:translate(-7px,-50%); }
   #rail-portfolio {
-    right:22px; align-items:flex-end;
+    right:22px; align-items:flex-end; transform:translate(7px,-50%);
   }
+  #journey-rails.docked .journey-rail { opacity:1; pointer-events:auto; transform:translate(0,-50%); }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
     background:transparent; border:none; padding:2px; cursor:pointer;
@@ -50,23 +52,9 @@
   #journey-rails.docked .rail-stop:is(:hover,:focus-visible) .lbl { opacity:1; color:#fff; }
   .rail-stop:focus-visible .dot { border-color:#fff; box-shadow:0 0 8px rgba(255,255,255,0.72); }
   #rail-portfolio .rail-project { cursor:pointer; opacity:0.72; }
-  #rail-portfolio .rail-project .dot { border-radius:1px; transform:rotate(45deg) scale(0.78); }
+  #rail-portfolio .rail-project .dot { border-radius:50%; transform:none; }
   #journey-rails.docked .rail-project:is(:hover,:focus-visible) { opacity:1; }
-  .rail-stop.done .dot { background:rgba(255,255,255,0.4); }
-  .rail-stop.current .dot { background:#fff; box-shadow:0 0 10px rgba(255,255,255,0.9); }
-  #journey-rails[data-rail-style="ticks"] .rail-stop .dot {
-    width:12px; height:2px; border:0; border-radius:0; transform:none;
-    background:rgba(255,255,255,0.52);
-  }
-  #journey-rails[data-rail-style="ticks"] .rail-project .dot { width:6px; transform:none; }
-  #journey-rails[data-rail-style="ticks"] .rail-stop.done .dot { background:rgba(255,255,255,0.68); }
-  #journey-rails[data-rail-style="ticks"] .rail-stop.current .dot { background:#fff; box-shadow:0 0 8px rgba(255,255,255,0.82); }
-  #journey-rails[data-rail-style="brackets"] .rail-stop .dot {
-    width:11px; height:9px; border-width:0 1px; border-radius:0; transform:none;
-  }
-  #journey-rails[data-rail-style="brackets"] .rail-project .dot {
-    width:8px; height:8px; border-width:1px; transform:none;
-  }
+  .rail-stop.done .dot,.rail-stop.current .dot { background:transparent; box-shadow:none; }
   /* Labels stay expanded while docked, retract during travel, then slide back in at
      touchdown. Welcome hides both rails because its in-scene columns already navigate. */
 
@@ -77,7 +65,8 @@
     transform-origin:top left; will-change:transform; visibility:hidden; opacity:0;
     pointer-events:none; transition:opacity .22s ease; color:#f5f5f2;
   }
-  #project-live.open { visibility:visible; opacity:1; pointer-events:auto; }
+  #project-live.open { visibility:visible; opacity:1; }
+  #project-live.open.ready { pointer-events:auto; }
   .pl-shell { width:100%; height:100%; display:flex; flex-direction:column;
     overflow:hidden; background:#080808; border:1px solid rgba(255,255,255,.42);
     box-shadow:0 18px 60px rgba(0,0,0,.46); }
@@ -95,7 +84,7 @@
   .pl-actions [hidden] { display:none; }
   #pl-fullscreen { width:25px; padding:0; }
   #pl-fullscreen svg { width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.5; }
-  .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#f3f3ef; }
+  .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#080808; }
   #pl-frame { width:100%; height:100%; border:0; display:block; background:#f3f3ef; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
      2x internal viewport, then sample them down into the 720px in-scene surface. */
@@ -210,7 +199,8 @@
   #cfields { position:fixed; inset:0; z-index:4; pointer-events:none; visibility:hidden; opacity:0;
     transition:opacity 0.5s; }
   #cfields.on { visibility:visible; opacity:1; }
-  #cfields input, #cfields textarea { position:absolute; pointer-events:auto; box-sizing:border-box;
+  #cfields input, #cfields textarea { position:absolute; left:0; top:0; transform-origin:top left;
+    pointer-events:auto; box-sizing:border-box; overflow:hidden;
     background:#000; border:none; outline:none; border-radius:0; color:#fff; caret-color:#fff;
     font-family:inherit; letter-spacing:0.05em; }
   #cfields input:focus, #cfields textarea:focus { background:#000; }
@@ -225,7 +215,7 @@
     -webkit-box-shadow:0 0 0 1000px #000 inset;
     transition:background-color 9999999s ease-out 0s; }
   #cfields input:autofill { background:#000; color:#fff; }
-  #cf-note { position:absolute; text-align:center; color:rgba(255,255,255,0.7); letter-spacing:0.14em;
+  #cf-note { position:absolute; left:0; top:0; transform-origin:top left; text-align:center; color:rgba(255,255,255,0.7); letter-spacing:0.14em;
     text-transform:uppercase; pointer-events:none; white-space:nowrap; overflow:visible; }
 
   /* contribution-calendar hover tooltip (welcome stop, v53) — GitHub-style
@@ -638,13 +628,6 @@
           </select>
         </label>
         <div class="row"><span>Timeline arrows</span><input type="checkbox" id="toggleTimelineArrows" checked></div>
-        <label>Side-link markers
-          <select id="railStyleSelect">
-            <option value="nodes">Nodes (dots &amp; diamonds)</option>
-            <option value="ticks">Signal ticks</option>
-            <option value="brackets">ASCII brackets</option>
-          </select>
-        </label>
         <label>Rotation arrows
           <select id="arrowSelect">
             <option value="stream">Stream (triple chevron)</option>
@@ -2180,6 +2163,7 @@ const hint=document.getElementById('hint'), hintText=document.getElementById('hi
 let _departW=''; // last departure-bar width actually written (v50: skip identical per-frame style writes)
 const enterBtn=document.getElementById('enter-btn'), exploreBtn=document.getElementById('explore-btn');
 const railWrap=document.getElementById('journey-rails');
+railWrap.dataset.railStyle='nodes';
 const railAbout=document.getElementById('rail-about'), railPortfolio=document.getElementById('rail-portfolio');
 const railEls=[];
 function addRailStop(parent,st,k){
@@ -2237,7 +2221,10 @@ const plFrame=projectLive.querySelector('#pl-frame'), plLoad=projectLive.querySe
 const plTitle=projectLive.querySelector('#pl-title'), plSub=projectLive.querySelector('#pl-sub');
 const plRepo=projectLive.querySelector('#pl-repo'), plExtension=projectLive.querySelector('#pl-extension'), plFullscreen=projectLive.querySelector('#pl-fullscreen');
 const projectStageState={id:null,pinned:false,previewDismissed:false};
-let projectLiveOpen=false, projectLoadToken=0, projectLiveReturnFocus=null;
+let projectLiveOpen=false, projectLoadToken=0, projectLiveReturnFocus=null, projectLoadedId=null;
+const projectHtmlCache=new Map();
+const PROJECT_REVEAL_COLS=12, PROJECT_REVEAL_ROWS=7, PROJECT_REVEAL_COUNT=PROJECT_REVEAL_COLS*PROJECT_REVEAL_ROWS;
+const PROJECT_REVEAL_D=Array.from({length:PROJECT_REVEAL_COUNT},(_,i)=>((i*37)%PROJECT_REVEAL_COUNT)/(PROJECT_REVEAL_COUNT-1));
 
 function projectById(id){ return PORTFOLIO_PROJECTS.find(p=>p.id===id)||null; }
 function projectStageFacet(){ return stopFacets&&stopFacets.projectStage||null; }
@@ -2265,6 +2252,35 @@ function selectProjectFromRail(id){
   else if(uiState==='overview') beginEnter(welcomeRailIdx);
 }
 function projectChessPreviewHtml(){
+  const g=CHESS_GAMES[0], positions=[], sans=[], moveCoords=[];
+  let st=cvStart(); positions.push(st.b.join(''));
+  for(const tok of cvTokens(g.pgn)){
+    const move=cvSan(st,tok); if(!move) break;
+    st=cvApply(st,move); sans.push(tok); moveCoords.push([move.from,move.to]); positions.push(st.b.join(''));
+  }
+  const clocks=[...g.pgn.matchAll(/\[%clk ([\d:.]+)\]/g)].map(m=>cvSecs(m[1]));
+  const qualities=sans.map((_,i)=>i<15?'BOOK':i===71?'BRILLIANT':i%29===0?'BLUNDER':i%23===0?'MISTAKE':i%17===0?'GREAT':'BEST');
+  const evals=positions.map((_,i)=>{
+    let v=0.22*Math.sin(i*0.31)+0.10*Math.cos(i*0.13);
+    if(i>44) v-=0.012*(i-44); if(i>72) v-=0.045*(i-72); if(i>92) v-=0.18*(i-92);
+    return Math.round(v*100)/100;
+  });
+  const data=JSON.stringify({positions,sans,moveCoords,clocks,qualities,evals,w:g.w,wr:g.wr,b:g.b,br:g.br,base:g.base,flip:g.me==='b'});
+  return `<!doctype html><html data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+.workspace{grid-template-rows:minmax(0,1fr);min-height:0;overflow:hidden}.board-col{height:100%;min-height:0}.coach-art svg{transform:scale(1.55);transform-origin:50% 44%}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#181817;color:#f2f0e8;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button{font:inherit}.app{height:100%;display:flex;flex-direction:column}.topbar{height:24px;flex:none;display:flex;align-items:center;gap:9px;padding:0 8px;border-bottom:1px solid #35342e;background:#1d1d1b}.brand-mark{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;background:#80b55e;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}.brand-mark img{width:12px;height:12px}.brand-name{font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.brand-name span{color:#77736b;font-weight:600}.meta{display:flex;align-items:center;gap:8px;color:#aaa69d;font-size:6px}.meta i{width:3px;height:3px;border-radius:50%;background:#77736b}.top-actions{margin-left:auto;display:flex;gap:4px}.icon-btn{width:18px;height:18px;padding:0;border:1px solid #36352f;border-radius:5px;background:#23231f;color:#aaa69d;display:grid;place-items:center;cursor:pointer;font-size:8px}.icon-btn:hover{border-color:#80b55e;color:#f2f0e8}.workspace{height:calc(100% - 24px);display:grid;grid-template-columns:365px minmax(0,1fr);gap:8px;padding:5px 10px 5px 18px}.board-col{min-width:0;display:grid;grid-template-rows:16px minmax(0,1fr) 16px 20px;gap:2px}.player{display:flex;align-items:center;gap:4px;padding:0 3px;font-size:7px;font-weight:800}.flag{width:13px;height:10px;border-radius:2px;background:linear-gradient(90deg,#d62d39 0 31%,#fff 31% 68%,#176847 68%);box-shadow:0 0 0 1px rgba(255,255,255,.14)}.player.bottom .flag{background:linear-gradient(#c8102e 0 42%,#fff 42% 58%,#c8102e 58%)}.elo{color:#77736b;font-size:6px}.clock{margin-left:auto;padding:2px 5px;border:1px solid #4c673a;border-radius:5px;background:#1d1d1b;color:#f2f0e8;font:7px ui-monospace,monospace}.board-wrap{min-height:0;display:flex;align-items:center;justify-content:center;gap:4px}.evalbar{width:12px;height:100%;max-height:286px;position:relative;overflow:hidden;border-radius:4px;background:#272621;border:1px solid #3b3a32}.evalfill{position:absolute;left:0;right:0;bottom:0;height:50%;background:#f2f0e8;transition:height .18s}.evaltxt{position:absolute;left:0;right:0;top:3px;text-align:center;color:#171715;font:5px ui-monospace,monospace;z-index:2;mix-blend-mode:difference}.board{height:100%;max-height:286px;aspect-ratio:1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);overflow:hidden;box-shadow:0 0 0 1px #38372f}.sq{position:relative;display:grid;place-items:center}.sq.l{background:#e9edcc}.sq.d{background:#75a16a}.sq.hl:before{content:'';position:absolute;inset:0;background:rgba(255,218,48,.48)}.piece{position:relative;z-index:1;width:90%;height:90%;object-fit:contain}.co{position:absolute;z-index:2;font:5px ui-monospace,monospace;color:rgba(35,70,30,.72)}.cr{left:2px;top:1px}.cf{right:2px;bottom:1px}.controls{display:flex;align-items:center;justify-content:center;gap:4px}.controls button{height:18px;min-width:24px;padding:0;border:1px solid #35342e;border-radius:5px;background:#24241f;color:#aaa69d;cursor:pointer}.controls button.play{width:36px;background:#80b55e;color:#102008;border-color:#80b55e}.controls button:hover{color:#102008;background:#80b55e}.ply{min-width:42px;text-align:center;color:#77736b;font:6px ui-monospace,monospace}.modules{min-width:0;height:100%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:65px minmax(0,1fr) 76px;gap:6px}.panel{min-height:0;background:#201f1b;border:1px solid #39372f;border-radius:7px;overflow:hidden}.panel-head{height:21px;display:flex;align-items:center;padding:0 7px;border-bottom:1px solid #302f29;color:#c5c0b4;font-size:6px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.panel-head .count{margin-left:auto;color:#77736b}.coach-panel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 86px;position:relative}.coach-copy{padding:7px 9px}.opening{color:#80b55e;font:6px ui-monospace,monospace;font-weight:800}.coach-line{margin:13px 0 0;color:#f2f0e8;font:8px/1.25 ui-monospace,monospace}.coach-art{position:relative;overflow:hidden;background:radial-gradient(circle at 58% 45%,#36332b 0,#22211d 58%,transparent 72%)}.coach-art svg{width:100%;height:100%;display:block}.coach-fallback{position:absolute;right:15px;top:7px;width:45px;height:58px}.ushanka{position:absolute;left:3px;top:0;width:39px;height:20px;border-radius:14px 14px 6px 6px;background:#181715;box-shadow:-6px 4px 0 -1px #28251f,6px 4px 0 -1px #28251f}.face{position:absolute;left:8px;top:13px;width:29px;height:34px;border-radius:45% 45% 50% 50%;background:#d69a6c}.face:before,.face:after{content:'';position:absolute;top:13px;width:4px;height:2px;border-radius:50%;background:#2d2118}.face:before{left:7px}.face:after{right:7px}.moustache{position:absolute;left:13px;top:33px;width:19px;height:7px;border-radius:50%;border-top:4px solid #aaa}.coat{position:absolute;left:4px;bottom:0;width:38px;height:17px;border-radius:16px 16px 0 0;background:#27282b}.moves{display:flex;flex-direction:column}.move-list{min-height:0;overflow:auto;padding:2px}.move-row{display:grid;grid-template-columns:18px 1fr 1fr;gap:1px;min-height:14px;align-items:center;color:#c5c0b4;font:6px ui-monospace,monospace}.move-row .n{color:#666259;text-align:right;padding-right:2px}.move-row button{height:13px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;padding:0 3px;cursor:pointer;white-space:nowrap}.move-row button:hover,.move-row button.on{background:#302f29;color:#fff}.q{display:inline-block;width:4px;height:4px;border-radius:50%;margin-right:3px;background:#80b55e}.q.MISTAKE{background:#f0a04b}.q.BLUNDER{background:#ef5c55}.q.BRILLIANT{background:#24bda4}.accuracy{display:flex;flex-direction:column}.acc-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;padding:7px 7px 5px}.acc-score{font:800 15px ui-monospace,monospace;color:#80b55e}.acc-score.right{text-align:right;color:#c5c0b4}.acc-name{font-size:5px;color:#8e897f}.vs{padding-bottom:2px;color:#77736b;font-size:6px}.acc-bar{height:3px;margin-top:3px;border-radius:2px;background:#302f29;overflow:hidden}.acc-bar i{display:block;height:100%;width:79%;background:#80b55e}.right .acc-bar i{width:83%;margin-left:auto;background:#969189}.classes{padding:1px 8px;font-size:5px}.class-row{height:13px;display:grid;grid-template-columns:1fr 14px 36px 14px;align-items:center;color:#c5c0b4}.class-row span:first-child{text-align:right;color:#77736b}.class-row span:last-child{text-align:right}.class-dot{width:11px;height:11px;margin:auto;border-radius:50%;display:grid;place-items:center;background:#80b55e;color:#fff;font-size:6px}.class-dot.m{background:#f0a04b}.class-dot.b{background:#ef5c55}.class-dot.br{background:#24bda4}.evaluation{display:flex;flex-direction:column}.graph{min-height:0;flex:1;padding:5px 7px}.graph svg{width:100%;height:100%}.zero{stroke:#3b3932;stroke-width:1}.area{fill:rgba(128,181,94,.22)}.line{fill:none;stroke:#80b55e;stroke-width:1.7}.cursor{stroke:#f2f0e8;stroke-width:1;opacity:.72}.engine{display:flex;flex-direction:column}.engine-body{min-height:0;flex:1;display:grid;grid-template-columns:45px 1fr;align-items:center}.engine-score{margin-left:7px;padding:4px;border-radius:5px;background:#f2f0e8;color:#171715;text-align:center;font:800 7px ui-monospace,monospace}.pv{padding:5px;color:#c5c0b4;font:6px/1.55 ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style></head><body><div class="app"><header class="topbar"><div class="brand-mark"><img src="https://raw.githubusercontent.com/T-Julsgaard/Chess-Review/main/pieces-img/cburnett/wN.svg" alt=""></div><div class="brand-name">CHESS <span>/ REVIEW</span></div><div class="meta"><b>Loss</b><i></i><b>Bullet</b><i></i><b>2026-08-12</b></div><div class="top-actions"><button class="icon-btn" id="flip" title="Flip board">⇄</button><button class="icon-btn" title="Share game">↗</button><button class="icon-btn" title="About">ⓘ</button><button class="icon-btn" title="Settings">⚙</button></div></header><main class="workspace"><section class="board-col"><div class="player" id="top"></div><div class="board-wrap"><div class="evalbar"><div class="evalfill" id="evalfill"></div><div class="evaltxt" id="evaltxt"></div></div><div class="board" id="board"></div></div><div class="player bottom" id="bottom"></div><div class="controls"><button data-go="first">|‹</button><button data-go="prev">‹</button><button class="play" data-go="next">▶</button><span class="ply" id="ply"></span><button data-go="next">›</button><button data-go="last">›|</button></div></section><aside class="modules"><section class="panel coach-panel"><div class="coach-copy"><div class="opening">C25 · VIENNA GAME: ANDERSSEN DEFENSE</div><p class="coach-line" id="coach-line">Use ← and → to step through the game.</p></div><div class="coach-art" id="coach-art"><div class="coach-fallback"><i class="ushanka"></i><i class="face"></i><i class="moustache"></i><i class="coat"></i></div></div></section><section class="panel moves"><div class="panel-head">Moves <span class="count" id="move-count"></span></div><div class="move-list" id="moves"></div></section><section class="panel accuracy"><div class="panel-head">Accuracy</div><div class="acc-top"><div><div class="acc-name">NIXKRAM</div><div class="acc-score">78.7</div><div class="acc-bar"><i></i></div></div><span class="vs">VS</span><div class="right"><div class="acc-name">JULSGAARD</div><div class="acc-score right">82.6</div><div class="acc-bar"><i></i></div></div></div><div class="classes"><div class="class-row"><span>0</span><i class="class-dot br">!!</i><b>Brilliant</b><span>1</span></div><div class="class-row"><span>1</span><i class="class-dot">!</i><b>Great</b><span>1</span></div><div class="class-row"><span>24</span><i class="class-dot">★</i><b>Best</b><span>24</span></div><div class="class-row"><span>3</span><i class="class-dot m">?</i><b>Mistake</b><span>1</span></div><div class="class-row"><span>2</span><i class="class-dot b">??</i><b>Blunder</b><span>0</span></div></div></section><section class="panel evaluation"><div class="panel-head">Evaluation</div><div class="graph"><svg viewBox="0 0 360 52" preserveAspectRatio="none"><path class="area" id="area"></path><line class="zero" x1="0" y1="26" x2="360" y2="26"></line><polyline class="line" id="graph"></polyline><line class="cursor" id="cursor" y1="0" y2="52"></line></svg></div></section><section class="panel engine"><div class="panel-head">Engine <span class="count">Stockfish 18 NNUE · depth 16</span></div><div class="engine-body"><div class="engine-score" id="engine-score">+0.1</div><div class="pv" id="pv-line">1. Nf3 d5 2. b3 Nf6 3. Bb2</div></div></section></aside></main></div><script>
+const D=${data};let ply=0;const board=document.getElementById('board'),moves=document.getElementById('moves'),pieceRoot='https://raw.githubusercontent.com/T-Julsgaard/Chess-Review/main/pieces-img/cburnett/';
+for(let s=0;s<64;s++){const d=document.createElement('div');d.className='sq '+((((s>>3)+(s&7))%2)?'d':'l');board.appendChild(d)}
+function secs(v){let t=D.base;for(let i=v?0:1;i<ply&&i<D.clocks.length;i+=2)t=D.clocks[i];return t}function fmt(t){const m=Math.floor(t/60),s=t-m*60;return m+':'+String(Math.floor(s)).padStart(2,'0')}function player(el,name,rating,white){el.innerHTML='<i class="flag"></i><b>'+name+'</b><span class="elo">('+rating+')</span><span class="clock">'+fmt(secs(white))+'</span>'}
+function moveList(){let h='';for(let i=0;i<D.sans.length;i+=2){h+='<div class="move-row"><span class="n">'+(i/2+1)+'.</span>';for(let j=0;j<2;j++){const k=i+j;if(k<D.sans.length)h+='<button data-p="'+(k+1)+'" class="'+(ply===k+1?'on':'')+'"><i class="q '+D.qualities[k]+'"></i>'+D.sans[k]+'</button>';else h+='<span></span>'}h+='</div>'}moves.innerHTML=h;const on=moves.querySelector('.on');if(on)moves.scrollTop=Math.max(0,on.offsetTop-moves.clientHeight/2+on.clientHeight/2)}
+function coachLine(q,san){if(!ply)return'Use ← and → to step through the game.';if(q==='BLUNDER')return san+'. Blunder. Tea first. Then we speak like adults.';if(q==='MISTAKE')return san+'. Mistake. Sit straight. Slouching never repaired a position.';if(q==='BRILLIANT')return san+'. Brilliant. I have seen three in my life. Now four.';if(q==='BOOK')return san+'. Still theory. Understand the plan, not only the move.';if(q==='GREAT')return san+'. The only move that holds. You found it. Acceptable.';return san+'. Best move. Correct is the job. Continue working.'}
+function show(){const b=D.positions[ply],last=ply?D.moveCoords[ply-1]:null,sqs=board.children;for(let s=0;s<64;s++){const i=D.flip?63-s:s,el=sqs[s];el.innerHTML='';const pc=b[i];if(pc&&pc!==' '){const x=document.createElement('img');x.className='piece';x.src=pieceRoot+(pc===pc.toUpperCase()?'w':'b')+pc.toUpperCase()+'.svg';x.alt='';el.appendChild(x)}el.classList.toggle('hl',!!last&&(i===last[0]||i===last[1]));if((s&7)===0){const c=document.createElement('span');c.className='co cr';c.textContent=D.flip?(s>>3)+1:8-(s>>3);el.appendChild(c)}if((s>>3)===7){const c=document.createElement('span');c.className='co cf';c.textContent=String.fromCharCode(D.flip?104-(s&7):97+(s&7));el.appendChild(c)}}const topWhite=D.flip;player(document.getElementById('top'),topWhite?D.w:D.b,topWhite?D.wr:D.br,topWhite);player(document.getElementById('bottom'),topWhite?D.b:D.w,topWhite?D.br:D.wr,!topWhite);const e=D.evals[ply],share=Math.max(8,Math.min(92,50+e*8));document.getElementById('evalfill').style.height=share+'%';document.getElementById('evaltxt').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('engine-score').textContent=(e>=0?'+':'')+e.toFixed(1);document.getElementById('ply').textContent=ply+' / '+D.sans.length;document.getElementById('move-count').textContent=D.sans.length+' ply';const q=ply?D.qualities[ply-1]:'START',san=ply?D.sans[ply-1]:'Starting position';document.getElementById('coach-line').textContent=coachLine(q,san);document.getElementById('pv-line').textContent=(D.sans.slice(ply,ply+9).join(' ')||'End of game');moveList();const x=360*ply/Math.max(1,D.sans.length);document.getElementById('cursor').setAttribute('x1',x);document.getElementById('cursor').setAttribute('x2',x)}
+const pts=D.evals.map((e,i)=>(360*i/(D.evals.length-1))+','+(26-Math.max(-4,Math.min(4,e))*5.4));document.getElementById('graph').setAttribute('points',pts.join(' '));document.getElementById('area').setAttribute('d','M0 26 L'+pts.join(' L')+' L360 26 Z');function go(a){ply=a==='first'?0:a==='last'?D.sans.length:a==='prev'?Math.max(0,ply-1):Math.min(D.sans.length,ply+1);show()}document.querySelector('.controls').addEventListener('click',e=>{const a=e.target.dataset.go;if(a)go(a)});moves.addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b){ply=+b.dataset.p;show()}});document.getElementById('flip').addEventListener('click',()=>{D.flip=!D.flip;show()});addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go('prev');else if(e.key==='ArrowRight')go('next')});
+fetch('https://raw.githubusercontent.com/T-Julsgaard/Chess-Review/main/data/coaches-anim/rigs/old_soviet_rework_rig.html').then(r=>r.ok?r.text():Promise.reject()).then(t=>{const d=new DOMParser().parseFromString(t,'text/html'),svg=d.querySelector('.coach-svg');if(svg){svg.setAttribute('viewBox','170 35 340 650');svg.setAttribute('aria-label','The Old Soviet coach');document.getElementById('coach-art').replaceChildren(document.importNode(svg,true))}}).catch(()=>{});show();document.body.dataset.previewReady='1';
+<\/script></body></html>`;
+}
+function projectChessPreviewHtmlV87(){
   const g=CHESS_GAMES[0], positions=[], sans=[], moveCoords=[];
   let st=cvStart(); positions.push(st.b.join(''));
   for(const tok of cvTokens(g.pgn)){
@@ -2327,21 +2343,47 @@ function projectWindPreviewHtml(){
 }
 function projectPreviewHtml(p){ return p.preview==='chess'?projectChessPreviewHtml():null; }
 function projectEmbedPatch(p){
-  if(!p||p.id!=='docurag') return '';
+  if(!p) return '';
+  if(p.id==='danish-wind-mapper') return `<style>html,body{background:#0b171b!important}</style>`;
+  if(p.id!=='docurag') return '';
   return `<style>
-#docurag-preview-badge{display:none!important}
+#docurag-preview-badge,#login-box,#logout-btn{display:none!important}
+#mode-select{display:flex!important}
 #topbar{position:relative!important}
 #delete-chat-btn{margin-left:auto!important;order:99!important;flex:0 0 auto!important}
 </style><script>(function(){
+  function skipLogin(){
+    var chooser=document.getElementById('mode-select'),box=document.getElementById('login-box'),out=document.getElementById('logout-btn');
+    if(box)box.style.display='none'; if(out)out.style.display='none'; if(chooser)chooser.style.display='flex';
+  }
   function patchClose(){
     var b=document.getElementById('delete-chat-btn'); if(!b||b.dataset.portfolioClose)return;
     b.dataset.portfolioClose='1'; b.title='Close mode'; b.setAttribute('aria-label','Close mode and return to knowledge base');
     b.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var s=document.getElementById('sidebar-switch-btn')||document.getElementById('topbar-switch-btn');if(s)s.click()},true);
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',patchClose);else patchClose();
+  function init(){skipLogin();patchClose()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })()<\/script>`;
 }
 function projectCanPreview(p){ return !!(p&&(p.preview||p.live)); }
+function projectLiveMask(now,F){
+  const hidden='linear-gradient(transparent,transparent) 0 0 / 100% 100% no-repeat';
+  if(!F||!F.projectLiveOn){ projectLive.style.webkitMask=hidden; projectLive.style.mask=hidden; return; }
+  const tw=PROJECT_LIVE_W/PROJECT_REVEAL_COLS, th=PROJECT_LIVE_H/PROJECT_REVEAL_ROWS,
+    stagger=photoStagger()*0.70, tileMs=photoTileMs()*0.80, layers=[];
+  let all=true;
+  for(let i=0;i<PROJECT_REVEAL_COUNT;i++){
+    const q=Math.min(1,Math.max(0,(now-F.projectLiveT0-PROJECT_REVEAL_D[i]*stagger)/tileMs));
+    if(q<1) all=false; if(q<=0) continue;
+    const e=easeOutCubic(q), a=easeInOut(q), c=i%PROJECT_REVEAL_COLS, r=Math.floor(i/PROJECT_REVEAL_COLS),
+      sw=tw*(0.72+0.28*e)+0.8, sh=th*(0.72+0.28*e)+0.8,
+      x=c*tw+(tw-sw)/2, y=r*th+(th-sh)/2, ink='rgba(0,0,0,'+a.toFixed(3)+')';
+    layers.push('linear-gradient('+ink+','+ink+') '+x.toFixed(2)+'px '+y.toFixed(2)+'px / '+sw.toFixed(2)+'px '+sh.toFixed(2)+'px no-repeat');
+  }
+  const mask=all?'none':(layers.length?layers.join(','):hidden);
+  projectLive.style.webkitMask=mask; projectLive.style.mask=mask;
+  if(!all) renderDirty=true;
+}
 async function openProjectLive(id){
   const p=projectById(id), inline=p&&projectPreviewHtml(p); if(!p||(!p.live&&!inline)) return;
   const F=projectStageFacet(); if(!F||!F.project||F.project.id!==id) return;
@@ -2350,6 +2392,7 @@ async function openProjectLive(id){
   projectLiveOpen=true; projectLoadToken++;
   const token=projectLoadToken;
   projectLive.style.visibility=''; projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
+  projectLive.dataset.project=id; projectLiveMask(0);
   projectLive.setAttribute('aria-hidden','false');
   plTitle.textContent=p.label; plSub.textContent=p.preview==='chess'?'STATIC PRODUCT WALKTHROUGH':'INTERACTIVE PREVIEW';
   plRepo.href=p.repo; plRepo.textContent=p.preview==='chess'?'OPEN REPO ↗':'OPEN REPOSITORY ↗';
@@ -2357,24 +2400,30 @@ async function openProjectLive(id){
   const fullTarget=p.fullscreen||null; plFullscreen.hidden=!fullTarget; if(fullTarget) plFullscreen.href=fullTarget;
   plFrame.classList.toggle('pl-desktop',!!p.desktop);
   plLoad.textContent=inline?'DEVELOPING PROJECT PREVIEW':p.liveMode==='raw'?'LOADING ORIGINAL PROJECT FILE':p.liveMode==='rebased'?'PREPARING INTERACTIVE PREVIEW':'LOADING LIVE PROJECT';
+  if(projectLoadedId===id){ projectLiveReady(token,id); (p.launch?plExtension:plRepo).focus(); return; }
   plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
+  projectLoadedId=null;
   try{
     if(inline){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-popups');
-      plFrame.onload=()=>projectLiveReady(token);
+      plFrame.onload=()=>projectLiveReady(token,id);
       plFrame.srcdoc=inline;
     } else if(p.liveMode==='raw'||p.liveMode==='rebased'){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups');
-      const r=await fetch(p.live,{cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status);
-      let html=await r.text(); if(token!==projectLoadToken||!projectLiveOpen) return;
-      const base='<base href="'+p.liveBase+'">';
-      html=/<head[\s>]/i.test(html)?html.replace(/<head([^>]*)>/i,'<head$1>'+base):base+html;
-      const patch=projectEmbedPatch(p); if(patch) html=/<\/body>/i.test(html)?html.replace(/<\/body>/i,patch+'</body>'):html+patch;
-      plFrame.onload=()=>projectLiveReady(token);
+      let html=projectHtmlCache.get(id);
+      if(!html){
+        const r=await fetch(p.live,{cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status);
+        html=await r.text(); if(token!==projectLoadToken||!projectLiveOpen) return;
+        const base='<base href="'+p.liveBase+'">';
+        html=/<head[\s>]/i.test(html)?html.replace(/<head([^>]*)>/i,'<head$1>'+base):base+html;
+        const patch=projectEmbedPatch(p); if(patch) html=/<\/body>/i.test(html)?html.replace(/<\/body>/i,patch+'</body>'):html+patch;
+        projectHtmlCache.set(id,html);
+      }
+      plFrame.onload=()=>projectLiveReady(token,id);
       plFrame.srcdoc=html;
     } else {
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups allow-popups-to-escape-sandbox');
-      plFrame.onload=()=>projectLiveReady(token);
+      plFrame.onload=()=>projectLiveReady(token,id);
       plFrame.src=p.live;
     }
   }catch(e){
@@ -2384,8 +2433,9 @@ async function openProjectLive(id){
   }
   (p.launch?plExtension:plRepo).focus();
 }
-function projectLiveReady(token){
+function projectLiveReady(token,id){
   if(token!==projectLoadToken||!projectLiveOpen) return;
+  projectLoadedId=id;
   projectLive.classList.add('ready');
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=true; F.projectLiveT0=performance.now();
@@ -2396,7 +2446,7 @@ function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=fal
   if(dismissPreview&&projectStageState.id) projectStageState.previewDismissed=true;
   projectLiveOpen=false; projectLoadToken++; projectLive.classList.remove('open','ready','failed');
   projectLive.style.visibility='hidden';
-  projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
+  projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null;
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=false; F.projectLiveT0=0;
     if(restoreStage&&F.project){
@@ -2683,7 +2733,6 @@ let travelAdjacent=ud('travelAdjSelect','swoop4'), travelFar=ud('travelFarSelect
    shaded ASCII arrows flanks every facet on multi-facet stops — the "there's more around
    you" affordance — and clicking one turns the view a whole facet step. Three designs. */
 let ARROW_STYLE=ud('arrowSelect','stream');
-let railStyle=ud('railStyleSelect','nodes'); // fixed side-link marker design: nodes | ticks | brackets
 let timelineStyle=ud('timelineStyleSelect','milestones'); // scroll-mode list presentation: index | editorial | milestones
 let timelineArrows=ud('toggleTimelineArrows',true); // boundary-aware up/down hints on the Work/Education list
 let timelineNav=ud('timelineNavSelect','scroll'); // Work/Education: linear newest→oldest timeline | classic panorama
@@ -3389,15 +3438,15 @@ const PROJECT_STAGE_W=21.5, PROJECT_STAGE_H=19.0;
 const PROJECT_SCREEN_W=19.4, PROJECT_SCREEN_H=10.91; // 16:9, matches PROJECT_LIVE_W/H
 function projectStageArt(type){
   if(type==='chess') return [
-    '       +--------------------------+       ',
-    '       | N   CHESS / REVIEW       |       ',
-    '       |                          |       ',
-    '       | [ ANALYZE THIS GAME ]    |       ',
-    '       |                          |       ',
-    '       | ------------------------ |       ',
-    '       | > MANUAL SETUP           |       ',
-    '       +--------------------------+       ',
-    '          PRIVATE - LOCAL REVIEW          '
+    ' CHESS / REVIEW       BULLET       1:00   ',
+    ' +--------------+ +----------------------+ ',
+    ' | R N B K Q B N| | OLD SOVIET:         | ',
+    ' | P P P P P P P| | CORRECT IS THE JOB. | ',
+    ' | . . . . . . .| +----------+-----------+ ',
+    ' | . . . . . . .| | MOVES    | ACCURACY | ',
+    ' | p p p p p p p| +----------+-----------+ ',
+    ' | r n b k q b n| | EVAL     | ENGINE   | ',
+    ' +--------------+ +----------+-----------+ '
   ];
   if(type==='entropy') return [
     ' ENTROPY-FORGE  EF-1       [ HARVEST ]    ',
@@ -3413,13 +3462,13 @@ function projectStageArt(type){
   if(type==='rag') return [
     '              DOCU-RAG                    ',
     '           KNOWLEDGE BASE                 ',
-    '       +--------------------------+       ',
-    '       | USERNAME                 |       ',
-    '       +--------------------------+       ',
-    '       | PASSWORD                 |       ',
-    '       +--------------------------+       ',
-    '       |         LOG IN           |       ',
-    '       +--------------------------+       '
+    '                                          ',
+    '       +------------+  +------------+     ',
+    '       |     O      |  |     <>     |     ',
+    '       |   SEARCH   |  |    ASK     |     ',
+    '       | UNLIMITED  |  | 20/20 TODAY|     ',
+    '       +------------+  +------------+     ',
+    '          CHOOSE A KNOWLEDGE MODE          '
   ];
   if(type==='wind') return [
     ' . . . . . . . . . . . . . . . . . . .  ',
@@ -3523,8 +3572,8 @@ function configureProjectStage(F,p,now,force,externalTargets){
 /* Welcome project focus: the auxiliary facet is centred and independently scaled, but
    most of its visible targets are filled by glyphs that are ALREADY holding the greeting,
    figure, and contribution calendar. The project facet supplies only the shortfall. */
-const WPF_SCALE=1.68, WPF_VIEW_FILL=0.84;
-const WPF_SIDE_SHIFT=10.5, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
+const WPF_SCALE=2.10, WPF_VIEW_FILL=0.94;
+const WPF_SIDE_SHIFT=13.1, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
 const PROJECT_PREVIEW_DELAY=1150; // a short read, then a brisk ASCII-to-project development
 function welcomeProjectSideDX(group){
   const p=welcome.focus?welcome.focus.sideP:0;
@@ -4123,8 +4172,8 @@ function welcomeScrollAlpha(it){
   if(!it||!it.ws) return 1;
   const F=welcome.F, o=welcomeScrollPos[it.ws]||0;
   const visible=F&&F.lay.wsVisible?F.lay.wsVisible[it.ws]:WNAV_VISIBLE;
-  const slot=it.wsr-o;
-  return Math.max(0,Math.min(1,slot+1,visible-slot));
+  const slot=it.wsr-o, fade=0.55;
+  return Math.max(0,Math.min(1,(slot+fade)/fade,(visible-1+fade-slot)/fade));
 }
 function welcomeScrollBy(group,dir){
   const F=welcome.F, count=F&&F.lay.wsCounts&&F.lay.wsCounts[group]; if(!count) return;
@@ -5233,6 +5282,7 @@ function updateProjectLive(){ // pin the on-demand site to the project facet's 1
   const tf=cbQuadTransform(_plP0,_plP1,_plP2,_plP3,PROJECT_LIVE_W,PROJECT_LIVE_H);
   if(!tf){ projectLive.style.visibility='hidden'; return; }
   projectLive.style.transform=tf; projectLive.style.visibility='visible';
+  projectLiveMask(performance.now(),F);
 }
 /* (v61: the piano video overlay is gone — the recordings play INSIDE the scene on the
    facet's own video plane; see the in-scene video block near buildPhotoTiles.) */
@@ -5272,12 +5322,13 @@ function cformSubmit(){
   fetch('https://formspree.io/f/mbdlvnjo',{method:'POST',headers:{Accept:'application/json'},body:fd})
     .then(r=>{ if(!r.ok) throw 0; cfNote('Sent — thank you. I read everything.');
       for(const id of ['cf-name','cf-email','cf-subject','cf-msg']) cfEls[id].value=''; })
-    .catch(()=>{ cfNote('Could not send right now — the LinkedIn mark below works too.'); })
+    .catch(()=>{ cfNote('Could not send right now.'); })
     .finally(()=>{ cfBusy=false; });
 }
 const _cfC=new THREE.Vector3(), _cfE=new THREE.Vector3();
 function cfProject(v,out){ v.project(camera); out.x=(v.x*0.5+0.5)*innerWidth; out.y=(-v.y*0.5+0.5)*innerHeight; return out; }
-const _cfP0={x:0,y:0}, _cfP1={x:0,y:0}, _cfP2={x:0,y:0};
+const _cfP0={x:0,y:0}, _cfP1={x:0,y:0}, _cfP2={x:0,y:0}, _cfP3={x:0,y:0};
+const CF_DOM_PPU=64; // stable internal pixels per layout unit; the homography maps them onto the 3D field plane
 function updateContactForm(){
   let F=null;
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&stopFacets
@@ -5298,16 +5349,17 @@ function updateContactForm(){
     _cfC.copy(F.anchor).addScaledVector(F.right,fd.cx*F.f).addScaledVector(F.up,fd.cy*F.f);
     if(_cfE.copy(_cfC).sub(camera.position).dot(F.dir)<=0.5){ el.style.display='none'; continue; } // behind / edge-on
     el.style.display='';
-    const hw=(fd.hw-inset)*F.f, hh=(fd.hh-inset*0.6)*F.f;
-    cfProject(_cfE.copy(_cfC).addScaledVector(F.right,hw),_cfP1);
-    cfProject(_cfE.copy(_cfC).addScaledVector(F.up,hh),_cfP2);
-    cfProject(_cfE.copy(_cfC),_cfP0);
-    const w2=Math.abs(_cfP1.x-_cfP0.x), h2=Math.abs(_cfP2.y-_cfP0.y);
-    el.style.left=(_cfP0.x-w2)+'px'; el.style.top=(_cfP0.y-h2)+'px';
-    el.style.width=(w2*2)+'px'; el.style.height=(h2*2)+'px';
-    const u=h2*2/((fd.hh-inset*0.6)*2); // px per layout unit, vertically
-    el.style.fontSize=(u*(fd.id==='cf-note'?0.5:0.62)).toFixed(2)+'px';
-    if(el.tagName!=='DIV') el.style.padding=(u*0.12).toFixed(2)+'px '+(u*0.3).toFixed(2)+'px';
+    const iw=fd.hw-inset, ih=fd.hh-inset*0.6, hw=iw*F.f, hh=ih*F.f;
+    cfProject(_cfE.copy(_cfC).addScaledVector(F.right,-hw).addScaledVector(F.up, hh),_cfP0);
+    cfProject(_cfE.copy(_cfC).addScaledVector(F.right, hw).addScaledVector(F.up, hh),_cfP1);
+    cfProject(_cfE.copy(_cfC).addScaledVector(F.right, hw).addScaledVector(F.up,-hh),_cfP2);
+    cfProject(_cfE.copy(_cfC).addScaledVector(F.right,-hw).addScaledVector(F.up,-hh),_cfP3);
+    const boxW=iw*2*CF_DOM_PPU, boxH=ih*2*CF_DOM_PPU;
+    const tf=cbQuadTransform(_cfP0,_cfP1,_cfP2,_cfP3,boxW,boxH);
+    if(!tf){ el.style.display='none'; continue; }
+    el.style.width=boxW+'px'; el.style.height=boxH+'px'; el.style.transform=tf;
+    el.style.fontSize=(CF_DOM_PPU*(fd.id==='cf-note'?0.5:0.62)).toFixed(2)+'px';
+    if(el.tagName!=='DIV') el.style.padding=(CF_DOM_PPU*0.12).toFixed(2)+'px '+(CF_DOM_PPU*0.3).toFixed(2)+'px';
   }
   if(!cfOn){ cfOn=true; cfWrap.classList.add('on'); }
 }
@@ -6785,7 +6837,7 @@ const DEV_TIPS={
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
   timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.',
   toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.',
-  railStyleSelect:'Changes the dots and project squares beside each fixed side link.', arrowSelect:'Visual design of the in-scene rotate controls.',
+  arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
   welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
@@ -6897,10 +6949,6 @@ timelineStyleSelect.addEventListener('change',()=>{ timelineStyle=timelineStyleS
 const timelineArrowCheck=document.getElementById('toggleTimelineArrows');
 timelineArrowCheck.checked=timelineArrows;
 timelineArrowCheck.addEventListener('change',()=>{ timelineArrows=timelineArrowCheck.checked; reassembleDocked(); });
-const railStyleSelect=document.getElementById('railStyleSelect');
-function applyRailStyle(){ railWrap.dataset.railStyle=railStyle; }
-railStyleSelect.value=railStyle; applyRailStyle();
-railStyleSelect.addEventListener('change',()=>{ railStyle=railStyleSelect.value; applyRailStyle(); });
 const arrowSelect=document.getElementById('arrowSelect');
 arrowSelect.value=ARROW_STYLE;
 arrowSelect.addEventListener('change',()=>{ // swap the rotation-arrow design; live-rebuilds the docked stop
@@ -7022,7 +7070,7 @@ const CTRL_DEF={
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
   toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
   timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true],
-  railStyleSelect:['select','nodes'], arrowSelect:['select','stream'],
+  arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
   welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',0.90], welHalo:['range',0.05],
@@ -7031,7 +7079,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','railStyleSelect','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };

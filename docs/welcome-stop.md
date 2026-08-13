@@ -1,5 +1,33 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v88 - larger project focus, direct previews, and quicker edge fade
+
+Focused project compositions are 25% larger than v87:
+`WPF_SCALE=2.10` and `WPF_VIEW_FILL=0.94`. ABOUT ME and PORTFOLIO travel farther to
+`WPF_SIDE_SHIFT=13.1`; keep `welcomeProjectSideDX()` as the single source for glyph
+targets, buttons, scroll hit areas, and scrollbar art so interaction follows the
+visual columns at every interpolation frame.
+
+Side-list rows now fade over 0.55 of a row at both viewport boundaries. This is
+deliberately faster than the old full-row blend so an outgoing project name is gone
+before it reaches the PORTFOLIO heading. Fractional scrolling and the existing row
+positions are unchanged.
+
+Chess Review's ASCII screen and developed surface both start in the analysis view;
+the Analyze-this-game landing page is gone. The preview follows the supplied desktop
+reference with board/player clocks on the left and Old Soviet coach, moves, accuracy,
+evaluation, and engine modules on the right. It uses the repository's Old Soviet SVG
+rig and no coach selector or alternate persona. DocuRAG similarly skips login and
+opens on its Search/Ask knowledge-mode chooser.
+
+Project development now reveals the live surface as staggered tiles, matching the
+visual grammar used when Journey ASCII covers develop into photos. Closing a surface
+does not destroy its iframe; the same project's return reuses it, eliminating the
+Danish Wind Mapper's white map reload border. A dark embed backdrop covers the first
+load before the retained Folium surface is ready. Validated counts remain within the
+real pool: Chess 861, Entropy 868, DocuRAG 676, Wind 870, Bitcoin 801; Wind is still
+the largest current variant.
+
 ## v87 - source-faithful project previews
 
 The five project ASCII screens now depict the first UI that replaces them rather
