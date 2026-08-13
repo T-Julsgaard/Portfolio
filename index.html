@@ -3504,10 +3504,11 @@ function buildProjectStageLayout(p){
     items.push({ch:':',x:-halfW,y,s:0.28,L:0.20});
     items.push({ch:':',x: halfW,y,s:0.28,L:0.20});
   }
-  putLine('X',0.48,top-0.72,0.7,0.72,{btn:'project-close'});
+  const closeCX=halfW-1.05, closeCY=top-0.72;
+  putLine('X',0.48,closeCY,0.7,0.72,{btn:'project-close'});
   const closeItems=items.filter(it=>it.btn==='project-close');
-  for(const it of closeItems) it.x+=halfW-1.05;
-  btns.push({kind:'project-close',cx:halfW-1.05,cy:top-0.72,hw:0.62,hh:0.62});
+  for(const it of closeItems) it.x=closeCX;
+  btns.push({kind:'project-close',cx:closeCX,cy:closeCY,hw:0.62,hh:0.62});
   const title=stencilSafe(p.label), titleCell=Math.min(0.18,copyWidth/stCols(title)), titleTop=top-0.65;
   layStencilLine(items,title,titleCell,copyLeft,titleTop);
   const hasSurface=projectCanPreview(p), bodyTop=titleTop-7*titleCell-0.62;
@@ -3548,7 +3549,7 @@ function buildProjectStageLayout(p){
   const actions=[];
   if(p.actionUrl) actions.push({t:p.actionLabel||'OPEN PROJECT',kind:'project-action',data:p.actionUrl});
   actions.push({t:'OPEN REPOSITORY',kind:'project-repo',data:p.repo});
-  layBtnRow(items,btns,actions,bot+1.55,W-2.0,0.105);
+  layBtnRow(items,btns,actions,bot+2.10,W-2.0,0.105);
 
   return {items,w:W,h:H,btns,projectRect,project:p};
 }

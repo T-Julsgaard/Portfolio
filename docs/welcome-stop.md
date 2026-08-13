@@ -1,5 +1,11 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v93 - project close and action alignment
+
+The focused project's assembled X now uses the same explicit top-right anchor for
+both its glyph and hit target. The action row is raised by `0.55` layout units, so
+`TRY IT OUT` and `OPEN REPOSITORY` sit comfortably above the dossier's lower frame.
+
 ## v92 - consistent project calls to action and tighter editorial layout
 
 Every PORTFOLIO project now exposes the same primary label, `TRY IT OUT`, beside `OPEN

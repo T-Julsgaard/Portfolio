@@ -7,6 +7,15 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v93 addendum: project close and action alignment
+
+The assembled project close glyph and its hit rectangle now share one explicit
+`closeCX` / `closeCY` anchor in the stage's top-right corner. Do not offset the glyph
+from `copyLeft`: `putLine()` starts every line there, so adding a right-side delta
+lands the X near the middle of the dossier. The `TRY IT OUT` / `OPEN REPOSITORY`
+terrain-button row sits `2.10` units above the stage bottom, keeping the actions clear
+of the lower frame without crowding the developed surface.
+
 ## v92 addendum: left-aligned project stories and complete screenshot set
 
 All five project records now use `TRY IT OUT` for their primary terrain button. Entropy
