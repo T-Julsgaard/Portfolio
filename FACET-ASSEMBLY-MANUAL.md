@@ -7,6 +7,31 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v91 addendum: editorial project dossiers and selective surfaces
+
+Welcome projects no longer treat an embedded preview as the default. Entropy Forge
+and DocuRAG are text-first dossiers with no `projectRect`; their Pages deployments
+open only through the explicit primary action. Chess Review develops the supplied
+`images/chess-review.png` still, while Danish Wind Mapper and Bitcoin Miningame keep
+their interactive Pages surfaces. `projectCanPreview()` is deliberately limited to
+records with `image` or `live`, so do not infer an embed from `actionUrl`.
+
+Every project now declares `actionUrl` / `actionLabel` and uses a second repository
+action. `buildProjectStageLayout()` authors both through `layBtnRow()` at project-focus
+scale, giving them the same solid terrain-stencil construction, hover pulse, and hit
+testing as Piano's PLAY and Contact's SEND. The stable kinds are `project-action` and
+`project-repo`; both open their record URL in a new tab.
+
+Long copy preserves paragraph breaks. Search and Ask paragraphs get a brighter text
+level, but still use ordinary terrain glyphs. Only surface-bearing layouts build the
+ASCII screen and set `projectRect`. Their 16:9 frame is now `14.8 × 8.325` layout units
+instead of `19.4 × 10.91`, leaving the editorial copy and stencil actions room to
+breathe. The projected DOM bar is gone; its links would duplicate the in-scene buttons.
+The desktop iframe is therefore a full `1440 × 810` source sampled at half scale.
+Real-layout validation after the longer copy and two-button row measured Chess as the
+largest variant at 2,100 records. Welcome's 3,437 claims plus that maximum use 5,537
+of 13,268 terrain glyphs, leaving 7,731 spare.
+
 ## v90 addendum: Pages-backed Wind and Bitcoin previews
 
 Danish Wind Mapper and Bitcoin Miningame now have first-class GitHub Pages

@@ -1,5 +1,27 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v91 - text-first project dossiers and selective surfaces
+
+The five Welcome projects now use explicit project and repository actions built by
+`layBtnRow()`. They are solid punched-out terrain stencils—the same implementation as
+Piano's PLAY and Contact's SEND—with stable `project-action` / `project-repo` hit kinds.
+The primary labels are GET EXTENSION, OPEN PROJECT, TRY IT OUT, OPEN MAP, and PLAY GAME;
+every project also shows OPEN REPOSITORY.
+
+Entropy Forge and DocuRAG no longer assemble or open an embedded preview. Their stages
+preserve the complete new paragraph-form copy and open the Pages project only when the
+visitor activates the primary button. Chess Review replaces its synthetic walkthrough
+with `images/chess-review.png`. Wind and Bitcoin remain interactive Pages embeds.
+Accordingly, `projectCanPreview()` checks only `image` / `live`, and no-surface layouts
+return a null `projectRect`.
+
+The three retained surfaces shrink from `19.4 × 10.91` to `14.8 × 8.325` layout units.
+The old DOM action bar is removed because the terrain now owns all links; desktop embeds
+render at `1440 × 810` and sample down into the full 720 × 405 surface. Body layout keeps
+blank-line paragraph rhythm, and DocuRAG's Search / Ask paragraphs use a brighter level.
+The measured maximum is Chess at 2,100 records; with Welcome's 3,437 claims, project
+focus uses 5,537 of 13,268 terrain glyphs and leaves 7,731 spare.
+
 ## v90 - GitHub Pages for Wind and Bitcoin
 
 Danish Wind Mapper and Bitcoin Miningame now use their own GitHub Pages origins.

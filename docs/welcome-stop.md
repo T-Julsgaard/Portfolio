@@ -1,5 +1,21 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v91 - project dossiers replace default previews
+
+Opening a PORTFOLIO project now reveals a fuller editorial dossier with explicit
+terrain-built actions. Each project gets a context-specific primary button plus OPEN
+REPOSITORY; the buttons are made by the same punched-out stencil helper as Piano's PLAY
+and Contact's SEND. The supplied long-form copy is preserved with paragraph spacing,
+including brighter Search and Ask sections in DocuRAG.
+
+Previews are now selective. Entropy Forge and DocuRAG remain text-only and open their
+Pages deployments in a new tab only when requested. Chess Review develops into the
+supplied product screenshot rather than a simulated analyzer. Danish Wind Mapper and
+Bitcoin Miningame retain their interactive GitHub Pages experiences, but all three
+developed surfaces are approximately 24% narrower (`14.8 × 8.325` layout units). The
+old projected action bar is gone; the project-stage stencil buttons remain visible
+below the screenshot or interactive surface.
+
 ## v90 - GitHub Pages for Wind and Bitcoin
 
 Danish Wind Mapper and Bitcoin Miningame are now deployed alongside Entropy Forge

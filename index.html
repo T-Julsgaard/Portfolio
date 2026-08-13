@@ -72,8 +72,8 @@
   /* Group headings appear while docked; visitors expand either link list on demand.
      Welcome hides both rails because its in-scene columns already navigate. */
 
-  /* Project demos develop into the auxiliary Welcome facet just like the chess board:
-     fixed internal pixels, one projective matrix, and no screen-space modal/backdrop. */
+  /* Only project surfaces that benefit from being experienced in place develop into the
+     Welcome facet: Wind and Bitcoin stay interactive; Chess develops to a still image. */
   #project-live {
     position:fixed; left:0; top:0; z-index:6; width:720px; height:405px;
     transform-origin:top left; will-change:transform; visibility:hidden; opacity:0;
@@ -84,25 +84,13 @@
   .pl-shell { width:100%; height:100%; display:flex; flex-direction:column;
     overflow:hidden; background:#080808; border:1px solid rgba(255,255,255,.42);
     box-shadow:0 18px 60px rgba(0,0,0,.46); }
-  .pl-bar { height:34px; flex:none; display:flex; align-items:center; gap:9px; padding:0 8px 0 11px;
-    background:rgba(5,5,5,.96); border-bottom:1px solid rgba(255,255,255,.22); }
-  .pl-status { width:5px; height:5px; flex:none; background:#fff; box-shadow:0 0 8px #fff; }
-  .pl-names { min-width:0; flex:1; }
-  #pl-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; letter-spacing:.15em; text-transform:uppercase; }
-  #pl-sub { margin-top:2px; font-size:6px; letter-spacing:.14em; color:rgba(255,255,255,.48); }
-  .pl-bar a,.pl-bar button { height:23px; padding:0 7px; border:1px solid rgba(255,255,255,.28); background:transparent;
-    color:rgba(255,255,255,.78); font:7px/1 inherit; letter-spacing:.11em; text-decoration:none; cursor:pointer;
-    display:inline-flex; align-items:center; justify-content:center; }
-  .pl-bar a:hover,.pl-bar button:hover,.pl-bar a:focus-visible,.pl-bar button:focus-visible { color:#000;background:#fff;outline:none; }
-  .pl-actions { display:flex; align-items:center; gap:6px; flex:none; }
-  .pl-actions [hidden] { display:none; }
-  #pl-fullscreen { width:25px; padding:0; }
-  #pl-fullscreen svg { width:11px; height:11px; fill:none; stroke:currentColor; stroke-width:1.5; }
   .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#080808; }
-  #pl-frame { width:100%; height:100%; border:0; display:block; background:#f3f3ef; }
+  #pl-frame,#pl-image { width:100%; height:100%; border:0; display:block; background:#080808; }
+  #pl-image { object-fit:contain; }
+  .pl-stage [hidden] { display:none!important; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
      2x internal viewport, then sample them down into the 720px in-scene surface. */
-  #pl-frame.pl-desktop { width:1440px; height:742px; transform:scale(.5); transform-origin:top left; }
+  #pl-frame.pl-desktop { width:1440px; height:810px; transform:scale(.5); transform-origin:top left; }
   #pl-load { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
     background:#080808; color:rgba(255,255,255,.62); font-size:8px; letter-spacing:.16em; text-transform:uppercase;
     transition:opacity .24s; pointer-events:none; }
@@ -111,9 +99,7 @@
   #project-live.failed #pl-load { pointer-events:auto; text-align:center; padding:24px; line-height:1.7; }
   @keyframes pl-spin { to{transform:rotate(360deg)} }
   .pf-invert #project-live { color:#111; }
-  .pf-invert .pl-shell,.pf-invert .pl-bar,#project-live.pf-light { background:#f5f5f2; color:#111; }
-  .pf-invert .pl-bar { border-color:rgba(0,0,0,.26); }
-  .pf-invert .pl-bar a,.pf-invert .pl-bar button { color:#111; border-color:rgba(0,0,0,.32); }
+  .pf-invert .pl-shell,#project-live.pf-light { background:#f5f5f2; color:#111; }
 
   #panel {
     position:fixed; left:26px; top:50%; transform:translateY(calc(-50% + 16px));
@@ -1922,47 +1908,42 @@ const JOURNEY=[
 ];
 const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.stop); } });
 /* Featured software projects share one curated source of truth across Welcome, the
-   fixed rail, the auxiliary in-scene stage, and its on-demand developed viewer. GitHub-owned facts
+   fixed rail, the auxiliary in-scene stage, and its selective developed surface. GitHub-owned facts
    (stars/language/description) are overlaid from data/stats.json when available;
-   the copy and launch targets stay deliberately curated here. `liveMode:'raw'`
-   renders a repository's standalone HTML artifact through iframe.srcdoc only after
-   the visitor asks to try it — nothing remote loads on hover. */
+   copy and launch targets stay curated here. Only records with `image` or `live`
+   develop a surface; every record exposes its external actions as stencil buttons. */
 const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
-   repo:'https://github.com/T-Julsgaard/Chess-Review',
-   launch:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en',
-    preview:'chess', visual:'chess', accent:'#9ed46b',
-   blurb:'Free, private game review for Chess.com and Lichess — accuracy, classifications, evaluation graphs, and estimated ratings in one click.'},
+    repo:'https://github.com/T-Julsgaard/Chess-Review',
+    actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'GET EXTENSION',
+    image:'images/chess-review.png', visual:'chess', accent:'#9ed46b',
+    blurb:"Free, open-source game review for your online chess games, powered by Stockfish's Efficiently Updatable Neural Network (NNUE), running locally in your browser. Produces accuracy scores within ~95% of Chess.com's.\n\nOne click turns any Chess.com or Lichess game into a full review. Includes accuracy scores, move-by-move classifications, an evaluation graph, and an estimated rating."},
   {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
-   repo:'https://github.com/T-Julsgaard/entropy-forge',
-   live:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html',
-   fullscreen:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', desktop:true,
-   extra:'https://t-julsgaard.github.io/entropy-forge/web/harvest-manual.html', extraLabel:'FIELD MANUAL',
+    repo:'https://github.com/T-Julsgaard/entropy-forge',
+    actionUrl:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', actionLabel:'OPEN PROJECT',
     visual:'entropy', accent:'#ef6f55',
-   blurb:'Harvests earthquakes, weather, solar wind, the Bitcoin mempool, and human input into auditable public randomness.'},
+    blurb:"Harvest chaos from the real world: earthquakes, weather, the Bitcoin mempool, solar wind — and forge it into randomness. The API version of Cloudflare's lava-lamp wall."},
   {id:'docurag', label:'DocuRAG', repoName:'DocuRAG',
-   repo:'https://github.com/T-Julsgaard/DocuRAG',
-   live:'https://t-julsgaard.github.io/DocuRAG/',
-   liveMode:'rebased', liveBase:'https://t-julsgaard.github.io/DocuRAG/',
-   fullscreen:'https://t-julsgaard.github.io/DocuRAG/', desktop:true,
+    repo:'https://github.com/T-Julsgaard/DocuRAG',
+    actionUrl:'https://t-julsgaard.github.io/DocuRAG/', actionLabel:'TRY IT OUT',
     visual:'rag', accent:'#7aa2ff',
-   blurb:'A plug-and-play document knowledge base with free keyword search, grounded agentic answers, accounts, limits, and usage analytics.'},
+    blurb:'A plug-and-play RAG knowledge base for small and mid-size document sets. Inspired by Andrej Karpathy\'s LLM wiki workflow. Point it at a folder of markdown articles and you get a clean chat UI with two modes.\n\nSearch: Instant, server-side keyword search. No LLM, no API cost, no rate limits.\n\nAsk: An agentic RAG assistant (Anthropic Claude) that reads your articles and answers grounded questions, with sources.\n\nIt ships with user accounts, per-user daily limits, an admin usage dashboard, and a small demo knowledge base so it runs the moment you clone it.'},
   {id:'danish-wind-mapper', label:'Danish wind mapper', repoName:'danish-wind-mapper',
-   repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
-   liveMode:'rebased', desktop:true,
-   live:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/Interactive_wind_map_preview.html',
-   liveBase:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/',
-   fullscreen:'https://t-julsgaard.github.io/danish-wind-mapper/',
+    repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
+    actionUrl:'https://t-julsgaard.github.io/danish-wind-mapper/', actionLabel:'OPEN MAP',
+    liveMode:'rebased', desktop:true,
+    live:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/Interactive_wind_map_preview.html',
+    liveBase:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/',
     visual:'wind', accent:'#69c7d5',
-   blurb:'An interactive map of Denmark’s wind-energy infrastructure, joining turbine and park locations with ownership and financial data.'},
+    blurb:"Python-based visualization tool that generates a dynamic map of Denmark's wind energy infrastructure. Features include interactive filtering for individual turbines, wind parks, and owner information, complete with financial data and capacity metrics."},
   {id:'bitcoin-miningame', label:'Bitcoin miningame', repoName:'bitcoin-mining-miningame',
-   repo:'https://github.com/T-Julsgaard/bitcoin-mining-miningame',
-   liveMode:'rebased',
-   live:'https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/btc_miner_preview.html',
-   liveBase:'https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/',
-   fullscreen:'https://t-julsgaard.github.io/bitcoin-mining-miningame/',
+    repo:'https://github.com/T-Julsgaard/bitcoin-mining-miningame',
+    actionUrl:'https://t-julsgaard.github.io/bitcoin-mining-miningame/', actionLabel:'PLAY GAME',
+    liveMode:'rebased',
+    live:'https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/btc_miner_preview.html',
+    liveBase:'https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/',
     visual:'bitcoin', accent:'#f2a900',
-   blurb:'A real-time visualization experiment that turns live, unconfirmed Bitcoin transactions into a skill-based clicker game.'}
+    blurb:'A real-time visualization experiment that transforms live blockchain data into a skill-based clicker game. Connect directly to the Bitcoin mempool and watch actual, unconfirmed transactions stream into the browser in real time.'}
 ];
 
 /* --- path build: xy spline through the waypoints, altitude hugging the relief --- */
@@ -2230,28 +2211,21 @@ for(const r of [railAbout,railPortfolio]){
   });
 }
 
-/* ===== in-scene featured-project stage + live viewer (v83) ================
+/* ===== in-scene featured-project stage + selective surface (v91) ==========
    The dossier is no longer a screen-space card. Welcome owns one auxiliary facet,
    hung on the same world plane to PORTFOLIO's right. Its terrain glyphs assemble
    the selected project's normalized frame and reorder in place on selection changes.
-   An explicit OPEN PROJECT develops the frame's screen into this projected iframe,
-   using the same homography as the in-scene chess board. */
+   Wind and Bitcoin develop into projected iframes; Chess develops into a supplied
+   screenshot. Every project keeps its links as terrain-built stencil buttons. */
 const PROJECT_LIVE_W=720, PROJECT_LIVE_H=405;
 const projectLive=document.createElement('div');
-projectLive.id='project-live'; projectLive.setAttribute('role','region'); projectLive.setAttribute('aria-label','Interactive project preview'); projectLive.setAttribute('aria-hidden','true');
+projectLive.id='project-live'; projectLive.setAttribute('role','region'); projectLive.setAttribute('aria-label','Project surface'); projectLive.setAttribute('aria-hidden','true');
 projectLive.innerHTML=
-  '<div class="pl-shell"><div class="pl-bar"><i class="pl-status"></i><div class="pl-names">'+
-  '<div id="pl-title"></div><div id="pl-sub"></div></div>'+
-  '<div class="pl-actions"><a id="pl-extension" target="_blank" rel="noopener" hidden>GET EXTENSION &nearr;</a>'+
-  '<a id="pl-repo" target="_blank" rel="noopener">OPEN REPOSITORY &nearr;</a>'+
-  '<a id="pl-fullscreen" target="_blank" rel="noopener" title="Open full-screen site" aria-label="Open full-screen site" hidden>'+
-  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></a></div></div>'+
-  '<div class="pl-stage"><iframe id="pl-frame" title="Live project"></iframe><div id="pl-load">LOADING LIVE PROJECT</div></div></div>';
+  '<div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
+  '<img id="pl-image" alt="" hidden><div id="pl-load">LOADING PROJECT</div></div></div>';
 document.body.appendChild(projectLive);
 
-const plFrame=projectLive.querySelector('#pl-frame'), plLoad=projectLive.querySelector('#pl-load');
-const plTitle=projectLive.querySelector('#pl-title'), plSub=projectLive.querySelector('#pl-sub');
-const plRepo=projectLive.querySelector('#pl-repo'), plExtension=projectLive.querySelector('#pl-extension'), plFullscreen=projectLive.querySelector('#pl-fullscreen');
+const plFrame=projectLive.querySelector('#pl-frame'), plImage=projectLive.querySelector('#pl-image'), plLoad=projectLive.querySelector('#pl-load');
 const projectStageState={id:null,pinned:false,previewDismissed:false};
 let projectLiveOpen=false, projectLoadToken=0, projectLiveReturnFocus=null, projectLoadedId=null;
 const projectHtmlCache=new Map();
@@ -2373,31 +2347,12 @@ function projectWindPreviewHtml(){
   const points=[{"lat":56.25596186586127,"lon":8.280008213419357,"cap":900,"size":1},{"lat":54.89366737538251,"lon":10.61399948304226,"cap":130,"size":1},{"lat":55.22720654441105,"lon":8.697010747194076,"cap":150,"size":3},{"lat":55.40792784421826,"lon":11.2723177839674,"cap":200,"size":3},{"lat":56.79828887023552,"lon":8.762216768218018,"cap":500,"size":9},{"lat":56.77862836630458,"lon":8.402478976815257,"cap":600,"size":8},{"lat":57.03648001063156,"lon":10.17224566458411,"cap":600,"size":2},{"lat":55.03960376926553,"lon":15.04268950841753,"cap":225,"size":3},{"lat":55.76097042060487,"lon":8.475529805382552,"cap":600,"size":5},{"lat":55.79672389517198,"lon":8.310121864955958,"cap":600,"size":4},{"lat":56.5175565566116,"lon":10.13544568432784,"cap":600,"size":5},{"lat":56.65250996305068,"lon":8.912461528228455,"cap":600,"size":8},{"lat":55.30446832119804,"lon":11.37349554596834,"cap":750,"size":9},{"lat":55.78147067835113,"lon":9.89628427799197,"cap":750,"size":3},{"lat":55.13666154827761,"lon":8.952804292172994,"cap":600,"size":25},{"lat":56.46181485094729,"lon":8.832821470769638,"cap":750,"size":4},{"lat":56.86271103412351,"lon":8.802509040049264,"cap":660,"size":7},{"lat":55.05338867195536,"lon":12.02494989817843,"cap":660,"size":3},{"lat":54.77799539839072,"lon":11.94645214039524,"cap":660,"size":3},{"lat":56.26017076220214,"lon":9.977607894989719,"cap":750,"size":5},{"lat":56.42525120292869,"lon":8.86236023799873,"cap":1000,"size":7},{"lat":55.16478406042523,"lon":10.68676924183028,"cap":900,"size":3},{"lat":56.95483371919782,"lon":10.00058517909833,"cap":750,"size":12},{"lat":55.48833790039432,"lon":7.808928573729868,"cap":2000,"size":80},{"lat":56.66792103040591,"lon":8.217522709704511,"cap":2000,"size":12},{"lat":57.23636070520774,"lon":9.940474748801805,"cap":1500,"size":14},{"lat":55.58043059258716,"lon":7.554919303432045,"cap":2300,"size":91},{"lat":54.54476653788551,"lon":11.60895246127316,"cap":2300,"size":90},{"lat":57.31394222215163,"lon":10.48105036379682,"cap":2000,"size":10},{"lat":56.59278063711137,"lon":11.26054483065457,"cap":3600,"size":111},{"lat":56.68540425688152,"lon":8.967865578277275,"cap":3000,"size":11},{"lat":56.37583546362236,"lon":8.371087618423624,"cap":3450,"size":27},{"lat":55.83161800111292,"lon":8.727372658192726,"cap":3600,"size":6},{"lat":55.66157313136281,"lon":7.668805425273567,"cap":8300,"size":5},{"lat":54.97309875706843,"lon":12.80385837152251,"cap":8400,"size":2}];
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:"Segoe UI",sans-serif;background:#102025;color:#eef8f5}#fallback,#map{position:absolute;inset:0}#fallback{background:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),radial-gradient(circle at 55% 45%,#18353c,#0b191d 72%);background-size:36px 36px,36px 36px,auto}#fallback svg{width:100%;height:100%;opacity:.8}.leaflet-container{background:transparent}.toolbar{position:absolute;z-index:800;left:10px;top:10px;width:190px;padding:10px 11px;background:rgba(9,24,28,.92);border:1px solid rgba(157,222,218,.34);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.35)}h1{font-size:12px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 3px}p{font-size:8px;line-height:1.35;color:#a9c4c5;margin:0 0 8px}.tabs{display:flex;gap:4px;margin-bottom:8px}.tabs button{border:1px solid #31565d;background:#132c32;color:#a9c4c5;border-radius:4px;font-size:7px;padding:4px 6px}.tabs button.on{background:#69c7d5;color:#071518;border-color:#69c7d5}.lab{display:flex;justify-content:space-between;font-size:7px;color:#a9c4c5}.lab b{color:#eef8f5}input{width:100%;accent-color:#69c7d5}.legend{display:flex;gap:9px;margin-top:6px;font-size:7px;color:#a9c4c5}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;background:#69c7d5}.dot.big{background:#f0b35b}.fallback-point{position:absolute;width:7px;height:7px;border:1px solid #d9ffff;border-radius:50%;background:#69c7d5;box-shadow:0 0 8px rgba(105,199,213,.65);transform:translate(-50%,-50%)}.leaflet-popup-content{font:11px/1.4 "Segoe UI",sans-serif}.leaflet-control-attribution{font-size:7px}</style><script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"><\/script></head><body><div id="fallback"><svg viewBox="0 0 720 405" preserveAspectRatio="none"><path d="M287 18l32 25 1 39 25 18-14 36 26 32-8 42 31 22-23 27-44-4-16 26-41-9-19-38 9-35-26-30 18-38-7-44 20-21zM408 198l30-10 22 18-5 34-32 10-24-21zM485 248l32-12 28 18-9 33-36 6-22-21zM560 219l15-12 16 10-4 19-19 4z" fill="#284c4d" stroke="#7eb7b1" stroke-width="2"/><path d="M0 330c130-24 202-4 303 22s228 17 417-10v63H0z" fill="#0d252a"/></svg></div><div id="map"></div><aside class="toolbar"><h1>Danish wind mapper</h1><p>Representative assets from the project dataset. Pan, zoom, filter and inspect capacity.</p><div class="tabs"><button class="on">TURBINES</button><button>WIND PARKS</button><button>OWNERS</button></div><div class="lab"><span>MINIMUM CAPACITY</span><b id="cap">0 kW</b></div><input id="range" type="range" min="0" max="8400" step="100" value="0"><div class="legend"><span><i class="dot"></i>Onshore</span><span><i class="dot big"></i>Utility scale</span></div></aside><script>const pts=${JSON.stringify(points)};let markers=[];function fallback(){const host=document.getElementById('fallback');pts.forEach(p=>{const d=document.createElement('i');d.className='fallback-point';d.style.left=(18+(p.lon-7.4)/(15.2-7.4)*75)+'%';d.style.top=(8+(57.6-p.lat)/(57.6-54.4)*82)+'%';d.dataset.cap=p.cap;host.appendChild(d)});markers=[...host.querySelectorAll('.fallback-point')]}if(window.L){const map=L.map('map',{zoomControl:true,attributionControl:true}).setView([56.05,10.15],6);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);markers=pts.map(p=>L.circleMarker([p.lat,p.lon],{radius:Math.max(3,Math.min(9,3+p.cap/1600)),color:'#d9ffff',weight:1,fillColor:p.cap>=1500?'#f0b35b':'#69c7d5',fillOpacity:.82}).bindPopup('<b>Wind asset</b><br>'+p.cap.toLocaleString()+' kW capacity<br>'+p.size+' installation'+(p.size===1?'':'s')).addTo(map));setTimeout(()=>map.invalidateSize(),80)}else fallback();const range=document.getElementById('range');range.oninput=()=>{const v=+range.value;document.getElementById('cap').textContent=v.toLocaleString()+' kW';markers.forEach((m,i)=>{const on=pts[i].cap>=v;if(m.setStyle)m.setStyle({opacity:on?1:.08,fillOpacity:on?0.82:0.04});else m.style.opacity=on?1:.08})};document.querySelector('.tabs').onclick=e=>{if(e.target.tagName==='BUTTON'){document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));e.target.classList.add('on')}};<\/script></body></html>`;
 }
-function projectPreviewHtml(p){ return p.preview==='chess'?projectChessPreviewHtml():null; }
 function projectEmbedPatch(p){
   if(!p) return '';
   if(p.id==='danish-wind-mapper') return `<style>html,body{background:#0b171b!important}</style>`;
-  if(p.id!=='docurag') return '';
-  return `<style>
-#docurag-preview-badge,#login-box,#logout-btn{display:none!important}
-#mode-select{display:flex!important}
-#topbar{position:relative!important}
-#delete-chat-btn{margin-left:auto!important;order:99!important;flex:0 0 auto!important}
-</style><script>(function(){
-  function skipLogin(){
-    var chooser=document.getElementById('mode-select'),box=document.getElementById('login-box'),out=document.getElementById('logout-btn');
-    if(box)box.style.display='none'; if(out)out.style.display='none'; if(chooser)chooser.style.display='flex';
-  }
-  function patchClose(){
-    var b=document.getElementById('delete-chat-btn'); if(!b||b.dataset.portfolioClose)return;
-    b.dataset.portfolioClose='1'; b.title='Close mode'; b.setAttribute('aria-label','Close mode and return to knowledge base');
-    b.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var s=document.getElementById('sidebar-switch-btn')||document.getElementById('topbar-switch-btn');if(s)s.click()},true);
-  }
-  function init(){skipLogin();patchClose()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})()<\/script>`;
+  return '';
 }
-function projectCanPreview(p){ return !!(p&&(p.preview||p.live)); }
+function projectCanPreview(p){ return !!(p&&(p.image||p.live)); }
 function projectLiveMask(now,F){
   const hidden='linear-gradient(transparent,transparent) 0 0 / 100% 100% no-repeat';
   if(!F||!F.projectLiveOn){ projectLive.style.webkitMask=hidden; projectLive.style.mask=hidden; return; }
@@ -2417,7 +2372,7 @@ function projectLiveMask(now,F){
   if(!all) renderDirty=true;
 }
 async function openProjectLive(id){
-  const p=projectById(id), inline=p&&projectPreviewHtml(p); if(!p||(!p.live&&!inline)) return;
+  const p=projectById(id), isImage=!!(p&&p.image); if(!p||(!p.live&&!isImage)) return;
   const F=projectStageFacet(); if(!F||!F.project||F.project.id!==id) return;
   projectLiveReturnFocus=document.activeElement;
   projectStageState.pinned=true;
@@ -2426,20 +2381,19 @@ async function openProjectLive(id){
   projectLive.style.visibility=''; projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
   projectLive.dataset.project=id; projectLiveMask(0);
   projectLive.setAttribute('aria-hidden','false');
-  plTitle.textContent=p.label; plSub.textContent=p.preview==='chess'?'STATIC PRODUCT WALKTHROUGH':'INTERACTIVE PREVIEW';
-  plRepo.href=p.repo; plRepo.textContent=p.preview==='chess'?'OPEN REPO ↗':'OPEN REPOSITORY ↗';
-  plExtension.hidden=!p.launch; if(p.launch) plExtension.href=p.launch;
-  const fullTarget=p.fullscreen||null; plFullscreen.hidden=!fullTarget; if(fullTarget) plFullscreen.href=fullTarget;
+  plFrame.hidden=isImage; plImage.hidden=!isImage;
   plFrame.classList.toggle('pl-desktop',!!p.desktop);
-  plLoad.textContent=inline?'DEVELOPING PROJECT PREVIEW':p.liveMode==='raw'?'LOADING ORIGINAL PROJECT FILE':p.liveMode==='rebased'?'PREPARING INTERACTIVE PREVIEW':'LOADING LIVE PROJECT';
-  if(projectLoadedId===id){ projectLiveReady(token,id); (p.launch?plExtension:plRepo).focus(); return; }
+  plLoad.textContent=isImage?'DEVELOPING PROJECT SCREENSHOT':p.liveMode==='raw'?'LOADING ORIGINAL PROJECT FILE':p.liveMode==='rebased'?'PREPARING INTERACTIVE PREVIEW':'LOADING LIVE PROJECT';
+  if(projectLoadedId===id){ projectLiveReady(token,id); return; }
+  plImage.onload=null; plImage.onerror=null;
   plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
   projectLoadedId=null;
   try{
-    if(inline){
-      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-popups');
-      plFrame.onload=()=>projectLiveReady(token,id);
-      plFrame.srcdoc=inline;
+    if(isImage){
+      plImage.alt=p.label+' project screenshot';
+      plImage.onload=()=>projectLiveReady(token,id);
+      plImage.onerror=()=>projectLiveFailed(token,'THE SCREENSHOT COULD NOT LOAD');
+      plImage.src=p.image;
     } else if(p.liveMode==='raw'||p.liveMode==='rebased'){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups');
       let html=projectHtmlCache.get(id);
@@ -2459,11 +2413,12 @@ async function openProjectLive(id){
       plFrame.src=p.live;
     }
   }catch(e){
-    if(token!==projectLoadToken) return;
-    projectLive.classList.add('failed');
-    plLoad.textContent='THE EMBED COULD NOT LOAD · USE OPEN REPOSITORY ABOVE';
+    projectLiveFailed(token,'THE EMBED COULD NOT LOAD · USE THE PROJECT BUTTON BELOW');
   }
-  (p.launch?plExtension:plRepo).focus();
+}
+function projectLiveFailed(token,message){
+  if(token!==projectLoadToken) return;
+  projectLive.classList.add('failed'); plLoad.textContent=message;
 }
 function projectLiveReady(token,id){
   if(token!==projectLoadToken||!projectLiveOpen) return;
@@ -3468,7 +3423,7 @@ function buildWelcomeTypeSpec(t,cell,x0,yTop){
   return {text:t, cells, cursorX, yTop, cell, w:stCols(t)*cell, h:7*cell};
 }
 const PROJECT_STAGE_W=21.5, PROJECT_STAGE_H=19.0;
-const PROJECT_SCREEN_W=19.4, PROJECT_SCREEN_H=10.91; // 16:9, matches PROJECT_LIVE_W/H
+const PROJECT_SCREEN_W=14.8, PROJECT_SCREEN_H=8.325; // compact 16:9 surface for the three projects that use one
 function projectStageArt(type){
   if(type==='chess') return [
     ' CHESS / REVIEW       BULLET       1:00   ',
@@ -3551,36 +3506,52 @@ function buildProjectStageLayout(p){
   btns.push({kind:'project-close',cx:halfW-1.05,cy:top-0.72,hw:0.62,hh:0.62});
   const title=stencilSafe(p.label), titleCell=Math.min(0.18,(W-2.0)/stCols(title)), titleW=stCols(title)*titleCell, titleTop=top-0.65;
   layStencilLine(items,title,titleCell,-titleW/2,titleTop);
-  const body=wrapText(asciiSafe(p.blurb),48).slice(0,3), bodyTop=titleTop-7*titleCell-0.62;
-  body.forEach((line,i)=>putLine(line,0.37,bodyTop-i*0.52,W-2.0,0.68));
-
-  const screenCY=-0.80, screenTop=screenCY+PROJECT_SCREEN_H/2, screenBot=screenCY-PROJECT_SCREEN_H/2;
-  const sx0=-PROJECT_SCREEN_W/2, sx1=PROJECT_SCREEN_W/2, edgeCell=0.44;
-  for(let x=sx0;x<=sx1+0.01;x+=edgeCell){
-    items.push({ch:'-',x:Math.min(sx1,x),y:screenTop,s:0.31,L:0.32,projectScreen:true});
-    items.push({ch:'-',x:Math.min(sx1,x),y:screenBot,s:0.31,L:0.32,projectScreen:true});
-  }
-  for(let y=screenBot+edgeCell;y<screenTop;y+=edgeCell){
-    items.push({ch:':',x:sx0,y,s:0.31,L:0.26,projectScreen:true});
-    items.push({ch:':',x:sx1,y,s:0.31,L:0.26,projectScreen:true});
-  }
-  const art=projectStageArt(p.visual), cols=Math.max(...art.map(r=>r.length)), cw=(PROJECT_SCREEN_W-1.0)/cols, rowH=0.82;
-  const artTop=screenTop-1.05;
-  art.forEach((row,r)=>{
-    const line=row.padEnd(cols,' ');
-    for(let c=0;c<cols;c++){ const ch=line[c]; if(ch===' ') continue;
-      const ri=COVER_RAMP.indexOf(ch), L=ri>=0?0.18+0.82*ri/9:0.70;
-      items.push({ch,x:-cols*cw/2+(c+0.5)*cw,y:artTop-r*rowH,s:Math.min(0.42,cw*1.08),L,projectScreen:true});
-    }
+  const hasSurface=projectCanPreview(p), bodyTop=titleTop-7*titleCell-0.62;
+  const paras=asciiSafe(p.blurb).split(/\n\s*\n/).filter(Boolean), bodyS=hasSurface?0.31:0.39;
+  const bodyStep=hasSurface?0.43:0.54, paraGap=hasSurface?0.17:0.29, bodyCols=hasSurface?56:54;
+  let bodyY=bodyTop;
+  paras.forEach((para,pi)=>{
+    const strong=/^(SEARCH|ASK):/i.test(para), lines=wrapText(para,bodyCols);
+    lines.forEach(line=>{ putLine(line,bodyS,bodyY,W-2.0,strong?0.86:0.68); bodyY-=bodyStep; });
+    if(pi<paras.length-1) bodyY-=paraGap;
   });
 
-  return {items,w:W,h:H,btns,projectRect:{cx:0,cy:screenCY,w:PROJECT_SCREEN_W,h:PROJECT_SCREEN_H},project:p};
+  let projectRect=null;
+  if(hasSurface){
+    const screenCY=-2.95, screenTop=screenCY+PROJECT_SCREEN_H/2, screenBot=screenCY-PROJECT_SCREEN_H/2;
+    const sx0=-PROJECT_SCREEN_W/2, sx1=PROJECT_SCREEN_W/2, edgeCell=0.44;
+    for(let x=sx0;x<=sx1+0.01;x+=edgeCell){
+      items.push({ch:'-',x:Math.min(sx1,x),y:screenTop,s:0.31,L:0.32,projectScreen:true});
+      items.push({ch:'-',x:Math.min(sx1,x),y:screenBot,s:0.31,L:0.32,projectScreen:true});
+    }
+    for(let y=screenBot+edgeCell;y<screenTop;y+=edgeCell){
+      items.push({ch:':',x:sx0,y,s:0.31,L:0.26,projectScreen:true});
+      items.push({ch:':',x:sx1,y,s:0.31,L:0.26,projectScreen:true});
+    }
+    const art=projectStageArt(p.visual), cols=Math.max(...art.map(r=>r.length)), cw=(PROJECT_SCREEN_W-0.9)/cols, rowH=0.61;
+    const artTop=screenTop-0.78;
+    art.forEach((row,r)=>{
+      const line=row.padEnd(cols,' ');
+      for(let c=0;c<cols;c++){ const ch=line[c]; if(ch===' ') continue;
+        const ri=COVER_RAMP.indexOf(ch), L=ri>=0?0.18+0.82*ri/9:0.70;
+        items.push({ch,x:-cols*cw/2+(c+0.5)*cw,y:artTop-r*rowH,s:Math.min(0.36,cw*1.08),L,projectScreen:true});
+      }
+    });
+    projectRect={cx:0,cy:screenCY,w:PROJECT_SCREEN_W,h:PROJECT_SCREEN_H};
+  }
+
+  const actions=[];
+  if(p.actionUrl) actions.push({t:p.actionLabel||'OPEN PROJECT',kind:'project-action',data:p.actionUrl});
+  actions.push({t:'OPEN REPOSITORY',kind:'project-repo',data:p.repo});
+  layBtnRow(items,btns,actions,bot+1.55,W-2.0,0.105);
+
+  return {items,w:W,h:H,btns,projectRect,project:p};
 }
 function buildProjectStageReserve(layouts){
   let source=layouts[0];
   for(const lay of layouts) if(lay.items.length>source.items.length) source=lay;
   return {items:source.items.map(it=>Object.assign({},it,{btn:undefined,projectHidden:true})),
-    w:PROJECT_STAGE_W,h:PROJECT_STAGE_H,btns:[],projectRect:source.projectRect};
+    w:PROJECT_STAGE_W,h:PROJECT_STAGE_H,btns:[],projectRect:null};
 }
 function configureProjectStage(F,p,now,force,externalTargets){
   if(!F||!F.projectLayouts) return;
@@ -6466,6 +6437,7 @@ addEventListener('pointerup',e=>{
       else if(hit.b.kind==='send') cformSubmit(); // the embedded contact form's stencil SEND
       else if(hit.b.wsControl) welcomeScrollBy(hit.b.ws,hit.b.wsDir);
       else if(hit.b.kind==='project-close') closeProjectStage();
+      else if(hit.b.kind==='project-action'||hit.b.kind==='project-repo') window.open(hit.b.data,'_blank','noopener');
       else if(hit.b.project) showProjectStage(hit.b.data,true);
       else if(hit.b.kind==='wcv') window.open(hit.b.data,'_blank','noopener');
       else if(hit.b.kind==='copy'){ // Discord mark: no public profile URLs — copy the username
