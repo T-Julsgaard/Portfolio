@@ -2,6 +2,16 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v94: author controls removed from the public interface
+
+The bottom-left Dev Tools and ASCII Generator launch buttons are absent from the shipped
+markup. Both panels, their controls, and their bindings remain in source because those
+controls also initialise the approved production values and are useful when authoring a
+future revision. The last live profile was captured before removal and matches the factory
+defaults in `CTRL_DEF`, including the Welcome, journey, typography, render, music-volume,
+and playlist-order defaults. Launcher bindings are null-guarded so the production markup
+does not throw during startup.
+
 ## v77: Raw route settles before exit motion ends
 
 Exit still drives palette, fog, vignette, exposure, and bloom from the eased

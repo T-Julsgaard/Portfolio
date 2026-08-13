@@ -7,6 +7,14 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v94 addendum: project titles centre independently
+
+The project stage remains centred, and `putLine()` must continue to start every prose line
+at `copyLeft`. The stencil title is the deliberate exception: pass
+`-stCols(title) * titleCell / 2` to `layStencilLine()` so the heading centres on the stage
+without centring the body copy. This changes target positions only; glyph counts, the
+project reserve, preview placement, and button geometry are unchanged.
+
 ## v93 addendum: project close and action alignment
 
 The assembled project close glyph and its hit rectangle now share one explicit

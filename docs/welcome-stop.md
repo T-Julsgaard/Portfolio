@@ -1,5 +1,17 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v94 - centred project titles and production author controls
+
+Focused project dossiers keep their centred stage and shared left edge for every prose
+line, while the stencil project title is centred independently across the frame. The body
+therefore retains the approved left-aligned editorial rhythm without pulling the overall
+composition away from the middle.
+
+The public HTML no longer includes launch buttons for either Dev Tools or the ASCII
+Generator. Their hidden panels and bindings remain in source so the captured production
+profile can continue to initialise the scene and the authoring tools can be restored for
+future tuning without rebuilding either subsystem.
+
 ## v93 - project close and action alignment
 
 The focused project's assembled X now uses the same explicit top-right anchor for

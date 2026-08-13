@@ -537,7 +537,8 @@
     <nav id="rail-portfolio" class="journey-rail" aria-label="Portfolio sections"></nav>
   </div>
 
-  <button id="dev-toggle" title="Dev tools">&#9881;</button>
+  <!-- Author controls stay in the document to initialise the approved production profile,
+       but the public build intentionally exposes no dev-tools launcher. -->
   <div id="dev-panel">
     <h4>Dev Tools</h4>
     <section class="dev-sect" data-sect="render">
@@ -775,7 +776,8 @@
     <button class="reset" id="introReplay">Replay intro</button>
   </div>
 
-  <button id="gen-toggle" title="ASCII generator">&#9638;</button>
+  <!-- The ASCII generator remains available in source for future portrait work, with no
+       public launcher in the production interface. -->
   <div id="gen-panel">
     <h4>ASCII Generator</h4>
     <div id="gen-drop">Drop image &middot; or click</div>
@@ -3510,7 +3512,7 @@ function buildProjectStageLayout(p){
   for(const it of closeItems) it.x=closeCX;
   btns.push({kind:'project-close',cx:closeCX,cy:closeCY,hw:0.62,hh:0.62});
   const title=stencilSafe(p.label), titleCell=Math.min(0.18,copyWidth/stCols(title)), titleTop=top-0.65;
-  layStencilLine(items,title,titleCell,copyLeft,titleTop);
+  layStencilLine(items,title,titleCell,-stCols(title)*titleCell/2,titleTop);
   const hasSurface=projectCanPreview(p), bodyTop=titleTop-7*titleCell-0.62;
   const paras=asciiSafe(p.blurb).split(/\n\s*\n/).filter(Boolean), bodyS=hasSurface?0.32:0.39;
   const bodyStep=hasSurface?0.44:0.54, paraGap=hasSurface?0.20:0.29, bodyCols=hasSurface?66:58;
@@ -6831,7 +6833,7 @@ frame();
 
 /* dev tools */
 const devToggle=document.getElementById('dev-toggle'), devPanel=document.getElementById('dev-panel');
-devToggle.addEventListener('click',()=>devPanel.classList.toggle('open'));
+if(devToggle) devToggle.addEventListener('click',()=>devPanel.classList.toggle('open'));
 /* Every setting explains itself on hover. The tooltip lives outside the scrolling panel,
    so it never gets clipped by a collapsed section or the panel's overflow. */
 const DEV_TIPS={
@@ -7213,7 +7215,7 @@ function genRestore(){ genClearPreview(); for(const t of textMeshes){ t.visible=
 
 /* generator UI wiring */
 const genPanel=document.getElementById('gen-panel'), genToggle=document.getElementById('gen-toggle');
-genToggle.addEventListener('click',()=>genPanel.classList.toggle('open'));
+if(genToggle) genToggle.addEventListener('click',()=>genPanel.classList.toggle('open'));
 const genEl=id=>document.getElementById(id);
 function genBindVal(id,valId,fmt){ const e=genEl(id),v=genEl(valId); const upd=()=>v.textContent=fmt(parseFloat(e.value)); e.addEventListener('input',upd); upd(); }
 genBindVal('genCols','valGenCols',x=>String(x|0));

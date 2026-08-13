@@ -1,5 +1,12 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v94 - centred project titles, left-aligned project stories
+
+`buildProjectStageLayout()` still uses the dossier's shared `copyLeft` anchor for every
+wrapped prose line. Only the stencil title now derives its x origin from its own measured
+width (`-stCols(title) * titleCell / 2`), so it is centred on the project frame without
+changing copy wrapping, screen placement, actions, target count, or the project reserve.
+
 ## v92 - left-aligned project dossiers and supplied stills
 
 Project focus now shares a single editorial left edge: stencil titles and wrapped body
