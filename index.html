@@ -1932,11 +1932,11 @@ const PORTFOLIO_PROJECTS=[
     repo:'https://github.com/T-Julsgaard/DocuRAG',
     actionUrl:'https://t-julsgaard.github.io/DocuRAG/', actionLabel:'TRY IT OUT',
     image:'images/docurag.png', visual:'rag', accent:'#7aa2ff',
-    blurb:'A plug-and-play RAG knowledge base for small and mid-size document sets. Point it at a folder of markdown articles and get a clean chat UI.\n\nSearch: Instant server-side keyword lookup. No model, API cost, or rate limits.\n\nAsk: Claude-powered answers grounded in your articles, with sources.\n\nAccounts, daily limits, an admin dashboard, and a demo knowledge base are included.'},
+    blurb:"Plug-and-play RAG knowledge base for small and mid-size document sets. Point it at a folder of Markdown articles and get a clean chat UI for search and grounded Q&A.\n\nInspired by Andrej Karpathy's LLM wiki workflow."},
   {id:'danish-wind-mapper', label:'Danish wind mapper', repoName:'danish-wind-mapper',
     repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
     actionUrl:'https://t-julsgaard.github.io/danish-wind-mapper/', actionLabel:'TRY IT OUT',
-    liveMode:'rebased', desktop:true,
+    preview:'wind', liveMode:'rebased',
     live:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/Interactive_wind_map_preview.html?v=9291673',
     liveBase:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/',
     visual:'wind', accent:'#69c7d5',
@@ -2399,6 +2399,13 @@ async function openProjectLive(id){
       plImage.onload=()=>projectLiveReady(token,id);
       plImage.onerror=()=>projectLiveFailed(token,'THE SCREENSHOT COULD NOT LOAD');
       plImage.src=p.image;
+    } else if(p.preview==='wind'){
+      /* The full Folium export is about 11 MB and made the first project develop stall.
+         This source-faithful local surface paints immediately, then lets its small Leaflet
+         layer enhance the already-visible map without blocking on the repository artifact. */
+      plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-popups');
+      plFrame.onload=()=>projectLiveReady(token,id);
+      plFrame.srcdoc=projectWindPreviewHtml();
     } else if(p.liveMode==='raw'||p.liveMode==='rebased'){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups');
       let html=projectHtmlCache.get(id);
@@ -2431,7 +2438,8 @@ function projectLiveReady(token,id){
   projectLive.classList.add('ready');
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=true; F.projectLiveT0=performance.now();
-    for(const it of F.items.concat(F.projectDonors||[])) if(it.projectScreen) it.pD=Math.random()*photoStagger()*0.70; }
+    for(const it of F.items.concat(F.projectDonors||[])) if(it.projectScreen)
+      it.pD=it.projectFrame?0:Math.random()*photoStagger()*0.70; }
 }
 function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=false){
   if(!projectLiveOpen) return;
@@ -3428,7 +3436,8 @@ function buildWelcomeTypeSpec(t,cell,x0,yTop){
   return {text:t, cells, cursorX, yTop, cell, w:stCols(t)*cell, h:7*cell};
 }
 const PROJECT_STAGE_W=21.5, PROJECT_STAGE_H=19.0;
-const PROJECT_SCREEN_W=14.8, PROJECT_SCREEN_H=8.325; // compact 16:9 surface for the three projects that use one
+const PROJECT_SCREEN_W=14.8, PROJECT_SCREEN_H=8.325; // shared compact 16:9 surface for all five project dossiers
+const PROJECT_COPY_W=15.8, PROJECT_SCREEN_TOP=3.10, PROJECT_ACTION_TOP=-6.90;
 function projectStageArt(type){
   if(type==='chess') return [
     ' CHESS / REVIEW       BULLET       1:00   ',
@@ -3488,7 +3497,9 @@ function projectStageArt(type){
 }
 function buildProjectStageLayout(p){
   const items=[], btns=[], W=PROJECT_STAGE_W, H=PROJECT_STAGE_H, top=H/2, bot=-H/2;
-  const copyLeft=-W/2+1.15, copyWidth=W-2.3;
+  /* The copy column is centred as one block, while each wrapped line stays left-aligned.
+     A shared column, screen top, and action row keep all five project dossiers congruent. */
+  const copyWidth=PROJECT_COPY_W; let copyLeft=-copyWidth/2;
   const putLine=(text,s,y,maxW,L,extra)=>{
     const t=asciiSafe(String(text)).toUpperCase(), q0=layoutLine(t,s), ss=q0.w>maxW?s*(maxW/q0.w):s, q=layoutLine(t,ss), x0=copyLeft;
     for(let i=0;i<t.length;i++) if(t[i]!==' '){
@@ -3516,6 +3527,14 @@ function buildProjectStageLayout(p){
   const hasSurface=projectCanPreview(p), bodyTop=titleTop-7*titleCell-0.62;
   const paras=asciiSafe(p.blurb).split(/\n\s*\n/).filter(Boolean), bodyS=hasSurface?0.32:0.39;
   const bodyStep=hasSurface?0.44:0.54, paraGap=hasSurface?0.20:0.29, bodyCols=hasSurface?66:58;
+  /* Centre the VISIBLE prose box by its widest wrapped line, not merely its maximum
+     wrapping column. Lines still share one left edge, so paragraphs never centre line by line. */
+  const bodyLines=paras.flatMap(para=>wrapText(para,bodyCols));
+  const bodyBoxW=Math.max(0,...bodyLines.map(line=>{
+    const q=layoutLine(asciiSafe(line).toUpperCase(),bodyS);
+    return Math.min(copyWidth,q.w);
+  }));
+  copyLeft=-bodyBoxW/2;
   let bodyY=bodyTop;
   paras.forEach((para,pi)=>{
     const strong=/^(SEARCH|ASK):/i.test(para), lines=wrapText(para,bodyCols);
@@ -3525,16 +3544,16 @@ function buildProjectStageLayout(p){
 
   let projectRect=null;
   if(hasSurface){
-    const lastBodyY=bodyY+bodyStep, screenTop=Math.max(1.45,Math.min(3.10,lastBodyY-0.65));
+    const screenTop=PROJECT_SCREEN_TOP;
     const screenCY=screenTop-PROJECT_SCREEN_H/2, screenBot=screenTop-PROJECT_SCREEN_H;
     const sx0=-PROJECT_SCREEN_W/2, sx1=PROJECT_SCREEN_W/2, edgeCell=0.44;
     for(let x=sx0;x<=sx1+0.01;x+=edgeCell){
-      items.push({ch:'-',x:Math.min(sx1,x),y:screenTop,s:0.31,L:0.32,projectScreen:true});
-      items.push({ch:'-',x:Math.min(sx1,x),y:screenBot,s:0.31,L:0.32,projectScreen:true});
+      items.push({ch:'-',x:Math.min(sx1,x),y:screenTop,s:0.31,L:0.32,projectScreen:true,projectFrame:true});
+      items.push({ch:'-',x:Math.min(sx1,x),y:screenBot,s:0.31,L:0.32,projectScreen:true,projectFrame:true});
     }
     for(let y=screenBot+edgeCell;y<screenTop;y+=edgeCell){
-      items.push({ch:':',x:sx0,y,s:0.31,L:0.26,projectScreen:true});
-      items.push({ch:':',x:sx1,y,s:0.31,L:0.26,projectScreen:true});
+      items.push({ch:':',x:sx0,y,s:0.31,L:0.26,projectScreen:true,projectFrame:true});
+      items.push({ch:':',x:sx1,y,s:0.31,L:0.26,projectScreen:true,projectFrame:true});
     }
     const art=projectStageArt(p.visual), cols=Math.max(...art.map(r=>r.length)), cw=(PROJECT_SCREEN_W-0.9)/cols, rowH=0.61;
     const artTop=screenTop-0.78;
@@ -3551,7 +3570,7 @@ function buildProjectStageLayout(p){
   const actions=[];
   if(p.actionUrl) actions.push({t:p.actionLabel||'OPEN PROJECT',kind:'project-action',data:p.actionUrl});
   actions.push({t:'OPEN REPOSITORY',kind:'project-repo',data:p.repo});
-  layBtnRow(items,btns,actions,bot+2.10,W-2.0,0.105);
+  layBtnRow(items,btns,actions,PROJECT_ACTION_TOP,W-2.0,0.105);
 
   return {items,w:W,h:H,btns,projectRect,project:p};
 }
@@ -3575,6 +3594,7 @@ function configureProjectStage(F,p,now,force,externalTargets){
     it.geoA=spec?(spec.tf?glyphGeoT(spec.ch):glyphGeo(spec.ch)):glyphGeo('.');
     it.L=spec&&spec.L!==undefined?spec.L:null;
     it.btnKind=spec&&spec.btn||null; it.projectHidden=!spec; it.projectScreen=!!(spec&&spec.projectScreen);
+    it.projectFrame=!!(spec&&spec.projectFrame);
     if(it.btnKind){ const b=F.btns.find(bb=>bb.kind===it.btnKind); if(b) b.items.push(it); }
   }
   F.lay=lay; F.project=p; F.projectLiveOn=false; F.projectLiveT0=0;
@@ -3608,7 +3628,7 @@ function welcomeProjectTarget(d,spec,PF,now,delay){
   const m=d.m;
   d.from=m.position.clone(); d.s0=Math.max(0.05,m.scale.x||0.05); d.o0=m.visible?m.material.opacity:0;
   d.hideAtEnd=!spec; d.spec=spec||null; d.btnKind=spec&&spec.btn||null;
-  d.projectScreen=!!(spec&&spec.projectScreen); d.pD=0;
+  d.projectScreen=!!(spec&&spec.projectScreen); d.projectFrame=!!(spec&&spec.projectFrame); d.pD=0;
   d.to=spec
     ?new THREE.Vector3().copy(PF.anchor).addScaledVector(PF.right,spec.x*PF.f).addScaledVector(PF.up,spec.y*PF.f)
     :new THREE.Vector3().copy(PF.anchor).addScaledVector(PF.dir,-0.7-delay*0.0002);
@@ -3630,6 +3650,18 @@ function restartWelcomeBannerAtSink(now){
     m.userData.asm=false; P.done=true;
   }
   welcome.banner.phase='wait'; welcome.banner.t0=now; welcome.banner.first=true;
+}
+function restartWelcomeCalendarPhoto(now){
+  const F=welcome.F;
+  if(!F||F.photoKey!=='ghcal') return;
+  if(!F.tiles) buildPhotoTiles(F);
+  F.pOn=true; F.pDone=false; F.pStart=now; F.pT0=now;
+  for(const it of F.items) if(it.dev){
+    it.pD=Math.random()*photoStagger(); it.m.material.opacity=1; it.m.visible=true;
+  }
+  for(const tl of (F.tiles||[])){
+    tl.userData.d=Math.random()*photoStagger(); tl.material.opacity=0; tl.visible=false;
+  }
 }
 function startWelcomeProjectFocus(p,now,force){
   const main=welcome.F, PF=projectStageFacet();
@@ -3683,7 +3715,7 @@ function closeWelcomeProjectFocus(now){
     const d=focus.donors[i], id=d.identity, m=d.m;
     d.from=m.position.clone(); d.s0=Math.max(0.05,m.scale.x||0.05); d.o0=m.visible?m.material.opacity:0;
     d.to=id.to; d.s1=id.s1; d.geoA=id.geoA; d.L=id.L; d.hideAtEnd=false;
-    d.projectScreen=false; d.btnKind=null;
+    d.projectScreen=false; d.projectFrame=false; d.btnKind=null;
     d.ctrl=new THREE.Vector3().lerpVectors(d.from,d.to,0.5)
       .addScaledVector(main.up,0.9+(i%9)*0.10);
     d.st=now+(i/Math.max(1,focus.donors.length))*110; d.swapped=false; d.done=false;
@@ -3746,6 +3778,9 @@ function updateWelcomeProjectFocus(now){
       m.userData.asm=true; m.userData.asmL=id.L;
     }
     welcome.focus=null; welcome.waveItems=null; welcome.waveT0=null;
+    /* Project focus folded the exact calendar tiles while leaving pDone=true. Re-arm
+       the retained tile set only after every donor is byte-exact at its identity target. */
+    restartWelcomeCalendarPhoto(now);
     restartWelcomeBannerAtSink(now);
   }
   glyphsDirty=true; renderDirty=true;
@@ -4234,7 +4269,7 @@ function updateWelcomeNav(now,dt){
       b.cx=b.welcomeBaseCx+welcomeProjectSideDX(b.ws);
     }
     if(b.nav!==undefined){
-      const visible=holding&&(!b.ws||welcomeScrollAlpha(b)>0.55);
+      const visible=holding&&(!b.ws||welcomeScrollAlpha(b)>0.001);
       b.shown=visible;
       if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws], pitch=F.lay.wsPitch?F.lay.wsPitch[b.ws]:WNAV_PITCH; b.cy=F.lay.wsTop-slot*pitch+b.wsDY; }
       for(const it of b.items) it.shown=visible;

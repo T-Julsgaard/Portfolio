@@ -1,5 +1,30 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v95 - complete Welcome return and shared project geometry
+
+Project focus no longer strands the exact GitHub calendar in its terrain-cell state.
+`restartWelcomeCalendarPhoto()` runs only after all centre donors have returned exactly,
+re-arms the retained `ghcal` tiles and day-cell dissolve clocks, and then lets the normal
+photo path develop the calendar again. The commit banner restarts after that re-arm.
+
+Welcome project rows now remain hit-testable whenever their scroll alpha is above `0.001`,
+including the highest and lowest rows while they fade at the viewport edge. The same
+`b.shown` flag continues to control pointer and keyboard paths.
+
+Every project layout wraps within the same 15.8-unit copy width, then centres the visible
+prose box from its actual widest line. Lines remain left-aligned within that box; the
+stencil title stays independently centred. Preview top is fixed at `3.10` and action-row
+top at `-6.90`. The new DocuRAG copy wraps to four lines,
+and the tightest copy-to-preview clearance is Chess at 0.38 layout units. Counts are Chess
+1,999, Entropy 1,839, DocuRAG 1,668, Wind 1,904, and Bitcoin 1,819, leaving 7,832 terrain
+glyphs after Welcome plus the largest project.
+
+Wind's in-scene develop now uses `projectWindPreviewHtml()` rather than downloading the
+11 MB Folium export. The full Pages map is still available through `TRY IT OUT`. Project
+screen edge records are tagged `projectFrame` and receive one zero-delay dissolve, while
+the inner ASCII screen retains its shuffled timing; this removes the flashing white
+perimeter without flattening the develop effect.
+
 ## v94 - centred project titles, left-aligned project stories
 
 `buildProjectStageLayout()` still uses the dossier's shared `copyLeft` anchor for every

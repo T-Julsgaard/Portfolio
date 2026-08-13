@@ -1,5 +1,30 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v95 - reliable project close and aligned project dossiers
+
+Returning from project focus now completes the exact-calendar restoration. The close path
+waits for every centre donor to settle at its saved identity target, then calls
+`restartWelcomeCalendarPhoto()` to reset the retained tile set's reveal delays and the
+calendar glyphs' dissolve delays. This clears the stale `pDone` state that previously left
+only contribution-cell glyphs visible after closing a project. The commit banner restarts
+after the calendar has been re-armed.
+
+The PORTFOLIO scroll window treats every visibly fading row as interactive: `b.shown`
+follows `welcomeScrollAlpha()>0.001`, matching the rendered visibility threshold instead
+of dropping input at 55% opacity.
+
+Focused dossiers now wrap prose within 15.8 units and centre its visible bounding box by
+the widest line while retaining one left edge for every line. They share a preview top of
+`3.10` and an action-row top of `-6.90`; titles remain independently centred. This keeps
+copy, screenshots, interactive previews, and both stencil actions in the same positions
+across all five projects; DocuRAG carries the new concise Karpathy-inspired description.
+
+Danish Wind Mapper develops into the lightweight local map preview, eliminating the 11 MB
+first-open fetch; `TRY IT OUT` still opens the full Pages project. The preview's terrain
+frame now dissolves uniformly through `projectFrame`, while its inner ASCII art keeps the
+tile-like shuffled handoff. Real-data validation leaves 7,832 glyphs spare after the 3,437
+Welcome claims and the 1,999-item maximum project layout.
+
 ## v94 - centred project titles and production author controls
 
 Focused project dossiers keep their centred stage and shared left edge for every prose

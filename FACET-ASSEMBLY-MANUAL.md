@@ -7,6 +7,32 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v95 addendum: complete project return, congruent dossiers, and lightweight Wind
+
+Closing a Welcome project must re-arm the retained `ghcal` photo tiles after every centre
+donor has returned to its identity target. Project focus intentionally folds those tiles,
+but their previous `pDone=true` state otherwise prevents them from developing again and
+leaves only the terrain day-cell glyphs. `restartWelcomeCalendarPhoto()` resets the tile
+delays, day-cell dissolve delays, and `pStart` immediately before the commit banner restarts.
+
+Fading Welcome-list rows are interactive for their complete visible lifetime. The shared
+`b.shown` gate now follows `welcomeScrollAlpha(b)>0.001`, matching the glyph visibility
+threshold; do not restore the former `>0.55` hit-test cutoff.
+
+All five project dossiers wrap within `PROJECT_COPY_W=15.8`, then centre the visible prose
+block from its actual widest wrapped line while every line still shares one left edge.
+Preview-bearing layouts share
+`PROJECT_SCREEN_TOP=3.10`, and the terrain action row uses `PROJECT_ACTION_TOP=-6.90` so
+previews and actions no longer move with description length. DocuRAG uses the shorter
+Karpathy-inspired copy. Real-layout validation against the 13,268-glyph portrait measures
+Chess as the largest project at 1,999 items; Welcome plus that maximum leaves 7,832 spare.
+
+Wind now selects the existing lightweight `projectWindPreviewHtml()` surface instead of
+fetching the 11 MB Folium artifact into the focused iframe. Its real Pages project remains
+the `TRY IT OUT` destination. ASCII preview-frame records carry `projectFrame`; they fade
+as one clean outline while the inner screen keeps its shuffled develop, avoiding the
+flickering perimeter during the handoff.
+
 ## v94 addendum: project titles centre independently
 
 The project stage remains centred, and `putLine()` must continue to start every prose line
