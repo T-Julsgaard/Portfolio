@@ -2,6 +2,22 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v89: universal dock zoom and collapsible side groups
+
+The wheel now drives `dockZoomT` at every assembled stop, including Work experience
+and Education in `scrollMode`. Their internal timeline still uses its persistent list,
+clickable up/down controls, and keyboard arrows; it no longer consumes wheel deltas.
+Welcome's own list viewport and genuinely scrollable overlays remain local wheel
+surfaces. Auto tour is the deliberate exception because the wheel is that mode's only
+travel input.
+
+The fixed left/right rails now start as compact `[ ABOUT ME ]` and `[ PORTFOLIO ]`
+headers. Each `rail-toggle` exposes its rows through an animated `rail-items` wrapper;
+the single down arrow changes to up while expanded, and `aria-expanded`,
+`aria-controls`, and the action label stay synchronized. Expansion is independent per
+side and persists while moving between non-Welcome stops. Wheel events over these
+non-scrollable rails are no longer stopped, so zoom remains available under the cursor.
+
 ## v88: uniform hollow rails with a short dock slide
 
 The ABOUT ME and PORTFOLIO rails now have one marker language: every stop and every
@@ -22,8 +38,8 @@ still clear the rail wrapper through their existing state paths.
 The right Portfolio rail is no longer a clipped native scroll viewport. All seven
 destinations are displayed together, with `overflow-y`, the mask, scrollbar skins,
 and the `railScrollSelect` Journey setting removed. `railStyleSelect` still controls
-the dot/diamond/bracket marker treatment; wheel events over the rail remain isolated
-from journey navigation even though the rail itself no longer scrolls.
+the historical marker treatment. v89 removes the obsolete wheel isolation because
+the rail no longer scrolls and docked wheel input now zooms universally.
 
 `railRoam()` is now the single overview/free-roam reset. It clears `railSeen` and
 removes `seen`, `docked`, and `at-welcome` from `#journey-rails`, so both columns and
@@ -120,7 +136,7 @@ Every stop-to-stop travel style now calls `arrivalQuat(toIdx,pos,pathQuat,out)` 
 
 Entry remains Raw for the entire descent. `dock()` now starts the processed-render fade immediately before stop assembly, so fog, palette, bloom, vignette, tone mapping, and the arriving facet come in together after the camera reaches the journey stop. Exit still reverses processing into Raw.
 
-Pointer drag-look is no longer suppressed when the active facet uses `scrollMode`. Work and Education retain wheel/click timeline navigation, but dragging the canvas now changes `freeYawT/freePitchT` exactly as it does at the other assembled stops.
+Pointer drag-look is no longer suppressed when the active facet uses `scrollMode`. Work and Education retained wheel/click timeline navigation at v74; since v89 the wheel zooms there and the list/arrows/keyboard own timeline stepping. Dragging the canvas changes `freeYawT/freePitchT` exactly as it does at the other assembled stops.
 
 ## v73: processing handoff and full-view assembly setting
 
@@ -132,7 +148,7 @@ The Work/Education scroll presentation keeps its left index as a persistent face
 
 The Welcome waypoint moved to `xf:-0.58, yf:0.82`, putting the assembled composition on the portrait's left while preserving the surrounding terrain as the visible scene. Welcome is a deliberate camera exception: `welcomeLookQuat(pos,out)` points horizontally at `faceCenter`, and it is used by direct entry, flight touchdown, and `assembleStop()`. `buildWelcomeLayout()` uses `cx=0`, so the seated figure and central spine are exactly on that camera axis rather than merely centered inside an asymmetric authored layout.
 
-Work experience and Education default to `timelineNav='scroll'`. Their explicit `scrollOrder` starts at the overview and proceeds newest to oldest. While docked there, wheel and either arrow pair step the internal timeline; clicking an ASCII list entry jumps directly to it. Crossing the list boundary continues to the adjacent journey stop. Auto tour uses the same timeline stepper. The Journey dev-panel setting **Experience & Education** switches to `rotate`, restoring the panorama, drag-look, and rotation-arrow behavior without changing other stops.
+Work experience and Education default to `timelineNav='scroll'`. Their explicit `scrollOrder` starts at the overview and proceeds newest to oldest. At v72 the wheel and either arrow pair stepped the internal timeline; v89 dedicates the wheel to zoom, while either arrow pair or a direct ASCII-list click changes entries. Crossing the list boundary continues to the adjacent journey stop. Auto tour uses the same timeline stepper. The Journey dev-panel setting **Experience & Education** switches to `rotate`, restoring the panorama, drag-look, and rotation-arrow behavior without changing other stops.
 
 ## Scene bounds and the path
 

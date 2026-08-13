@@ -1,5 +1,26 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v89 - one-time greeting, immediate links, and larger identity frame
+
+The default keyboard greeting is now a first-visit event per page session.
+`dock()` records `welcomeVisited` and sets `welcomeTypeThisVisit` only for the first
+Welcome arrival. `buildWelcomeLayout()` emits the temporary `typeTitle` spec during
+that visit; every later arrival puts the same stencil title into `lay.items`, so it
+assembles from terrain with the calendar, figure, and side groups. Live-stats rebuilds
+during the first dock keep using that dock's typewriter presentation.
+
+Side links no longer wait for the title clock. `updateWelcomeNav()` makes each button
+actionable as soon as the main facet reaches `hold` and its row is visible. Project
+selection follows the same rule in `showProjectStage()` and `updateWelcome()`. The
+commit banner still uses `welcomeTitleDoneAt()` for its first-message pause, so its
+first stream does not compete with the one-time typing animation.
+
+The factory `WELCOME_SIZE` is `1.12` (the visual equivalent of roughly two normal
+mouse-wheel zoom ticks from the former `0.90` frame). Project focus is deliberately
+unchanged: `WPF_WELCOME_REF=0.90` normalizes `main.f` before `WPF_SCALE` and the
+existing viewport caps are applied. Changing Welcome's identity size therefore does
+not enlarge or clip an opened project.
+
 ## v88 - larger project focus, direct previews, and quicker edge fade
 
 Focused project compositions are 25% larger than v87:
@@ -138,7 +159,7 @@ The terrain claim budget is unchanged: Welcome still claims 3,437 records and th
 normalized project reserve still claims 1,836 of the real 13,268-glyph pool,
 leaving 7,995 spare. Reused keyboard-title proxies do not add terrain claims.
 
-## v84 - click-only projects, greeting gate, quieter commit banner
+## v84 - click-only projects, former greeting gate, quieter commit banner
 
 Welcome project rows still brighten and swell on pointer hover or keyboard focus,
 but neither interaction assembles the auxiliary project stage. A pointer click or
@@ -146,11 +167,9 @@ Enter is now the only way to select and display a project; clicking a project in
 the fixed Portfolio rail remains an explicit selection and still carries it back
 to Welcome.
 
-The side-column destinations remain visible while the greeting types, but their
-hit targets (`b.shown`) stay disabled until the final title glyph finishes its
-pop. `welcomeTitleDoneAt()` is the shared timing source for this interaction gate
-and the commit banner's first-message pause. Classic assembled-title mode unlocks
-when the main facet reaches `hold`.
+At v84 the side-column hit targets stayed disabled until the final title glyph.
+v89 retires that interaction gate: `welcomeTitleDoneAt()` now times only the commit
+banner, while visible rows become actionable at facet `hold`.
 
 `welcomeMessages()` is again limited to the four commit totals. The v81 README
 description and repository-star messages are no longer displayed.

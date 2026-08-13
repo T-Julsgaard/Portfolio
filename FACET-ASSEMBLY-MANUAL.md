@@ -7,6 +7,29 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v89 addendum: one-time Welcome title and immediate navigation
+
+The keyboard greeting is no longer replayed on every Welcome assembly. `dock()` owns
+the page-session visit state: the first Welcome arrival sets
+`welcomeTypeThisVisit=true`, while later arrivals make `buildWelcomeLayout()` place
+the stencil title in ordinary `lay.items`. Keep that decision at the visit boundary;
+setting it inside `buildWelcomeLayout()` would make a live-stats reassembly change the
+title presentation halfway through the same dock.
+
+Welcome buttons become actionable when the facet reaches `hold` and their row is
+visible. `welcomeIntroReady()` is intentionally removed. `welcomeTitleDoneAt()` remains
+only for the commit banner's first pause. This split allows navigation during the
+one-time typing without creating a second visual assembly sequence.
+
+The identity facet's factory size is now `1.12`. The auxiliary project stage must stay
+independent: normalize `main.f` through `WPF_WELCOME_REF=0.90` before applying
+`WPF_SCALE` and viewport caps. Otherwise changing the identity framing silently changes
+the project composition the user already approved.
+
+Work/Education timelines no longer intercept wheel deltas. Their persistent list,
+timeline arrows, keyboard paths, `timelineTo()` handoff, and immutable `baseTo` rules
+are unchanged; the global docked wheel path now zooms the camera there.
+
 ## v88 addendum: projected form fields and retained project surfaces
 
 The Contact inputs are no longer positioned with an axis-aligned screen rectangle.
@@ -131,18 +154,17 @@ Budget remains the v83 budget: 3,437 Welcome claims + 1,836 project-reserve clai
 out of 13,268, leaving 7,995 spare. Keyboard-title proxies are pooled glyphs rather
 than terrain claims.
 
-## v84 addendum: optional cover switchers and gated Welcome links
+## v84 addendum: optional cover switchers and the former Welcome gate
 
 `switchArrows:false` is the supported way for a multi-`vids` cover to omit the
 visual `addUDArrows()` pair while retaining caption clicks and keyboard switching.
 Do not remove the `vids` array or special-case the input handlers to achieve the
 same visual result.
 
-Welcome side-column rows may be visually present before they are actionable.
-`updateWelcomeNav()` keeps each row item's `shown` state tied to scroll visibility,
-while the button's `shown` state also requires `welcomeIntroReady()`. Preserve that
-split: hiding the row items until the title completes would reintroduce a second,
-unrelated assembly sequence.
+At v84 Welcome side-column rows were visually present before they became actionable,
+and button `shown` also required `welcomeIntroReady()`. v89 retires that gate: item and
+button visibility now follow the same hold/scroll-window boundary. Continue avoiding
+a second delayed row animation.
 
 Timeline-arrow spacing belongs inside `addTimelineArrows()`. Its returned `top` and
 `bottom` bounds must continue to include any larger gap so the list layout's fit and

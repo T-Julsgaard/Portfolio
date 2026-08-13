@@ -22,7 +22,7 @@
   #journey-rails.at-welcome .journey-rail { pointer-events:none; }
   .journey-rail {
     position:fixed; top:50%; transform:translateY(-50%);
-    display:flex; flex-direction:column; gap:9px; pointer-events:none; opacity:0;
+    display:flex; flex-direction:column; gap:0; pointer-events:none; opacity:0;
     transition:opacity .16s ease, transform .18s cubic-bezier(.22,.8,.28,1);
   }
   #rail-about { left:22px; align-items:flex-start; transform:translate(-7px,-50%); }
@@ -30,6 +30,20 @@
     right:22px; align-items:flex-end; transform:translate(7px,-50%);
   }
   #journey-rails.docked .journey-rail { opacity:1; pointer-events:auto; transform:translate(0,-50%); }
+  .rail-toggle {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    border:0; padding:3px 2px; background:transparent; color:rgba(255,255,255,.58);
+    font:inherit; cursor:pointer; transition:color .18s ease;
+  }
+  .rail-toggle:is(:hover,:focus-visible) { color:#fff; outline:none; }
+  .rail-heading { font-size:8px; letter-spacing:.16em; text-transform:uppercase; white-space:nowrap; }
+  .rail-arrow { font-size:10px; line-height:1; }
+  .rail-items { display:grid; grid-template-rows:0fr; opacity:0; margin-top:0; pointer-events:none;
+    transition:grid-template-rows .22s cubic-bezier(.22,.8,.28,1), opacity .16s ease, margin-top .22s ease; }
+  .rail-items-inner { min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:9px; }
+  #rail-about .rail-items-inner { align-items:flex-start; }
+  #rail-portfolio .rail-items-inner { align-items:flex-end; }
+  .journey-rail.expanded .rail-items { grid-template-rows:1fr; opacity:1; margin-top:7px; pointer-events:auto; }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
     background:transparent; border:none; padding:2px; cursor:pointer;
@@ -55,8 +69,8 @@
   #rail-portfolio .rail-project .dot { border-radius:50%; transform:none; }
   #journey-rails.docked .rail-project:is(:hover,:focus-visible) { opacity:1; }
   .rail-stop.done .dot,.rail-stop.current .dot { background:transparent; box-shadow:none; }
-  /* Labels stay expanded while docked, retract during travel, then slide back in at
-     touchdown. Welcome hides both rails because its in-scene columns already navigate. */
+  /* Group headings appear while docked; visitors expand either link list on demand.
+     Welcome hides both rails because its in-scene columns already navigate. */
 
   /* Project demos develop into the auxiliary Welcome facet just like the chess board:
      fixed internal pixels, one projective matrix, and no screen-space modal/backdrop. */
@@ -694,7 +708,7 @@
         </label>
         <label>Title reveal
           <select id="welTitleSelect">
-            <option value="type">Keyboard typewriter</option>
+            <option value="type">Keyboard typewriter (first visit)</option>
             <option value="assemble">Assemble (classic)</option>
           </select>
         </label>
@@ -731,8 +745,8 @@
           </select>
         </label>
         <div class="row"><span>About Me scrollbar</span><input type="checkbox" id="toggleWelAboutScroll"></div>
-        <label>Panorama Size <span id="valWelSize">0.90</span>
-          <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="0.90">
+        <label>Panorama Size <span id="valWelSize">1.12</span>
+          <input type="range" id="welSize" min="0.5" max="2" step="0.01" value="1.12">
         </label>
         <label>Clearing Halo <span id="valWelHalo">0.05</span>
           <input type="range" id="welHalo" min="0" max="0.25" step="0.01" value="0.05">
@@ -2166,6 +2180,23 @@ const railWrap=document.getElementById('journey-rails');
 railWrap.dataset.railStyle='nodes';
 const railAbout=document.getElementById('rail-about'), railPortfolio=document.getElementById('rail-portfolio');
 const railEls=[];
+function initRailGroup(nav,label){
+  const toggle=document.createElement('button'), shell=document.createElement('div'), inner=document.createElement('div');
+  toggle.type='button'; toggle.className='rail-toggle'; toggle.setAttribute('aria-expanded','false');
+  toggle.setAttribute('aria-label','Expand '+label+' links');
+  toggle.innerHTML='<span class="rail-heading">[ '+label+' ]</span><span class="rail-arrow" aria-hidden="true">&#8595;</span>';
+  shell.className='rail-items'; inner.className='rail-items-inner'; inner.id=nav.id+'-items';
+  toggle.setAttribute('aria-controls',inner.id); shell.appendChild(inner); nav.append(toggle,shell);
+  toggle.addEventListener('click',()=>{
+    const expanded=nav.classList.toggle('expanded');
+    toggle.setAttribute('aria-expanded',String(expanded));
+    toggle.setAttribute('aria-label',(expanded?'Collapse ':'Expand ')+label+' links');
+    toggle.querySelector('.rail-arrow').textContent=expanded?'\u2191':'\u2193';
+  });
+  return inner;
+}
+const railAboutItems=initRailGroup(railAbout,'ABOUT ME');
+const railPortfolioItems=initRailGroup(railPortfolio,'PORTFOLIO');
 function addRailStop(parent,st,k){
   const b=document.createElement('button'); b.className='rail-stop'; b.type='button';
   b.setAttribute('aria-label','Go to '+st.label);
@@ -2178,17 +2209,16 @@ function addRailProject(project){
   row.setAttribute('aria-label','Show '+project.label+' at Welcome');
   row.innerHTML='<span class="lbl">'+project.label+'</span><span class="dot"></span>';
   row.addEventListener('click',()=>selectProjectFromRail(project.id));
-  railPortfolio.appendChild(row);
+  railPortfolioItems.appendChild(row);
 }
 const welcomeRailIdx=STOPS.findIndex(st=>st.id==='welcome');
-addRailStop(railAbout,STOPS[welcomeRailIdx],welcomeRailIdx);
-STOPS.forEach((st,k)=>{ if(st.id!=='welcome'&&st.id!=='cases') addRailStop(railAbout,st,k); });
-addRailStop(railPortfolio,STOPS[welcomeRailIdx],welcomeRailIdx);
+addRailStop(railAboutItems,STOPS[welcomeRailIdx],welcomeRailIdx);
+STOPS.forEach((st,k)=>{ if(st.id!=='welcome'&&st.id!=='cases') addRailStop(railAboutItems,st,k); });
+addRailStop(railPortfolioItems,STOPS[welcomeRailIdx],welcomeRailIdx);
 const casesRailIdx=STOPS.findIndex(st=>st.id==='cases');
-addRailStop(railPortfolio,STOPS[casesRailIdx],casesRailIdx);
+addRailStop(railPortfolioItems,STOPS[casesRailIdx],casesRailIdx);
 PORTFOLIO_PROJECTS.forEach(addRailProject);
 for(const r of [railAbout,railPortfolio]){
-  r.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
   r.addEventListener('keydown',e=>{
     if(e.key!=='ArrowUp'&&e.key!=='ArrowDown'&&e.key!=='Home'&&e.key!=='End') return;
     const opts=[...r.querySelectorAll('button.rail-stop')], i=opts.indexOf(document.activeElement);
@@ -2235,7 +2265,7 @@ function showProjectStage(id,pin){
   if(projectLiveOpen&&changed) closeProjectLive(false,false,false);
   projectStageState.id=id; projectStageState.pinned=!!pin||wasPinned;
   projectStageState.previewDismissed=false;
-  if(welcome.active&&welcome.F&&welcome.F.state==='hold'&&welcomeIntroReady(welcome.F,performance.now()))
+  if(welcome.active&&welcome.F&&welcome.F.state==='hold')
     startWelcomeProjectFocus(p,performance.now());
 }
 function closeProjectStage(){
@@ -2692,7 +2722,7 @@ let stopInfoMode=ud('stopInfoSelect','assemble'); // 'assemble' | 'panel'
 // welcome-stop framing (dev panel > Welcome Stop): WELCOME_SIZE scales the panorama
 // below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
 // halo (rad past the content) — see the assembleStop def note.
-let WELCOME_SIZE=ud('welSize',0.90), WELCOME_HALO=ud('welHalo',0.05);
+let WELCOME_SIZE=ud('welSize',1.12), WELCOME_HALO=ud('welHalo',0.05);
 /* Welcome side groups: real stop links flank the central figure, with temporary project
    names filling the Portfolio column. Every line is part of the main facet assembly; the
    old delayed section-by-section rewrite is gone. Real links still swell on hover. */
@@ -2717,10 +2747,11 @@ const WTW_KEY=105, WTW_GAP=380, WTW_DELAY=260, WTW_POP=100;
 //  'html' — a faithful HTML/SVG recreation of react-github-calendar, overlaid while docked;
 //           in this mode buildWelcomeLayout omits the glyph calendar (title/figure/banner stay).
 let welcomeCal=localStorage.getItem('pf_welcome_cal')||ud('welCalSelect',WELCOME_CAL_DEFAULT);
-/* welcome title (v63, dev panel > Welcome Stop):
-   'type' (default) — an independent keyboard reveal that allocates fresh stencil cells;
-   'assemble' — the classic terrain-glyph reveal. Both sit directly above the figure. */
+/* welcome title: the default independent keyboard reveal runs only on the first Welcome
+   visit in this page session. Later visits use ordinary terrain-glyph assembly; the
+   classic setting assembles on every visit. Both sit directly above the figure. */
 let welcomeTitle=localStorage.getItem('pf_welcome_title')||'type', suppressWelcomeReassemble=false;
+let welcomeVisited=false, welcomeTypeThisVisit=false;
 function reassembleWelcome(){ // live-rebuild the welcome facet if currently docked there
   if(!suppressWelcomeReassemble&&uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
@@ -3572,7 +3603,7 @@ function configureProjectStage(F,p,now,force,externalTargets){
 /* Welcome project focus: the auxiliary facet is centred and independently scaled, but
    most of its visible targets are filled by glyphs that are ALREADY holding the greeting,
    figure, and contribution calendar. The project facet supplies only the shortfall. */
-const WPF_SCALE=2.10, WPF_VIEW_FILL=0.94;
+const WPF_SCALE=2.10, WPF_VIEW_FILL=0.94, WPF_WELCOME_REF=0.90;
 const WPF_SIDE_SHIFT=13.1, WPF_SIDE_MS=320, WPF_LEAD=190, WPF_FLY=720, WPF_STAG=170;
 const PROJECT_PREVIEW_DELAY=1150; // a short read, then a brisk ASCII-to-project development
 function welcomeProjectSideDX(group){
@@ -3792,7 +3823,7 @@ function buildWelcomeLayout(){
   const miW=(G.cols-1)*cwP, miH=(G.rows-1)*chP, miTop=10.20, miX0=-miW/2;
   const titleText="HI, I'M THOMAS.", tCell=0.20, tW=stCols(titleText)*tCell, titleTop=13.05, tX0=-tW/2;
   let typeTitle=null;
-  if(welcomeTitle==='type') typeTitle=buildWelcomeTypeSpec(titleText,tCell,tX0,titleTop);
+  if(welcomeTitle==='type'&&welcomeTypeThisVisit) typeTitle=buildWelcomeTypeSpec(titleText,tCell,tX0,titleTop);
   else { const titleStart=items.length; layStencilLine(items,titleText,tCell,tX0,titleTop);
     for(let i=titleStart;i<items.length;i++) items[i].welcomePart='center'; }
 
@@ -4214,7 +4245,7 @@ function welcomeScrollBarHit(x,y,onlyGroup,draggingBar){
   return null;
 }
 function updateWelcomeNav(now,dt){
-  const F=welcome.F, holding=F.state==='hold', ready=welcomeIntroReady(F,now),
+  const F=welcome.F, holding=F.state==='hold',
     hoverKinds=new Set(F.btns.filter(b=>b.hover).map(b=>b.kind));
   for(const b of F.btns){
     if(b.ws){
@@ -4223,7 +4254,7 @@ function updateWelcomeNav(now,dt){
     }
     if(b.nav!==undefined){
       const visible=holding&&(!b.ws||welcomeScrollAlpha(b)>0.55);
-      b.shown=ready&&visible;
+      b.shown=visible;
       if(b.ws){ const slot=b.wsr-welcomeScrollPos[b.ws], pitch=F.lay.wsPitch?F.lay.wsPitch[b.ws]:WNAV_PITCH; b.cy=F.lay.wsTop-slot*pitch+b.wsDY; }
       for(const it of b.items) it.shown=visible;
     }
@@ -4278,7 +4309,6 @@ function welcomeTitleDoneAt(F){
   const spec=F&&F.lay&&F.lay.typeTitle;
   return spec?F.holdT0+WTW_DELAY+welcomeKeyAt(Math.max(0,spec.text.length-1))+WTW_POP:(F?F.holdT0:Infinity);
 }
-function welcomeIntroReady(F,now){ return !!F&&F.state==='hold'&&now>=welcomeTitleDoneAt(F); }
 /* Independent keyboard reveal: every key makes one complete stencil character pop into
    place. These glyphs are freshly allocated and never leave holes in the portrait. */
 function updateWelcomeTitle(now){
@@ -4312,7 +4342,7 @@ function updateWelcome(now,dt){
       if(!welcome.banner) initBanner(now);
       updateWelcomeBanner(now); updateWelcomeWave(now); updateWelcomeNav(now,dt); updateWelcomeTitle(now);
       const p=projectStageState.id&&projectById(projectStageState.id);
-      if(p&&welcomeIntroReady(welcome.F,now)&&!projectLiveOpen) startWelcomeProjectFocus(p,now);
+      if(p&&!projectLiveOpen) startWelcomeProjectFocus(p,now);
     }
   }
   else {
@@ -4462,7 +4492,10 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
       const focusViewH=2*Math.tan(THREE.MathUtils.degToRad(JOURNEY_FOV)/2)*main.dist;
       const focusViewW=focusViewH*camera.aspect;
       PF.dir.copy(main.dir); PF.right.copy(main.right); PF.up.copy(main.up);
-      PF.f=Math.min(main.f*WPF_SCALE,WPF_VIEW_FILL*focusViewH/PF.lay.h,WPF_VIEW_FILL*focusViewW/PF.lay.w);
+      /* Normalize the enlarged Welcome facet back to its former identity scale before
+         applying the project multiplier, so project focus keeps its established size. */
+      const projectMainF=main.f*WPF_WELCOME_REF/WELCOME_SIZE;
+      PF.f=Math.min(projectMainF*WPF_SCALE,WPF_VIEW_FILL*focusViewH/PF.lay.h,WPF_VIEW_FILL*focusViewW/PF.lay.w);
       PF.anchor.copy(main.anchor);
       const fromEye=_aV.copy(PF.anchor).sub(_aP), centreDist=fromEye.length();
       PF.yaw=Math.atan2(fromEye.y,fromEye.x); PF.pitch=Math.asin(Math.max(-1,Math.min(1,fromEye.z/centreDist))); PF.dist=centreDist;
@@ -4574,7 +4607,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
   const timelineFacet=scrollMode?facets.find(F=>F.timelineNav):null;
   if(timelineFacet) timelineFacet.timelineCaret=timelineFacet.items.find(it=>it.timelineCaret)||null;
   stopFacets={k, facets, yaw0, pitch0, byMesh, scrollMode, scrollFacets, timelineFacet,
-    projectStage:facets.find(F=>F.projectStage)||null, scrollIndex:0, scrollBusyUntil:0, scrollWheel:0};
+    projectStage:facets.find(F=>F.projectStage)||null, scrollIndex:0, scrollBusyUntil:0};
   if(scrollMode) syncTimelineArrows(stopFacets);
   // the flight already pulled the gaze up to the horizon on approach (levelQuat blend in
   // frame()), so set BOTH current and target to level: docking involves zero re-aim
@@ -4926,7 +4959,7 @@ function timelineTo(idx){
       .addScaledVector(nav.up,nav.lay.timelineY[idx]*nav.f);
     nav.caretMove={from:caret.to.clone(),to:target,t0:now};
   }
-  S.scrollIndex=idx; S.scrollBusyUntil=now+TL_MS; S.scrollWheel=0;
+  S.scrollIndex=idx; S.scrollBusyUntil=now+TL_MS;
   syncTimelineArrows(S);
   dockZoomT=1; renderDirty=true; glyphsDirty=true;
   return true;
@@ -5900,6 +5933,10 @@ function dock(k){
     beginProcessingFade();
   }
   syncInspectScene(); // the glyph inspector auto-follows the stop you land on
+  if(STOPS[k]&&STOPS[k].github){
+    welcomeTypeThisVisit=welcomeTitle==='type'&&!welcomeVisited;
+    welcomeVisited=true;
+  }
   showStop(k);
   if(stopInfoMode==='assemble') assembleStop(k);
   // flipped stop (v59, reworked): the flight/enter already swivelled the half-turn onto the
@@ -6363,9 +6400,8 @@ function setInspect(on){
   renderDirty=true; glyphsDirty=true;
 }
 
-/* input: at a stop, scroll (or drag) charges the departure — the thin bar under the
-   hint fills — then the flight launches. Rail dots, space and PageUp/PageDown also travel
-   (v68: the arrow keys no longer travel in assemble mode — they work the stop itself). */
+/* Input: wheel zooms every assembled stop (except auto tour and local scroll surfaces).
+   Rail links, space and PageUp/PageDown travel; timeline lists/arrows step their entries. */
 addEventListener('wheel',e=>{
   if(moreOpen) return; // reading a card shouldn't charge a departure (wheel over the chess embed never reaches us — the iframe consumes it)
   if(inspectActive()) return; // inspector: freeze the view so the x-ray can be studied
@@ -6378,13 +6414,8 @@ addEventListener('wheel',e=>{
     welcomeScrollBy(group,e.deltaY*WELCOME_SCROLL_WHEEL);
     return;
   } }
-  if(stopInfoMode==='assemble'&&stopFacets&&stopFacets.scrollMode){
-    stopFacets.scrollWheel+=e.deltaY;
-    if(Math.abs(stopFacets.scrollWheel)>=70) timelineStep(stopFacets.scrollWheel>0?1:-1);
-    return;
-  }
-  if(stopInfoMode==='assemble'&&!autoTour){ // v63: docked scroll ZOOMS (scroll-to-depart is gone;
-    // auto tour keeps it — there the wheel is the only travel input by design)
+  if(stopInfoMode==='assemble'&&!autoTour){ // docked scroll always zooms, including Work/Education;
+    // auto tour keeps wheel travel because the wheel is its only input by design
     dockZoomT=Math.max(1,Math.min(DOCK_ZOOM_MAX,dockZoomT*Math.exp(-e.deltaY*0.0011)));
     return;
   }
@@ -6835,12 +6866,12 @@ const DEV_TIPS={
   travelAdjSelect:'Camera style used when moving to the neighbouring stop.', travelFarSelect:'Camera style used when jumping across several stops.',
   toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.', toggleCursorSway:'Adds a subtle passive camera response to pointer position while docked.',
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
-  timelineStyleSelect:'Formats the persistent Experience and Education list without changing its scroll behavior.',
+  timelineStyleSelect:'Formats the persistent Experience and Education list without changing its navigation behavior.',
   toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.',
   arrowSelect:'Visual design of the in-scene rotate controls.',
   asmAdv:'Horizontal spacing between letters in assembled prose.', welFigSelect:'Chooses the central ASCII figure on Welcome.',
   welWaveSelect:'Changes the figure\'s greeting motion.', welCalSelect:'Changes how the GitHub contribution calendar is drawn and developed.',
-  welTitleSelect:'Chooses the greeting\'s typewriter or terrain-assembly reveal.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
+  welTitleSelect:'Chooses a first-visit typewriter greeting or terrain assembly on every visit.', welBannerSelect:'Chooses how live commit statistics form beneath the calendar.',
   welHeadingSelect:'Chooses alignment and typography for the two Welcome column headings.',
   welScrollSelect:'Chooses the ASCII scrollbar design for About me and Portfolio.',
   welScrollSideSelect:'Places each Welcome scrollbar to the left, right, or on both sides of its list.',
@@ -7073,7 +7104,7 @@ const CTRL_DEF={
   arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
   asmAdv:['range',0.60],
-  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',0.90], welHalo:['range',0.05],
+  welFigSelect:['select','scene'], welWaveSelect:['select','friendly'], welCalSelect:['select',WELCOME_CAL_DEFAULT], welSize:['range',1.12], welHalo:['range',0.05],
   welTitleSelect:['select','type'], welBannerSelect:['select','burst'], welHeadingSelect:['select','bracket-center'],
   welScrollSelect:['select','brackets'], welScrollSideSelect:['select','right'], toggleWelAboutScroll:['check',false]
 };

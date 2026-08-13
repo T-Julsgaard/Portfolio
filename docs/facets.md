@@ -1,5 +1,24 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v89 - first-visit Welcome typing and ungated facet links
+
+Welcome's keyboard title is now scoped to the first Welcome dock in a page session.
+`welcomeTypeThisVisit` decides whether `buildWelcomeLayout()` returns a temporary
+`typeTitle` spec or adds the stencil cells to ordinary `items`. The latter path is
+the normal facet claim/flight/restore lifecycle and is used on every return visit.
+Do not persist `welcomeVisited` in local storage: a reload intentionally restores the
+intro moment.
+
+Welcome row visibility and interactivity now share the facet hold boundary.
+`updateWelcomeNav()` keeps scroll-window visibility on the item and button records,
+but the removed `welcomeIntroReady()` gate must not be reintroduced. Project focus is
+also allowed at hold, even if the one-time title is still typing. The banner is the
+only subsystem that still reads `welcomeTitleDoneAt()`.
+
+Work/Education `scrollMode` no longer owns wheel deltas. Timeline buttons, list rows,
+and keyboard dispatch still call `timelineStep()` and preserve the same handoff and
+caret invariants; the global assembled-stop wheel path now controls camera zoom.
+
 ## v88 - contact homography and project develop continuity
 
 Contact fields now use a true four-corner world-to-screen projection. For each
@@ -154,9 +173,9 @@ Milestone rail is now the factory Work/Education list skin. A new factory-on
 **Timeline arrows** control adds vertical versions of the selected rotation-arrow
 art to the persistent list facet. At the overview only the down control is live;
 after the first step both directions appear, and at the final entry only up remains.
-The controls call the existing `timelineStep()` path, so caret motion, handoff, wheel,
-and keyboard behavior are unchanged. Work/Education remain far below the glyph-pool
-limit.
+The controls call the existing `timelineStep()` path, so caret motion and handoff are
+shared with keyboard navigation. At v78 wheel behavior matched that path; v89 assigns
+wheel input to dock zoom instead. Work/Education remain far below the glyph-pool limit.
 
 Contact inputs now keep an opaque black fill both idle and focused; focus no longer
 lays a gray tint over the assembled field. The title-to-form gap grew by 0.35 layout
