@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-08-13T19:36:18.306Z",
+  "generatedAt": "2026-08-13T20:39:40.465Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 0,
-    "month": 0,
-    "year": 195,
-    "total": 230,
+    "today": 10,
+    "month": 10,
+    "year": 208,
+    "total": 243,
     "currentStreak": 0,
     "longestStreak": 9,
     "breakdown": {
-      "commits": 190,
+      "commits": 203,
       "issues": 0,
       "pullRequests": 0,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 0,
-    "month": 0,
-    "year": 190,
-    "total": 221
+    "today": 10,
+    "month": 10,
+    "year": 203,
+    "total": 234
   },
   "calendar": [
     {
@@ -2243,7 +2243,7 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 11448208,
+        "bytes": 11450333,
         "percent": 93.1
       },
       {
@@ -2253,7 +2253,7 @@
       },
       {
         "name": "Python",
-        "bytes": 245514,
+        "bytes": 246422,
         "percent": 2
       },
       {
@@ -2273,10 +2273,10 @@
       }
     ],
     "mostRecent": {
-      "name": "portfolio",
-      "description": "portfolio",
-      "url": "https://github.com/T-Julsgaard/portfolio",
-      "pushedAt": "2026-07-06T23:03:01Z",
+      "name": "danish-wind-mapper",
+      "description": "A Python application for visualizing Denmark's wind energy infrastructure on an interactive HTML map, including turbine locations, ownership data, and related metadata.",
+      "url": "https://github.com/T-Julsgaard/danish-wind-mapper",
+      "pushedAt": "2026-08-13T19:58:36Z",
       "language": "HTML"
     },
     "featured": [
@@ -2311,8 +2311,8 @@
         "name": "danish-wind-mapper",
         "description": "A Python application for visualizing Denmark's wind energy infrastructure on an interactive HTML map, including turbine locations, ownership data, and related metadata.",
         "url": "https://github.com/T-Julsgaard/danish-wind-mapper",
-        "homepageUrl": "",
-        "pushedAt": "2025-12-10T13:42:53Z",
+        "homepageUrl": "https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/Interactive_wind_map_preview.html",
+        "pushedAt": "2026-08-13T19:58:36Z",
         "stars": 0,
         "language": "HTML"
       },
@@ -2320,8 +2320,8 @@
         "name": "bitcoin-mining-miningame",
         "description": "A real-time visualization experiment that transforms live blockchain data into a skill-based clicker game. ",
         "url": "https://github.com/T-Julsgaard/bitcoin-mining-miningame",
-        "homepageUrl": "",
-        "pushedAt": "2025-12-12T14:15:57Z",
+        "homepageUrl": "https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/btc_miner_preview.html",
+        "pushedAt": "2026-08-13T19:45:52Z",
         "stars": 0,
         "language": "Python"
       }
