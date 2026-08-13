@@ -1,5 +1,18 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v92 - consistent project calls to action and tighter editorial layout
+
+Every PORTFOLIO project now exposes the same primary label, `TRY IT OUT`, beside `OPEN
+REPOSITORY`. The focused dossier is left-aligned from title through prose, and its developed
+surface begins directly after the copy rather than at one fixed low position. The screen
+top is clamped between `1.45` and `3.10`, keeping the composition compact without colliding
+with DocuRAG's longer text or the bottom action row.
+
+Entropy Forge and DocuRAG now develop into the supplied screenshots, joining Chess Review
+on the retained still-image path. The surface border is gone. Danish Wind Mapper remains a
+rebased interactive iframe, but its URL is pinned to the current dark-controls Pages build
+(`9291673`) and fetched without the browser HTTP cache before normal in-session retention.
+
 ## v91 - project dossiers replace default previews
 
 Opening a PORTFOLIO project now reveals a fuller editorial dossier with explicit

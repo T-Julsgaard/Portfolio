@@ -85,7 +85,7 @@
   #project-live.open { visibility:visible; opacity:1; }
   #project-live.open.ready { pointer-events:auto; }
   .pl-shell { width:100%; height:100%; display:flex; flex-direction:column;
-    overflow:hidden; background:#080808; border:1px solid rgba(255,255,255,.42);
+    overflow:hidden; background:#080808; border:0;
     box-shadow:0 18px 60px rgba(0,0,0,.46); }
   .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#080808; }
   #pl-frame,#pl-image { width:100%; height:100%; border:0; display:block; background:#080808; }
@@ -945,7 +945,7 @@
   slider.value = vol;
   // audible once the user has interacted (browser autoplay policy) — or while the load-time
   // gamble is still in flight (browsers that trust this origin allow audible autoplay outright)
-  const effMute = () => muted || (!engaged && !audibleTry);
+  const effMute = () => muted || vol === 0 || (!engaged && !audibleTry);
 
   function setLabel(txt) {
     titleSpan.textContent = txt;
@@ -1918,30 +1918,30 @@ const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.
 const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
     repo:'https://github.com/T-Julsgaard/Chess-Review',
-    actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'GET EXTENSION',
+    actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'TRY IT OUT',
     image:'images/chess-review.png', visual:'chess', accent:'#9ed46b',
     blurb:"Free, open-source game review for your online chess games, powered by Stockfish's Efficiently Updatable Neural Network (NNUE), running locally in your browser. Produces accuracy scores within ~95% of Chess.com's.\n\nOne click turns any Chess.com or Lichess game into a full review. Includes accuracy scores, move-by-move classifications, an evaluation graph, and an estimated rating."},
   {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
     repo:'https://github.com/T-Julsgaard/entropy-forge',
-    actionUrl:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', actionLabel:'OPEN PROJECT',
-    visual:'entropy', accent:'#ef6f55',
+    actionUrl:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', actionLabel:'TRY IT OUT',
+    image:'images/entropy-forge.png', visual:'entropy', accent:'#ef6f55',
     blurb:"Harvest chaos from the real world: earthquakes, weather, the Bitcoin mempool, solar wind — and forge it into randomness. The API version of Cloudflare's lava-lamp wall."},
   {id:'docurag', label:'DocuRAG', repoName:'DocuRAG',
     repo:'https://github.com/T-Julsgaard/DocuRAG',
     actionUrl:'https://t-julsgaard.github.io/DocuRAG/', actionLabel:'TRY IT OUT',
-    visual:'rag', accent:'#7aa2ff',
-    blurb:'A plug-and-play RAG knowledge base for small and mid-size document sets. Inspired by Andrej Karpathy\'s LLM wiki workflow. Point it at a folder of markdown articles and you get a clean chat UI with two modes.\n\nSearch: Instant, server-side keyword search. No LLM, no API cost, no rate limits.\n\nAsk: An agentic RAG assistant (Anthropic Claude) that reads your articles and answers grounded questions, with sources.\n\nIt ships with user accounts, per-user daily limits, an admin usage dashboard, and a small demo knowledge base so it runs the moment you clone it.'},
+    image:'images/docurag.png', visual:'rag', accent:'#7aa2ff',
+    blurb:'A plug-and-play RAG knowledge base for small and mid-size document sets. Point it at a folder of markdown articles and get a clean chat UI.\n\nSearch: Instant server-side keyword lookup. No model, API cost, or rate limits.\n\nAsk: Claude-powered answers grounded in your articles, with sources.\n\nAccounts, daily limits, an admin dashboard, and a demo knowledge base are included.'},
   {id:'danish-wind-mapper', label:'Danish wind mapper', repoName:'danish-wind-mapper',
     repo:'https://github.com/T-Julsgaard/danish-wind-mapper',
-    actionUrl:'https://t-julsgaard.github.io/danish-wind-mapper/', actionLabel:'OPEN MAP',
+    actionUrl:'https://t-julsgaard.github.io/danish-wind-mapper/', actionLabel:'TRY IT OUT',
     liveMode:'rebased', desktop:true,
-    live:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/Interactive_wind_map_preview.html',
+    live:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/Interactive_wind_map_preview.html?v=9291673',
     liveBase:'https://t-julsgaard.github.io/danish-wind-mapper/wind-asset-map/',
     visual:'wind', accent:'#69c7d5',
     blurb:"Python-based visualization tool that generates a dynamic map of Denmark's wind energy infrastructure. Features include interactive filtering for individual turbines, wind parks, and owner information, complete with financial data and capacity metrics."},
   {id:'bitcoin-miningame', label:'Bitcoin miningame', repoName:'bitcoin-mining-miningame',
     repo:'https://github.com/T-Julsgaard/bitcoin-mining-miningame',
-    actionUrl:'https://t-julsgaard.github.io/bitcoin-mining-miningame/', actionLabel:'PLAY GAME',
+    actionUrl:'https://t-julsgaard.github.io/bitcoin-mining-miningame/', actionLabel:'TRY IT OUT',
     liveMode:'rebased',
     live:'https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/btc_miner_preview.html',
     liveBase:'https://t-julsgaard.github.io/bitcoin-mining-miningame/Bitcoin_Miner_Minigame/output/',
@@ -2401,7 +2401,7 @@ async function openProjectLive(id){
       plFrame.setAttribute('sandbox','allow-scripts allow-forms allow-same-origin allow-downloads allow-popups');
       let html=projectHtmlCache.get(id);
       if(!html){
-        const r=await fetch(p.live,{cache:'force-cache'}); if(!r.ok) throw new Error('HTTP '+r.status);
+        const r=await fetch(p.live,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
         html=await r.text(); if(token!==projectLoadToken||!projectLiveOpen) return;
         const base='<base href="'+p.liveBase+'">';
         html=/<head[\s>]/i.test(html)?html.replace(/<head([^>]*)>/i,'<head$1>'+base):base+html;
@@ -3486,8 +3486,9 @@ function projectStageArt(type){
 }
 function buildProjectStageLayout(p){
   const items=[], btns=[], W=PROJECT_STAGE_W, H=PROJECT_STAGE_H, top=H/2, bot=-H/2;
+  const copyLeft=-W/2+1.15, copyWidth=W-2.3;
   const putLine=(text,s,y,maxW,L,extra)=>{
-    const t=asciiSafe(String(text)).toUpperCase(), q0=layoutLine(t,s), ss=q0.w>maxW?s*(maxW/q0.w):s, q=layoutLine(t,ss), x0=-q.w/2;
+    const t=asciiSafe(String(text)).toUpperCase(), q0=layoutLine(t,s), ss=q0.w>maxW?s*(maxW/q0.w):s, q=layoutLine(t,ss), x0=copyLeft;
     for(let i=0;i<t.length;i++) if(t[i]!==' '){
       const it={ch:t[i],x:x0+q.xs[i],y:y+chBase(t[i])*ss,s:ss,L,tf:1};
       if(extra) Object.assign(it,extra);
@@ -3507,21 +3508,22 @@ function buildProjectStageLayout(p){
   const closeItems=items.filter(it=>it.btn==='project-close');
   for(const it of closeItems) it.x+=halfW-1.05;
   btns.push({kind:'project-close',cx:halfW-1.05,cy:top-0.72,hw:0.62,hh:0.62});
-  const title=stencilSafe(p.label), titleCell=Math.min(0.18,(W-2.0)/stCols(title)), titleW=stCols(title)*titleCell, titleTop=top-0.65;
-  layStencilLine(items,title,titleCell,-titleW/2,titleTop);
+  const title=stencilSafe(p.label), titleCell=Math.min(0.18,copyWidth/stCols(title)), titleTop=top-0.65;
+  layStencilLine(items,title,titleCell,copyLeft,titleTop);
   const hasSurface=projectCanPreview(p), bodyTop=titleTop-7*titleCell-0.62;
-  const paras=asciiSafe(p.blurb).split(/\n\s*\n/).filter(Boolean), bodyS=hasSurface?0.31:0.39;
-  const bodyStep=hasSurface?0.43:0.54, paraGap=hasSurface?0.17:0.29, bodyCols=hasSurface?56:54;
+  const paras=asciiSafe(p.blurb).split(/\n\s*\n/).filter(Boolean), bodyS=hasSurface?0.32:0.39;
+  const bodyStep=hasSurface?0.44:0.54, paraGap=hasSurface?0.20:0.29, bodyCols=hasSurface?66:58;
   let bodyY=bodyTop;
   paras.forEach((para,pi)=>{
     const strong=/^(SEARCH|ASK):/i.test(para), lines=wrapText(para,bodyCols);
-    lines.forEach(line=>{ putLine(line,bodyS,bodyY,W-2.0,strong?0.86:0.68); bodyY-=bodyStep; });
+    lines.forEach(line=>{ putLine(line,bodyS,bodyY,copyWidth,strong?0.86:0.68); bodyY-=bodyStep; });
     if(pi<paras.length-1) bodyY-=paraGap;
   });
 
   let projectRect=null;
   if(hasSurface){
-    const screenCY=-2.95, screenTop=screenCY+PROJECT_SCREEN_H/2, screenBot=screenCY-PROJECT_SCREEN_H/2;
+    const lastBodyY=bodyY+bodyStep, screenTop=Math.max(1.45,Math.min(3.10,lastBodyY-0.65));
+    const screenCY=screenTop-PROJECT_SCREEN_H/2, screenBot=screenTop-PROJECT_SCREEN_H;
     const sx0=-PROJECT_SCREEN_W/2, sx1=PROJECT_SCREEN_W/2, edgeCell=0.44;
     for(let x=sx0;x<=sx1+0.01;x+=edgeCell){
       items.push({ch:'-',x:Math.min(sx1,x),y:screenTop,s:0.31,L:0.32,projectScreen:true});

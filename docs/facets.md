@@ -1,5 +1,24 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v92 - left-aligned project dossiers and supplied stills
+
+Project focus now shares a single editorial left edge: stencil titles and wrapped body
+copy align instead of centring every line independently. Surface copy wraps at 66 columns,
+paragraph spacing is explicit, and the preview top follows the last body baseline within a
+`1.45..3.10` clamp. Short dossiers therefore bring their screenshots substantially higher;
+DocuRAG keeps enough room for its Search / Ask sections. The projected `.pl-shell` border
+is removed, while its shadow and tile reveal remain.
+
+Every project primary action reads `TRY IT OUT`. The supplied Entropy Forge and DocuRAG
+screenshots live at `images/entropy-forge.png` / `images/docurag.png`, so all three still-
+image projects now use the ordinary `image` develop path. Wind's rebased Pages fetch is
+cache-busted to dark-controls commit `9291673` and uses `cache:'no-store'`; the subsequent
+in-memory/iframe retention is still required for seamless reopen.
+
+Real-layout counts are Chess 1,999, Entropy 1,839, DocuRAG 1,803, Wind 1,904, and Bitcoin
+1,819. The 1,999-record Chess reserve plus Welcome's 3,437 claims uses 5,436 of 13,268
+glyphs, leaving 7,832 spare.
+
 ## v91 - text-first project dossiers and selective surfaces
 
 The five Welcome projects now use explicit project and repository actions built by

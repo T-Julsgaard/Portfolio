@@ -7,6 +7,28 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ---
 
+## v92 addendum: left-aligned project stories and complete screenshot set
+
+All five project records now use `TRY IT OUT` for their primary terrain button. Entropy
+Forge and DocuRAG have supplied stills (`images/entropy-forge.png` and
+`images/docurag.png`) and therefore join Chess Review as `image` surfaces; Wind and
+Bitcoin remain interactive. `projectCanPreview()` still derives surface eligibility from
+`image` / `live`, so adding a still needs no special-case branch.
+
+`buildProjectStageLayout()` uses one left edge for the stencil title and every body line.
+Surface copy wraps at 66 columns with a slightly roomier paragraph gap. The screen top is
+no longer the fixed low `y=1.21`: it follows the final body baseline, clamped to
+`1.45..3.10`, which raises short dossiers while preserving DocuRAG's four-part copy. The
+screen shell has no DOM border; the terrain-to-surface handoff itself remains unchanged.
+
+Wind is pinned to upstream dark-controls commit `9291673` through the Pages artifact's
+query string, and the initial fetch uses `cache:'no-store'`. Keep the in-memory HTML and
+mounted-iframe retention: those prevent repeat network work and the white reload edge
+after the current document has loaded.
+
+Real-layout validation measured Chess as the largest reserve at 1,999 records. Welcome's
+3,437 claims plus that maximum use 5,436 of 13,268 terrain glyphs, leaving 7,832 spare.
+
 ## v91 addendum: editorial project dossiers and selective surfaces
 
 Welcome projects no longer treat an embedded preview as the default. Entropy Forge
