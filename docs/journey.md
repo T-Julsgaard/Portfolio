@@ -2,6 +2,27 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## v96: persistent phone journey controls and browser-history unwind
+
+Phones keep the same six stops, Catmull-Rom path, docking state, and canvas flight. A
+safe-area-aware DOM dock adds 48 px Previous, current-section/Details, Next, and Roam
+controls so travel no longer depends on projected glyph labels or desktop side rails. The
+current button opens a scroll-local semantic sheet generated from the active shared stop.
+The fixed desktop rails and standing panel are hidden only under `html.mobile-ui`.
+
+The touch controller owns pointer IDs and capture. One finger still looks around; a
+horizontal swipe steps a panorama/timeline, a vertical swipe steps a timeline or faced
+selector, two fingers drive the existing `dockZoomT`, and taps allow 14 px of finger
+jitter. Completed pinches consume both releases and `pointercancel` clears ownership.
+
+History states are `overview`, `stop`, `sheet`, and `project`. Browser/Android Back
+unwinds project -> sheet -> prior stop -> overview. A sheet action first removes the sheet
+entry and then runs its queued travel/action; using `replaceState` here produces duplicate
+stop entries. Meaningful orientation/width changes rebuild the docked facet while
+preserving its timeline/faced index. Address-bar and keyboard-only height changes do not.
+Project focus and a focused Contact field defer reassembly until the surface closes or the
+field blurs. Full invariants and the test matrix live in `docs/mobile.md`.
+
 ## v89: universal dock zoom and collapsible side groups
 
 The wheel now drives `dockZoomT` at every assembled stop, including Work experience

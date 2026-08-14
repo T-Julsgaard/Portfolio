@@ -5,6 +5,26 @@ Written after v43 (July 2026). This is the playbook for extending or modifying t
 **Case studies**, changing clearing behavior, or debugging glyph transitions. It records
 what we built, *why* it's built that way, and the methodology that made v43 succeed.
 
+## v96 addendum: one facet system, two responsive presentations
+
+There is still one facet/donor system and one content model. `html.mobile-ui` never adds
+claims or substitutes mobile copy: it changes final framing and supplies semantic DOM
+companions for content that cannot remain legible or tappable when projected onto a phone.
+Welcome/gallery covers fit height first; timelines/single facets add a `JOURNEY_FOV` width
+cap; portrait and landscape use documented presentation multipliers. Desktop skips every
+one of those branches and preserves its tuned scale exactly.
+
+A meaningful phone orientation/width change must disassemble/reassemble the active facet
+and restore its timeline or faced index. Do not treat browser-chrome or software-keyboard
+height changes as an orientation rebuild. Project, chess, Contact, read-more, and Details
+surfaces are presentation overlays only: the assembled glyph geometry remains underneath
+and owns the existing donor/handoff lifecycle.
+
+Mobile DOM additions consume zero glyphs. Nevertheless, any edit to shared facet copy,
+stencil controls, covers, or builders still changes the same tight Case Studies pool and
+must run the real-`asciiData` budget. Read `docs/mobile.md` alongside this manual whenever
+a facet change affects framing, controls, overlays, gestures, or fixed viewport geometry.
+
 ---
 
 ## v95 addendum: complete project return, congruent dossiers, and lightweight Wind

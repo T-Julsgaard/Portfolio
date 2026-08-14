@@ -1,5 +1,19 @@
 # Music bar (YouTube streaming player)
 
+## v96 - explicit phone playback and touch-sized controls
+
+Desktop retains the established muted-autostart/first-engagement state machine described
+below. Under `html.mobile-ui`, startup neither loads the YouTube IFrame API nor creates a
+player. Pressing Play or the speaker is explicit media intent, lazy-loads the API/player,
+and starts audible playback inside the activating gesture path. Keep this guard when
+changing autoplay: an unrelated drag through the portfolio must never start phone audio.
+
+Phone controls are 48 px and carry dynamic `aria-label`/`aria-pressed` state. The volume
+range is exposed by focus-within as well as hover, so it is available to touch and keyboard
+users. The bar and playlist remain inside top/right safe areas. Large piano recordings in
+the mobile Details sheet use `playsinline` and `preload="none"`; music/video handoff still
+uses the existing shared player functions.
+
 ## v92 - slider zero is a real player mute
 
 `effMute()` includes `vol === 0`. Dragging the range input fully left therefore calls the

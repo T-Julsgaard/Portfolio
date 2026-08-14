@@ -15,6 +15,7 @@ This file is a lean index; the detailed subsystem documentation (architecture, v
 | The journey path, UI state machine, docking/departing, travel styles, auto tour, fullscreen toggle | `docs/journey.md` |
 | The welcome stop (GitHub calendar, commit banner, mini-me figure, section nav, stats pipeline) | `docs/welcome-stop.md` |
 | The music bar, YouTube player, muted autostart, playlist modal | `docs/music-bar.md` |
+| Mobile layout, touch gestures, safe areas, mobile navigation/sheets, rotation, keyboard handling, or mobile performance | `docs/mobile.md` **then** the affected subsystem doc above |
 
 When a subsystem changes, update its `docs/` file (and `FACET-ASSEMBLY-MANUAL.md` if it's the facet system) — keep THIS file a lean index. Add new subsystems as new `docs/` files with a row in the table above.
 
@@ -25,6 +26,7 @@ When a subsystem changes, update its `docs/` file (and `FACET-ASSEMBLY-MANUAL.md
 - **Never attribute commits to an AI tool** (user requirement, applies to every commit in this repo): no `Co-Authored-By`, no "Generated with" lines.
 - **Always validate camera-math/data-dependent changes** (distances, fog thresholds, grid spacing, terrain clearance, flood-fill reachability) against the real embedded `asciiData` with a quick script before shipping. Node is NOT installed on this machine; Python 3.11 is available as `python`. JS syntax can be checked with the `esprima` pip package.
 - **Keep `AGENTS.md` in sync**: it is read by other agents (Codex/ChatGPT) and must stay byte-identical to this file. After ANY edit to `CLAUDE.md`, copy it over `AGENTS.md` in the same commit — and vice versa if an edit lands in `AGENTS.md` first. The `docs/` files are shared by both and need no mirroring.
+- **Desktop/mobile parity is mandatory.** Every future visual, content, or interaction change must be checked in both presentation profiles. Keep content in the shared `JOURNEY` / `gallery` / `PORTFOLIO_PROJECTS` data; mobile code may change presentation and controls, never fork the portfolio into a second content copy. See `docs/mobile.md`.
 
 ## Verification policy — scale effort to the change (token budget)
 

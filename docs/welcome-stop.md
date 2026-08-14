@@ -1,5 +1,21 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## v96 - mobile Welcome framing and semantic companion
+
+The phone scene preserves the assembled portrait, hero, mini-me, contribution calendar,
+commit banner, and terrain-glyph project transition. Welcome is height-fit first on a
+phone, allowing the wide authored side columns to remain part of the panorama instead of
+shrinking all copy to a few pixels. The persistent mobile dock and horizontal swipe make
+that wider scene navigable.
+
+The Details sheet is generated from the same `JOURNEY`, `PORTFOLIO_PROJECTS`, live
+`GH_STATS`, CV/link targets, and section labels. It provides readable GitHub figures,
+project cards/actions, and the full six-section index with native semantics. Do not add a
+second mobile-only project or navigation dataset: update the shared source and, if a new
+shape is introduced, extend `mobileRenderStop()` generically. Developed project previews
+become a full-screen safe-area surface on mobile while the authored in-scene focus and
+calendar restoration remain unchanged on both profiles.
+
 ## v95 - reliable project close and aligned project dossiers
 
 Returning from project focus now completes the exact-calendar restoration. The close path

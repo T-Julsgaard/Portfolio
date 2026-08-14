@@ -2,6 +2,26 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## v96: phone rendering profile, progressive build and resilient lifecycle
+
+`html.mobile-ui` selects an intentionally lighter rendering profile without altering the
+desktop profile. Phones cap renderer DPR at 1.35 (1 under Save-Data), create the WebGL
+renderer without canvas antialiasing, and use an unsigned-byte, non-multisampled composer
+target. Desktop still uses the authored DPR-2, half-float, 4x-MSAA path; warnings elsewhere
+in this document about preserving that quality continue to apply to desktop.
+
+The 13,268-glyph construction loop uses the same glyph builder and pools in both profiles.
+Desktop builds it in one batch. Mobile yields to the event loop after every 480 glyphs and
+updates `#mobile-status`, keeping touch, paint, and browser watchdogs alive during startup.
+The font error path and `webglcontextlost`/`webglcontextrestored` handlers now expose a
+visible mobile status instead of leaving an inert canvas.
+
+Reduced Motion shortens the entry/exit and facet clocks and disables docked camera
+breathing; Save-Data only changes phone DPR. Stats polling is skipped while the page is
+hidden and refreshed on visibility return. The phone overview camera distance is derived
+from the real portrait span, current aspect, and `BASE_FOV`; desktop retains the authored
+distance exactly. See `docs/mobile.md` before changing any of these guards.
+
 ## v94: author controls removed from the public interface
 
 The bottom-left Dev Tools and ASCII Generator launch buttons are absent from the shipped

@@ -1,5 +1,26 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## v96 - mobile facet fit and native interaction surfaces
+
+Mobile changes presentation, not terrain claims. `assembleStop()` keeps every desktop
+layout, donor assignment, cover, absorb/handoff, and glyph count intact, then applies a
+phone-only fit: Welcome and gallery covers are height-first; timelines and single facets
+also receive a width cap using the real `JOURNEY_FOV`; portrait uses a 0.74 multiplier and
+landscape a 1.30 short-viewport boost. Project focus uses the matching multiplier.
+Rotation performs an immediate disassemble/reassemble and restores the timeline or faced
+entry. This branch must remain behind `MOBILE_UI` so desktop tuned geometry is exact.
+
+Projected glyph content remains the visual assembly, while essential phone interactions
+use semantic screen-space companions: a full-screen developed project surface, centered
+black chess surface, fixed native Contact form, readable Details dialog, and bottom-sheet
+read-more card. Contact still assembles its glyph frames; its 16 px fields, local scrolling,
+48 px Send, live status, and `visualViewport` keyboard offset are mobile presentation only.
+
+The mobile DOM consumes no terrain glyphs, and v96 changes no Case Studies copy or facet
+claims, so the 13,121/13,268 case-stop budget is unchanged. Any later shared content or
+builder change still requires the real-data budget procedure below. See `docs/mobile.md`
+for gesture, history, safe-area, parity, and verification invariants.
+
 ## v95 - complete Welcome return and shared project geometry
 
 Project focus no longer strands the exact GitHub calendar in its terrain-cell state.
