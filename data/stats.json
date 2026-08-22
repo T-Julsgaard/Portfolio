@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-08-22T10:20:21.102Z",
+  "generatedAt": "2026-08-22T10:48:31.332Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 0,
-    "month": 23,
-    "year": 221,
-    "total": 256,
+    "today": 1,
+    "month": 24,
+    "year": 222,
+    "total": 257,
     "currentStreak": 0,
     "longestStreak": 9,
     "breakdown": {
-      "commits": 216,
+      "commits": 217,
       "issues": 0,
       "pullRequests": 0,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 0,
-    "month": 23,
-    "year": 216,
-    "total": 247
+    "today": 1,
+    "month": 24,
+    "year": 217,
+    "total": 248
   },
   "calendar": [
     {
@@ -2255,7 +2255,7 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 57103078,
+        "bytes": 57118013,
         "percent": 98.5
       },
       {
@@ -2288,7 +2288,7 @@
       "name": "Portfolio",
       "description": null,
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-08-22T09:51:04Z",
+      "pushedAt": "2026-08-22T10:43:07Z",
       "language": "HTML"
     },
     "featured": [
