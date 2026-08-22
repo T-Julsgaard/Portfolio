@@ -16,8 +16,14 @@ updates `#mobile-status`, keeping touch, paint, and browser watchdogs alive duri
 The font error path and `webglcontextlost`/`webglcontextrestored` handlers now expose a
 visible mobile status instead of leaving an inert canvas.
 
-Reduced Motion shortens the entry/exit and facet clocks and disables docked camera
-breathing; Save-Data only changes phone DPR. Stats polling is skipped while the page is
+Desktop still uses its selected progressive intro. Normal phone startup uses `surface`,
+which avoids allocating the progressive animation's additional 16,830 proxy glyphs.
+Save-Data or Reduced Motion skips the intro entirely, reveals the real pools, and places
+the camera at overview. These branches are mobile-only; replay/dev modes remain available.
+
+Reduced Motion also disables a persisted auto-tour preference, shortens entry/exit,
+inter-stop and dock blend clocks, and disables docked camera breathing; Save-Data also
+chooses the instant phone reveal in addition to changing DPR. Stats polling is skipped while the page is
 hidden and refreshed on visibility return. The phone overview camera distance is derived
 from the real portrait span, current aspect, and `BASE_FOV`; desktop retains the authored
 distance exactly. See `docs/mobile.md` before changing any of these guards.

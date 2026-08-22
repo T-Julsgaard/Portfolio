@@ -11,11 +11,13 @@ There is still one facet/donor system and one content model. `html.mobile-ui` ne
 claims or substitutes mobile copy: it changes final framing and supplies semantic DOM
 companions for content that cannot remain legible or tappable when projected onto a phone.
 Welcome/gallery covers fit height first; timelines/single facets add a `JOURNEY_FOV` width
-cap; portrait and landscape use documented presentation multipliers. Desktop skips every
+cap; portrait uses the documented multiplier and landscape caps its boost against the
+height left after fixed chrome. Desktop skips every
 one of those branches and preserves its tuned scale exactly.
 
 A meaningful phone orientation/width change must disassemble/reassemble the active facet
-and restore its timeline or faced index. Do not treat browser-chrome or software-keyboard
+and restore its timeline/faced index plus recording, chess ply, list/detail, and Welcome
+project state. Do not treat browser-chrome or software-keyboard
 height changes as an orientation rebuild. Project, chess, Contact, read-more, and Details
 surfaces are presentation overlays only: the assembled glyph geometry remains underneath
 and owns the existing donor/handoff lifecycle.

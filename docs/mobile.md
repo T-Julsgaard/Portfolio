@@ -38,7 +38,7 @@ The class is intentionally persistent through rotation. A phone does not become 
 - `#mobile-sheet`: a focusable, scroll-local dialog generated from the active shared stop object. It contains readable body copy, live GitHub figures, every gallery entry, project actions, methods/outcomes, reports, external links, games, recordings, volunteering entries, contact links, and a complete section index.
 - `#mobile-coach`: a once-per-tab touch guide explaining drag, swipe, pinch, and the bottom controls.
 
-Opening the sheet pushes a `pf:'sheet'` history entry. Browser/Android Back closes it first. Stop and overview states are also represented in History; Back unwinds project → sheet → prior stop → overview. When a sheet action is chosen, the code first removes the sheet history entry, then runs the queued action. Do not replace that with `replaceState`: it creates duplicate stop entries that require two Back presses.
+Opening the sheet pushes a `pf:'sheet'` history entry. Browser/Android Back closes it first. Stop and overview states are also represented in History. A project launched from Details first removes the sheet entry, so its Back path is project → current stop → prior stop → overview; a sheet opened directly unwinds sheet → current stop. Popstate may arrive while entering, exiting, or flying, so pending sheet/project/stop targets are reconciled again at dock. When a sheet action is chosen, the code first removes the sheet history entry, then runs the queued action. Do not replace that with `replaceState`: it creates duplicate stop entries that require two Back presses.
 
 ## Scene framing
 
@@ -46,12 +46,12 @@ Desktop keeps its authored fit exactly. Mobile uses a separate scale path inside
 
 - Welcome and non-timeline gallery covers fit height first. Their wide composition may extend beyond the screen and is explored by drag/swipe; the sheet supplies the complete readable/semantic version.
 - Timeline stops and non-gallery single facets add a width cap using the real docked `JOURNEY_FOV`, keeping their title/body inside the phone.
-- Portrait uses a 0.74 presentation multiplier. Landscape adds a 1.30 boost so the short viewport does not collapse already-small projected text.
-- Welcome project focus uses the same portrait/landscape multiplier.
+- Portrait uses a 0.74 presentation multiplier. Landscape begins from the old 1.30 boost but caps it against the height actually left after the fixed music/navigation bands; short landscape phones therefore do not place facet copy under chrome.
+- Welcome project focus uses the same usable-height multiplier.
 
 The overview distance remains the authored desktop distance on desktop. Mobile takes the maximum of that distance and horizontal/vertical fits derived from the real `spanX`/`spanY`, `BASE_FOV`, and current aspect. This prevents tall phones from cropping the face.
 
-On a meaningful width/orientation change, `mobileReassembleDocked()` captures the active timeline slot or faced gallery entry, restores the old facet immediately, rebuilds against the new aspect, and restores that state. Project previews and a focused contact form defer the rebuild until they close/blur. Address-bar height changes do not rebuild a facet.
+On a meaningful width/orientation change, `mobileReassembleDocked()` captures the active timeline slot or faced gallery entry plus its recording, chess game/ply, list selection, case-detail state, and Welcome project focus. It restores the old facet immediately, rebuilds against the new aspect, and reapplies nested state after the replacement facet reaches hold. Project previews and a focused contact form defer the rebuild until they close/blur; a physical width change noticed while the keyboard is open forces the deferred rebuild on blur. Address-bar height changes do not rebuild a facet.
 
 ## Touch gestures
 
@@ -64,29 +64,29 @@ The journey pointer controller tracks pointer IDs and captures touch pointers:
 - tap: canvas action with a 14 px movement tolerance;
 - mobile glyph buttons receive a small nearest-target fallback padding after exact hit tests.
 
-A completed pinch consumes both pointer releases, preventing the last finger from accidentally activating a button. `pointercancel` clears all gesture ownership.
+A completed pinch consumes both pointer releases, preventing the last finger from accidentally activating a button. Pinch tracking exists only while actually docked; the second pointer cancels scrollbar ownership, and `pointercancel`/lost capture clears the complete gesture map and cursor state.
 
 ## Mobile surfaces
 
 ### Projects
 
-The ASCII project focus remains in-scene, but a developed project becomes a safe-area-aware screen-space dialog rather than a 720×405 plane shrunk through a homography. Its 60 px header exposes the project name, primary action, repository, and Close. Interactive projects use their responsive iframe size; desktop-only 1440 px sampling is disabled on mobile. Static screenshots remain contained without distortion.
+The ASCII project focus remains in-scene, but a developed project becomes a safe-area-aware screen-space dialog rather than a 720×405 plane shrunk through a homography. Its 60 px header exposes the project name, primary action, repository, and Close. It traps focus, makes the canvas/chrome inert, returns focus to the stable section control, and unloads an interactive iframe on close so hidden timers/audio/network work cannot continue. Interactive projects use their responsive iframe size; desktop-only 1440 px sampling is disabled on mobile. Static screenshots remain contained without distortion.
 
 ### Chess
 
-The existing 360 px board is centered as a solid-black screen-space surface. Portrait scales it to the available width; landscape hides the two name bars and preserves a usable control row. Move buttons and the live move number have explicit accessible names/status.
+The existing 360 px board is centered as a solid-black screen-space surface. Portrait scales the board to the region between music and navigation; landscape hides the name bars and places the board beside a compact control grid. The control group is moved outside the scaled board on mobile, so all four move buttons remain real 48 px targets even when the board shrinks. Move buttons and the live move number have explicit accessible names/status.
 
 ### Contact
 
-The glyph form still assembles behind the UI. Once settled, mobile shows a native fixed form with 16 px inputs, placeholders/autocomplete/input mode, a 108 px message area, 48 px Send, and an `aria-live` validation/submission note. The form scrolls locally in short landscape viewports. Focusing an input adds `mobile-keyboard`, hides bottom chrome, and offsets the form using `visualViewport`; focusing Send does not enter keyboard mode.
+The glyph form still assembles behind the UI. Once settled, mobile shows a native fixed form with 16 px inputs, placeholders/autocomplete/input mode, a 108 px message area, 48 px Send, and an `aria-live` validation/submission note. Enter/Next advances through the single-line fields instead of submitting early; validation marks and focuses the first invalid field, and Send exposes its busy state. The form scrolls locally in short landscape viewports. Focusing an input adds `mobile-keyboard`, hides bottom chrome, and offsets the form from both `visualViewport` resize and scroll events; focusing Send does not enter keyboard mode.
 
 ### Read-more cards and piano
 
-Legacy read-more cards become bottom sheets with readable type and touch-sized close/download controls. The semantic stop sheet includes both piano recordings with `controls`, `playsinline`, and `preload="none"`; large media is fetched only after intent.
+Legacy read-more cards become bottom sheets with readable 13 px minimum copy and touch-sized close/download controls. The semantic stop sheet includes all shared marks/actions and both piano recordings with captions, `controls`, `playsinline`, and `preload="none"`; playing one pauses its sibling and holds the music player. Large media is fetched only after intent.
 
 ## Music on phones
 
-Desktop retains its established autoplay gamble. Mobile does not load the YouTube API or attempt playback at startup. The first Play or speaker action is explicit intent, creates the player, and allows audible playback. All four controls are 48 px; focusing the volume group reveals the range control without relying on hover. See `docs/music-bar.md` for the player state machine.
+Desktop retains its established autoplay gamble. Mobile prewarms only the YouTube API script; it creates no player and attempts no audio at startup. If the API is ready, Play or speaker intent creates the player synchronously inside the activating gesture. If it is still loading, the first tap clearly becomes a prepare step and the ready state asks for a second Play tap, rather than spending the transient iOS activation. Script failures expose retry UI. All four controls and the revealed volume range are true 48 px targets; touch/focus or the speaker reveals volume without relying on hover. See `docs/music-bar.md` for the player state machine.
 
 ## Mobile rendering and lifecycle
 
@@ -94,9 +94,10 @@ Desktop retains its established autoplay gamble. Mobile does not load the YouTub
 - mobile canvas antialiasing off; composer target uses unsigned-byte color and no MSAA;
 - desktop retains DPR 2, half-float color, and 4× MSAA;
 - the 13,268-glyph creation loop yields every 480 glyphs on mobile and reports progress through `#mobile-status`;
+- normal phone startup uses the lighter surface reveal and does not allocate the progressive animation's extra 16,830 proxy glyphs; Save-Data or Reduced Motion reveals immediately at overview;
 - WebGL context loss shows a restoring message and context restore forces a repaint;
 - hidden tabs skip the 60-second stats poll and refresh once visible;
-- Reduced Motion shortens enter/exit and facet flights, removes camera breathing, and collapses CSS animation/transition duration.
+- Reduced Motion disables persisted auto-tour, shortens enter/exit, inter-stop, dock and facet flights, removes camera breathing, and collapses CSS animation/transition duration.
 
 ## Future-change checklist
 

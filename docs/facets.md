@@ -6,13 +6,14 @@ Mobile changes presentation, not terrain claims. `assembleStop()` keeps every de
 layout, donor assignment, cover, absorb/handoff, and glyph count intact, then applies a
 phone-only fit: Welcome and gallery covers are height-first; timelines and single facets
 also receive a width cap using the real `JOURNEY_FOV`; portrait uses a 0.74 multiplier and
-landscape a 1.30 short-viewport boost. Project focus uses the matching multiplier.
-Rotation performs an immediate disassemble/reassemble and restores the timeline or faced
-entry. This branch must remain behind `MOBILE_UI` so desktop tuned geometry is exact.
+landscape caps its boost against the height left by fixed chrome. Project focus uses the
+matching usable-height multiplier. Rotation performs an immediate disassemble/reassemble
+and restores the timeline/faced entry plus recording, chess ply, list/detail, and Welcome
+project state. This branch must remain behind `MOBILE_UI` so desktop tuned geometry is exact.
 
 Projected glyph content remains the visual assembly, while essential phone interactions
 use semantic screen-space companions: a full-screen developed project surface, centered
-black chess surface, fixed native Contact form, readable Details dialog, and bottom-sheet
+black chess surface with an unscaled 48 px move-control group, fixed native Contact form, readable Details dialog, and bottom-sheet
 read-more card. Contact still assembles its glyph frames; its 16 px fields, local scrolling,
 48 px Send, live status, and `visualViewport` keyboard offset are mobile presentation only.
 

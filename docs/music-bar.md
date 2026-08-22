@@ -3,14 +3,17 @@
 ## v96 - explicit phone playback and touch-sized controls
 
 Desktop retains the established muted-autostart/first-engagement state machine described
-below. Under `html.mobile-ui`, startup neither loads the YouTube IFrame API nor creates a
-player. Pressing Play or the speaker is explicit media intent, lazy-loads the API/player,
-and starts audible playback inside the activating gesture path. Keep this guard when
-changing autoplay: an unrelated drag through the portfolio must never start phone audio.
+below. Under `html.mobile-ui`, startup prewarms the YouTube IFrame API script but creates
+no player and attempts no audio. When the API is ready, pressing Play or the speaker is
+explicit media intent and creates the player synchronously inside the activating gesture.
+If the API is still loading, that tap becomes a visible prepare step and ready state asks
+for a second tap; never silently spend the transient iOS activation and start later from a
+callback. API failure exposes a retry state. An unrelated drag through the portfolio must
+never create the player or start phone audio.
 
-Phone controls are 48 px and carry dynamic `aria-label`/`aria-pressed` state. The volume
-range is exposed by focus-within as well as hover, so it is available to touch and keyboard
-users. The bar and playlist remain inside top/right safe areas. Large piano recordings in
+Phone controls are 48 px and carry dynamic `aria-label`/`aria-pressed` state. Pressing the
+speaker, focusing the group, or touching it exposes a real 48 px-high range target; outside
+touch dismisses it. The bar and playlist remain inside top/right safe areas. Large piano recordings in
 the mobile Details sheet use `playsinline` and `preload="none"`; music/video handoff still
 uses the existing shared player functions.
 

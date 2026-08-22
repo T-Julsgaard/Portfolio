@@ -15,11 +15,14 @@ horizontal swipe steps a panorama/timeline, a vertical swipe steps a timeline or
 selector, two fingers drive the existing `dockZoomT`, and taps allow 14 px of finger
 jitter. Completed pinches consume both releases and `pointercancel` clears ownership.
 
-History states are `overview`, `stop`, `sheet`, and `project`. Browser/Android Back
-unwinds project -> sheet -> prior stop -> overview. A sheet action first removes the sheet
-entry and then runs its queued travel/action; using `replaceState` here produces duplicate
-stop entries. Meaningful orientation/width changes rebuild the docked facet while
-preserving its timeline/faced index. Address-bar and keyboard-only height changes do not.
+History states are `overview`, `stop`, `sheet`, and `project`. A project selected through
+Details removes the transient sheet entry first, so Browser/Android Back unwinds project
+-> current stop -> prior stop -> overview; a directly opened Details view unwinds sheet ->
+current stop. Popstate reconciles targets even if it arrives during entry, exit, or flight.
+Using `replaceState` for a sheet action produces duplicate stop entries. Meaningful
+orientation/width changes rebuild the docked facet while preserving its timeline/faced
+index and nested recording, chess ply, list/detail, or Welcome project state. Address-bar
+and keyboard-only height changes do not.
 Project focus and a focused Contact field defer reassembly until the surface closes or the
 field blurs. Full invariants and the test matrix live in `docs/mobile.md`.
 

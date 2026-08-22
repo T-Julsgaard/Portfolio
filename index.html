@@ -508,7 +508,7 @@
   button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 
   html.mobile-ui,html.mobile-ui body { width:100%; height:100%; height:100dvh; overscroll-behavior:none; }
-  html.mobile-ui body { position:fixed; inset:0; -webkit-text-size-adjust:100%; touch-action:none; }
+  html.mobile-ui body { position:fixed; inset:0; -webkit-text-size-adjust:100%; touch-action:manipulation; }
   html.mobile-ui #app { height:100%; height:100dvh; }
   html.mobile-ui canvas#three { touch-action:none; }
   html.mobile-ui #mobile-shell { display:block; }
@@ -528,8 +528,8 @@
   html.mobile-ui #music button { width:48px; height:48px; color:rgba(255,255,255,.78); }
   html.mobile-ui #music svg { width:13px; height:13px; }
   html.mobile-ui #m-vol { position:relative; }
-  html.mobile-ui #m-vol input { position:absolute; right:0; top:52px; width:112px; height:3px; opacity:0;
-    padding:20px 8px; background-clip:content-box; pointer-events:none; }
+  html.mobile-ui #m-vol input { position:absolute; right:0; top:52px; width:112px; height:48px; opacity:0;
+    padding:22px 8px; background-clip:content-box; pointer-events:none; }
   html.mobile-ui #music.volshow #m-vol input,html.mobile-ui #m-vol:focus-within input {
     width:112px; opacity:1; margin:0; pointer-events:auto; background-color:rgba(255,255,255,.45);
   }
@@ -539,6 +539,7 @@
     min-width:76px; min-height:48px; padding:0 13px; background:rgba(0,0,0,.62); font-size:10px;
   }
   html.mobile-ui #explore-btn { display:none!important; }
+  html.mobile-ui.mobile-volume-open #enter-btn { opacity:0; pointer-events:none; }
   html.mobile-ui #hint { bottom:calc(var(--safe-bottom) + var(--mobile-nav-h) + 16px); width:calc(100% - 32px); font-size:9px; line-height:1.5; }
 
   html.mobile-ui #mobile-nav {
@@ -573,7 +574,7 @@
   html.mobile-ui #mobile-sheet-title { margin-top:3px; font-size:17px; letter-spacing:.05em; font-weight:500; }
   html.mobile-ui #mobile-sheet-close { margin-left:auto; width:48px; height:48px; flex:none; border:1px solid rgba(255,255,255,.28);
     background:transparent; color:#fff; font:20px/1 inherit; }
-  html.mobile-ui #mobile-sheet-content { overflow:auto; overscroll-behavior:contain; touch-action:pan-y; padding:20px 16px 34px;
+  html.mobile-ui #mobile-sheet-content { overflow:auto; overscroll-behavior:contain; touch-action:pan-y pinch-zoom; padding:20px 16px 34px;
     -webkit-overflow-scrolling:touch; }
   html.mobile-ui .ms-lede { color:rgba(255,255,255,.82); font-size:14px; line-height:1.65; white-space:pre-line; }
   html.mobile-ui .ms-heading { margin:26px 0 10px; color:rgba(255,255,255,.5); font-size:9px; letter-spacing:.22em; text-transform:uppercase; }
@@ -581,8 +582,8 @@
   html.mobile-ui .ms-card { width:100%; min-height:64px; padding:14px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.025);
     color:#fff; text-align:left; font:inherit; text-decoration:none; }
   html.mobile-ui button.ms-card { cursor:pointer; }
-  html.mobile-ui .ms-card strong { display:block; font-size:13px; line-height:1.3; letter-spacing:.04em; font-weight:500; }
-  html.mobile-ui .ms-card span,html.mobile-ui .ms-card p { display:block; margin-top:6px; color:rgba(255,255,255,.62); font-size:11px; line-height:1.55; }
+  html.mobile-ui .ms-card strong { display:block; font-size:14px; line-height:1.35; letter-spacing:.04em; font-weight:500; }
+  html.mobile-ui .ms-card span,html.mobile-ui .ms-card p { display:block; margin-top:6px; color:rgba(255,255,255,.68); font-size:13px; line-height:1.6; }
   html.mobile-ui .ms-card .ms-meta { color:rgba(255,255,255,.42); font-size:8px; letter-spacing:.16em; text-transform:uppercase; }
   html.mobile-ui .ms-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
   html.mobile-ui .ms-action { min-height:48px; display:inline-flex; align-items:center; justify-content:center; padding:0 14px;
@@ -599,13 +600,17 @@
   html.mobile-ui .ms-ascii { margin:10px 0 0; max-height:128px; overflow:hidden; color:rgba(255,255,255,.5);
     font:4px/4px "Share Tech Mono",monospace; white-space:pre; }
   html.mobile-ui .ms-video { width:100%; display:block; margin-top:12px; border:1px solid rgba(255,255,255,.22); background:#000; }
+  html.mobile-ui .ms-media { width:100%; max-height:280px; display:block; object-fit:contain; margin-top:12px;
+    border:1px solid rgba(255,255,255,.22); background:#030303; }
+  html.mobile-ui .ms-caption { margin-top:6px; color:rgba(255,255,255,.52); font-size:11px; line-height:1.5; }
   html.mobile-ui .ms-detail { margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12); }
   html.mobile-ui .ms-detail h4 { margin:10px 0 4px; color:rgba(255,255,255,.48); font-size:8px; letter-spacing:.17em; text-transform:uppercase; }
-  html.mobile-ui .ms-detail p { margin:0; color:rgba(255,255,255,.68); font-size:11px; line-height:1.55; }
+  html.mobile-ui .ms-detail p { margin:0; color:rgba(255,255,255,.72); font-size:13px; line-height:1.6; }
+  html.mobile-ui .ms-detail p>a { display:inline-flex; min-height:48px; align-items:center; }
   html.mobile-ui .ms-tip { margin-top:20px; padding:13px; border-left:2px solid rgba(255,255,255,.38); color:rgba(255,255,255,.62);
-    font-size:11px; line-height:1.55; }
+    font-size:12px; line-height:1.6; }
 
-  html.mobile-ui #mobile-coach { position:fixed; z-index:22; left:calc(var(--safe-left) + 14px); right:calc(var(--safe-right) + 14px);
+  html.mobile-ui #mobile-coach { position:fixed; z-index:19; left:calc(var(--safe-left) + 14px); right:calc(var(--safe-right) + 14px);
     bottom:calc(var(--safe-bottom) + var(--mobile-nav-h) + 20px); padding:14px 52px 14px 14px;
     background:rgba(5,5,5,.92); border:1px solid rgba(255,255,255,.28); box-shadow:0 12px 38px rgba(0,0,0,.6);
     color:rgba(255,255,255,.78); font-size:10px; line-height:1.55; letter-spacing:.08em; text-transform:uppercase; }
@@ -615,7 +620,7 @@
     padding:24px; background:#000; color:rgba(255,255,255,.7); font-size:10px; letter-spacing:.18em; text-transform:uppercase; }
   html.mobile-ui #mobile-status::before { content:''; width:9px; height:9px; margin-right:12px; border:1px solid #fff; animation:pl-spin .8s steps(4,end) infinite; }
 
-  html.mobile-ui #more-card { left:12px; right:12px; top:auto; bottom:calc(var(--safe-bottom) + var(--mobile-nav-h) + 12px); width:auto;
+  html.mobile-ui #more-card { left:calc(var(--safe-left) + 12px); right:calc(var(--safe-right) + 12px); top:auto; bottom:calc(var(--safe-bottom) + var(--mobile-nav-h) + 12px); width:auto;
     max-height:calc(100dvh - var(--safe-top) - var(--mobile-nav-h) - 100px); transform:translateY(18px); z-index:23;
     padding:22px 18px 20px; background:rgba(5,5,5,.96); backdrop-filter:blur(14px); }
   html.mobile-ui #more-card.open { transform:none; }
@@ -624,7 +629,7 @@
   html.mobile-ui #more-close { width:48px; height:48px; }
   html.mobile-ui #more-card .mc-dl { min-height:48px; display:inline-flex; align-items:center; padding:0 14px; }
 
-  html.mobile-ui #project-live { left:12px!important; right:12px; top:calc(var(--safe-top) + 64px)!important;
+  html.mobile-ui #project-live { left:calc(var(--safe-left) + 12px)!important; right:calc(var(--safe-right) + 12px); top:calc(var(--safe-top) + 64px)!important;
     width:auto; height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--mobile-nav-h) - 88px);
     z-index:21; transform:none!important; }
   html.mobile-ui #project-live .pl-shell { border:1px solid rgba(255,255,255,.3); box-shadow:0 24px 80px rgba(0,0,0,.85); }
@@ -643,13 +648,17 @@
   html.mobile-ui #project-live .pl-shell { height:calc(100% - 60px); }
 
   html.mobile-ui #cboard { z-index:20; background:#000; box-shadow:0 18px 54px rgba(0,0,0,.72); }
-  html.mobile-ui #cb-ctl { height:52px; margin-top:4px; gap:10px; }
-  html.mobile-ui #cb-ctl button { width:56px; height:48px; font-size:18px; background:rgba(0,0,0,.88); }
+  html.mobile-ui #cb-ctl { position:fixed; left:0; top:0; z-index:21; height:56px; margin:0; gap:8px; padding:4px;
+    display:flex; align-items:center; justify-content:space-around; visibility:hidden; opacity:0!important; pointer-events:none;
+    background:rgba(0,0,0,.94); border:1px solid rgba(255,255,255,.3); box-shadow:0 12px 36px rgba(0,0,0,.7); }
+  html.mobile-ui #cb-ctl.mobile-on { visibility:visible; opacity:1!important; pointer-events:auto; }
+  html.mobile-ui #cb-ctl button { flex:none; width:48px; height:48px; font-size:18px; background:rgba(0,0,0,.88); }
   html.mobile-ui #cb-n { font-size:13px; }
 
-  html.mobile-ui #cfields { inset:auto 12px calc(var(--safe-bottom) + var(--mobile-nav-h) + 12px); z-index:20; width:auto;
+  html.mobile-ui #cfields { left:calc(var(--safe-left) + 12px); right:calc(var(--safe-right) + 12px);
+    top:auto; bottom:calc(var(--safe-bottom) + var(--mobile-nav-h) + 12px); z-index:20; width:auto;
     max-height:calc(100dvh - var(--safe-top) - var(--mobile-nav-h) - 100px); overflow:auto; padding:18px;
-    background:rgba(5,5,5,.94); border:1px solid rgba(255,255,255,.3); backdrop-filter:blur(14px); touch-action:pan-y; }
+    background:rgba(5,5,5,.94); border:1px solid rgba(255,255,255,.3); backdrop-filter:blur(14px); touch-action:pan-y pinch-zoom; }
   html.mobile-ui #cfields.on { pointer-events:auto; }
   html.mobile-ui #cfields .cf-mobile-head { display:block; margin-bottom:14px; }
   html.mobile-ui #cfields .cf-mobile-head strong { display:block; font-size:18px; letter-spacing:.06em; font-weight:500; }
@@ -663,8 +672,10 @@
   html.mobile-ui #cf-mobile-send { width:100%; min-height:48px; display:block; border:1px solid #fff; background:#fff; color:#000;
     font:10px/1 inherit; letter-spacing:.16em; text-transform:uppercase; pointer-events:auto; }
   .cf-mobile-head,#cf-mobile-send { display:none; }
+  html:not(.mobile-ui) #cfields input::placeholder,html:not(.mobile-ui) #cfields textarea::placeholder { color:transparent; }
   html.mobile-ui.mobile-keyboard #mobile-nav,html.mobile-ui.mobile-keyboard #mobile-coach { display:none; }
-  html.mobile-ui.mobile-keyboard #cfields { bottom:calc(var(--mobile-keyboard,0px) + 8px); max-height:calc(100dvh - var(--mobile-keyboard,0px) - var(--safe-top) - 20px); }
+  html.mobile-ui.mobile-keyboard #cfields { bottom:calc(max(var(--mobile-keyboard,0px),var(--safe-bottom)) + 8px);
+    max-height:calc(100dvh - max(var(--mobile-keyboard,0px),var(--safe-bottom)) - var(--safe-top) - 20px); }
 
   @media (max-width:350px) {
     html.mobile-ui #m-eq { display:none; }
@@ -677,9 +688,16 @@
     html.mobile-ui #mobile-nav { left:50%; right:auto; width:min(620px,calc(100% - var(--safe-left) - var(--safe-right) - 16px)); transform:translate(-50%,calc(100% + var(--safe-bottom) + 16px)); }
     html.mobile-ui #mobile-nav.active { transform:translateX(-50%); }
     html.mobile-ui .mobile-sheet-panel { left:12%; right:12%; max-height:calc(100dvh - var(--safe-top) - 12px); border-inline:1px solid rgba(255,255,255,.25); }
-    html.mobile-ui #cfields { left:15%; right:15%; }
+    html.mobile-ui #cfields { left:max(15%,calc(var(--safe-left) + 12px)); right:max(15%,calc(var(--safe-right) + 12px)); }
     html.mobile-ui #cboard .cb-bar { display:none; }
-    html.mobile-ui #cb-ctl button { height:64px; }
+    html.mobile-ui.mobile-chess-open #music { display:none; }
+    html.mobile-ui #cb-ctl.mobile-landscape { width:176px; height:104px; padding:0; display:grid;
+      grid-template-columns:48px 64px 48px; grid-template-rows:48px 48px; gap:8px; }
+    html.mobile-ui #cb-ctl.mobile-landscape button:nth-of-type(1) { grid-column:1; grid-row:1; }
+    html.mobile-ui #cb-ctl.mobile-landscape button:nth-of-type(2) { grid-column:1; grid-row:2; }
+    html.mobile-ui #cb-ctl.mobile-landscape #cb-n { grid-column:2; grid-row:1 / 3; align-self:center; }
+    html.mobile-ui #cb-ctl.mobile-landscape button:nth-of-type(3) { grid-column:3; grid-row:2; }
+    html.mobile-ui #cb-ctl.mobile-landscape button:nth-of-type(4) { grid-column:3; grid-row:1; }
   }
   @media (prefers-reduced-motion:reduce) {
     *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.001ms!important; animation-iteration-count:1!important; transition-duration:.001ms!important; }
@@ -749,7 +767,7 @@
       <button id="mobile-home" type="button" aria-label="Return to portrait overview"><span class="mn-icon">&times;</span><span class="mn-small">Roam</span></button>
     </nav>
     <div id="mobile-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-sheet-title" hidden>
-      <button class="mobile-sheet-backdrop" type="button" aria-label="Close section details"></button>
+      <button class="mobile-sheet-backdrop" type="button" tabindex="-1" aria-label="Close section details"></button>
       <section class="mobile-sheet-panel">
         <header class="mobile-sheet-head">
           <div><div class="mobile-sheet-kicker">Portfolio section</div><h2 id="mobile-sheet-title">Overview</h2></div>
@@ -1170,7 +1188,7 @@
   let idx = 0, playing = false, wantPlay = false, muted = false, errStreak = 0, failed = false;
   let engaged = false; // flips true on the visitor's first interaction; until then playback stays muted
   let audibleTry = false; // v51: true while the load-time audible-autoplay gamble is unresolved
-  let mobileExplicit=!MOBILE_AUDIO;
+  let mobileExplicit=!MOBILE_AUDIO, mobileApiPrompt=false;
   let vol = 25; // default; a previously-set volume in localStorage overrides below
   try { const v = localStorage.getItem('pf_music_vol'); if (v !== null) vol = Math.max(0, Math.min(100, +v)); } catch (e) {}
   slider.value = vol;
@@ -1219,9 +1237,16 @@
     if (document.getElementById('yt-api')) return;
     const s = document.createElement('script');
     s.id = 'yt-api'; s.src = 'https://www.youtube.com/iframe_api'; s.async = true;
+    s.onerror = () => { s.remove(); mobileApiPrompt=false; failed=true; wantPlay=false; setLabel('Music player could not load - tap to retry'); syncUI(); };
     document.head.appendChild(s);
   }
-  window.onYouTubeIframeAPIReady = () => { apiReady = true; if (wantPlay) createPlayer(); };
+  window.onYouTubeIframeAPIReady = () => {
+    apiReady = true;
+    if (wantPlay) createPlayer();
+    else if (MOBILE_AUDIO && mobileApiPrompt) {
+      mobileApiPrompt=false; failed=false; setLabel(TRACKS[idx].label+' - tap play'); syncUI();
+    }
+  };
 
   function createPlayer(bornMuted) {
     if (player || !apiReady) return;
@@ -1269,11 +1294,16 @@
     });
   }
 
-  playBtn.addEventListener('click', () => {
-    if(MOBILE_AUDIO&&!mobileExplicit){
-      mobileExplicit=true; engaged=true; muted=false; wantPlay=true; syncUI(); loadAPI();
-      if(apiReady) createPlayer(false); return;
+  function mobileMediaIntent(){
+    if(!MOBILE_AUDIO||player) return false;
+    mobileExplicit=true; engaged=true; muted=false; failed=false;
+    if(!apiReady){
+      mobileApiPrompt=true; wantPlay=false; setLabel('Preparing music player - tap play when ready'); syncUI(); loadAPI(); return true;
     }
+    wantPlay=true; syncUI(); createPlayer(false); return true;
+  }
+  playBtn.addEventListener('click', () => {
+    if(mobileMediaIntent()) return;
     if (failed) { errStreak = 0; setTrack(idx, true); return; } // manual retry from the error state
     if (!player) { wantPlay = true; syncUI(); loadAPI(); createPlayer(); return; }
     if (!ready) { wantPlay = true; syncUI(); return; }
@@ -1335,25 +1365,31 @@
     if (vol > 0) muted = false;
     applyVolume();
   }
-  slider.addEventListener('input', () => userVolume(+slider.value));
+  let volShowT = 0;
+  function hideMobileVolume(){ if(!MOBILE_AUDIO) return; bar.classList.remove('volshow'); document.documentElement.classList.remove('mobile-volume-open'); }
+  function showMobileVolume(){
+    if(!MOBILE_AUDIO) return;
+    bar.classList.add('volshow'); document.documentElement.classList.add('mobile-volume-open');
+    clearTimeout(volShowT); volShowT=setTimeout(hideMobileVolume,3600);
+  }
+  slider.addEventListener('pointerdown',showMobileVolume);
+  slider.addEventListener('input', () => { showMobileVolume(); userVolume(+slider.value); });
   muteBtn.addEventListener('click', () => {
-    if(MOBILE_AUDIO&&!mobileExplicit){
-      mobileExplicit=true; engaged=true; muted=false; wantPlay=true; syncUI(); loadAPI();
-      if(apiReady) createPlayer(false); return;
-    }
+    showMobileVolume();
+    if(mobileMediaIntent()) return;
     muted = !(muted || vol === 0);
     if (!muted && vol === 0) { vol = 40; slider.value = vol; }
     applyVolume();
   });
 
   /* scroll on the bar = volume (and never leaks to the journey's departure charge) */
-  let volShowT = 0;
   bar.addEventListener('wheel', e => {
     e.preventDefault(); e.stopPropagation();
     userVolume(vol - Math.sign(e.deltaY) * 4);
-    bar.classList.add('volshow');
-    clearTimeout(volShowT); volShowT = setTimeout(() => bar.classList.remove('volshow'), 900);
+    if(MOBILE_AUDIO) showMobileVolume();
+    else { bar.classList.add('volshow'); clearTimeout(volShowT); volShowT = setTimeout(() => bar.classList.remove('volshow'), 900); }
   }, { passive:false });
+  if(MOBILE_AUDIO) document.addEventListener('pointerdown',e=>{ if(!bar.contains(e.target)) hideMobileVolume(); },true);
 
   /* Autostart (v51: audible-first gamble). Audible autoplay with zero interaction is only
      allowed when the browser already trusts this origin (Chrome's Media Engagement Index,
@@ -1407,8 +1443,8 @@
 
   setLabel(TRACKS[0].label);
   syncUI();
+  loadAPI(); // phones pre-warm only the API; their player/audio still waits for an explicit tap
   if(!MOBILE_AUDIO){
-    loadAPI(); // desktop pre-warms the API and retains its established autoplay behavior
     setTimeout(autostart,0);
   }
 
@@ -1879,7 +1915,11 @@ new FontLoader().load('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts
       glyphsDirty=true;
       if(mobileStatus) mobileStatus.hidden=true;
       if(MOBILE_UI){ const b=document.getElementById('enter-btn'); b.disabled=false; b.textContent='Enter'; }
-      beginIntro(introMode);
+      if(MOBILE_UI&&(REDUCED_MOTION||SAVE_DATA)){
+        revealPortraitInstant(); introActive=false; introCamActive=false; progActive=false;
+        camera.position.copy(frontPos2); camera.up.set(0,1,0); camera.lookAt(faceCenter);
+        controls.enabled=true; controls.target.copy(faceCenter); controls.update();
+      } else beginIntro(MOBILE_UI?'surface':introMode);
     }
     function buildBatch(){
       const end=Math.min(entries.length,built+(MOBILE_UI?480:entries.length));
@@ -1901,7 +1941,7 @@ new FontLoader().load('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/fonts
    spark, so growth looks organic and irregular rather than a symmetric wave. */
 let introActive=false, introT0=0;
 const introDelay=[];
-const INTRO_RIPPLE_MS=2600, INTRO_POP_MS=720;
+const INTRO_RIPPLE_MS=MOBILE_UI?1600:2600, INTRO_POP_MS=MOBILE_UI?480:720;
 const INTRO_RISE=1.3; // how far (in z) each glyph surfaces up from within the relief as it's born
 function easeOutBack(t){ const c1=1.70158, c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); }
 function easeOutCubic(t){ return 1-Math.pow(1-t,3); }
@@ -2239,11 +2279,49 @@ const mobileSheet=document.getElementById('mobile-sheet');
 const mobileSheetTitle=document.getElementById('mobile-sheet-title');
 const mobileSheetContent=document.getElementById('mobile-sheet-content');
 const mobileCoach=document.getElementById('mobile-coach');
-let mobileLastFocus=null,mobileSheetStop=0,mobileHistoryLock=false,mobilePendingStop=null,mobilePendingProject=null,mobileAfterSheet=null;
+let mobileLastFocus=null,mobileSheetStop=0,mobileHistoryLock=false,mobilePendingStop=null,mobilePendingProject=null,mobilePendingSheet=null,mobileAfterSheet=null;
+let mobileCoachTimer=0,mobileSheetVideoHeld=false,mobileCoachShown=false;
+const mobileInerted=new Map();
 const mobileEsc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function mobileDismissCoach(){ if(!MOBILE_UI) return; clearTimeout(mobileCoachTimer); mobileCoach.hidden=true; }
+function mobileTrapFocus(surface,e){
+  if(!MOBILE_UI||e.key!=='Tab') return;
+  const q='a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),video[controls],[tabindex]:not([tabindex="-1"])';
+  const nodes=[...surface.querySelectorAll(q)].filter(el=>!el.hidden&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden');
+  if(!nodes.length){ e.preventDefault(); surface.focus(); return; }
+  const first=nodes[0],last=nodes[nodes.length-1];
+  if(e.shiftKey&&document.activeElement===first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey&&document.activeElement===last){ e.preventDefault(); first.focus(); }
+}
+function mobileSetModalInert(surface,on){
+  if(!MOBILE_UI) return;
+  if(!on){
+    for(const [el,old] of mobileInerted){ el.inert=old.inert; if(old.aria===null) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden',old.aria); }
+    mobileInerted.clear(); return;
+  }
+  mobileSetModalInert(surface,false);
+  const ids=surface.id==='project-live'
+    ?['mobile-shell','app','music','enter-btn','explore-btn','hint','cfields','cboard','cb-ctl','more-card']
+    :['mobile-nav','mobile-coach','mobile-status','app','music','enter-btn','explore-btn','hint','cfields','cboard','cb-ctl','project-live','more-card'];
+  for(const id of ids){
+    const el=document.getElementById(id); if(!el||el===surface||el.contains(surface)) continue;
+    mobileInerted.set(el,{inert:el.inert,aria:el.getAttribute('aria-hidden')}); el.inert=true; el.setAttribute('aria-hidden','true');
+  }
+}
 function mobileAction(href,label,primary){
   if(!href) return '';
   return '<a class="ms-action'+(primary?' primary':'')+'" href="'+mobileEsc(href)+'" target="_blank" rel="noopener">'+mobileEsc(label)+'</a>';
+}
+function mobileMediaHTML(media){
+  return (media||[]).map(m=>m&&m.src?'<figure><img class="ms-media" loading="lazy" src="'+mobileEsc(m.src)+'" alt="'+mobileEsc(m.caption||'Portfolio image')+'"><figcaption class="ms-caption">'+mobileEsc(m.caption||'')+'</figcaption></figure>':'').join('');
+}
+function mobileMarkHTML(mark){
+  if(!mark) return '';
+  const names={gh:'GitHub',li:'LinkedIn',discord:'Discord',chessdotcom:'Chess.com'};
+  const label=mark.cap||names[mark.img]||'Open profile';
+  if(mark.href) return mobileAction(mark.href,label,false);
+  if(mark.copy) return '<button class="ms-action" type="button" data-mobile-copy="'+mobileEsc(mark.copy)+'">Copy '+mobileEsc(label)+'</button>';
+  return '';
 }
 function mobileMoreHTML(g){
   if(!g||!g.more) return '';
@@ -2264,7 +2342,7 @@ function mobileGalleryHTML(g,i){
     '<span class="ms-meta">'+mobileEsc(g.meta||'Portfolio facet')+'</span><strong>'+mobileEsc(g.title||'Untitled')+'</strong>'+
     (g.sub?'<span>'+mobileEsc(g.sub)+'</span>':'')+(g.blurb?'<p>'+mobileEsc(g.blurb)+'</p>':'')+tags+mobileAsciiHTML(g)+list+games+vids+mobileMoreHTML(g)+
     '<div class="ms-actions"><button class="ms-action primary" type="button" data-mobile-gallery="'+i+'">View in portrait</button>'+
-    mobileAction(g.pdf,g.pdfLabel||'Download report',false)+mobileAction(g.link,'Visit website',false)+'</div></article>';
+    mobileAction(g.pdf,g.pdfLabel||'Download report',false)+mobileAction(g.link,'Visit website',false)+mobileMarkHTML(g.mark)+'</div></article>';
 }
 function mobileProjectHTML(p){
   return '<article class="ms-card"><span class="ms-meta">Software project</span><strong>'+mobileEsc(p.label)+'</strong><p>'+mobileEsc(p.blurb)+'</p>'+
@@ -2275,6 +2353,7 @@ function mobileRenderStop(k){
   const st=STOPS[Math.max(0,Math.min(STOPS.length-1,k))]; if(!st) return;
   mobileSheetStop=STOPS.indexOf(st); mobileSheetTitle.textContent=st.title||st.label;
   let html=st.body?'<p class="ms-lede">'+mobileEsc(st.body)+'</p>':'';
+  html+=mobileMediaHTML(st.media);
   if(st.github){
     const c=GH_STATS&&GH_STATS.contributions,r=GH_STATS&&GH_STATS.repos;
     const stats=c?'<h3 class="ms-heading">Live GitHub activity</h3><div class="ms-stats">'+
@@ -2286,26 +2365,38 @@ function mobileRenderStop(k){
   if(st.gallery&&st.gallery.length){
     html+='<h3 class="ms-heading">'+mobileEsc(st.label)+' facets</h3><div class="ms-grid">'+st.gallery.map(mobileGalleryHTML).join('')+'</div>';
   }
-  if(st.contact) html+='<p class="ms-tip">The native contact form stays above the portrait at this stop, so it remains comfortable with a phone keyboard.</p>';
+  if(st.contact){
+    html+='<p class="ms-tip">The native contact form stays above the portrait at this stop, so it remains comfortable with a phone keyboard.</p>'+
+      '<h3 class="ms-heading">Profiles</h3><div class="ms-actions">'+(st.contact.marks||[]).map(mobileMarkHTML).join('')+'</div><p class="ms-tip" data-mobile-copy-note role="status" aria-live="polite"></p>';
+  }
   if(st.links&&st.links.length) html+='<h3 class="ms-heading">Links and documents</h3><div class="ms-actions">'+st.links.map(x=>mobileAction(x.href,x.label,false)).join('')+'</div>';
   html+='<h3 class="ms-heading">All sections</h3><div class="ms-grid">'+STOPS.map((x,i)=>
-    '<button class="ms-card" type="button" data-mobile-stop="'+i+'"><span class="ms-meta">'+String(i+1).padStart(2,'0')+' / '+String(STOPS.length).padStart(2,'0')+'</span><strong>'+mobileEsc(x.label)+'</strong></button>').join('')+'</div>'+
+    '<button class="ms-card" type="button" data-mobile-stop="'+i+'"'+(i===dockIdx?' aria-current="page"':'')+'><span class="ms-meta">'+String(i+1).padStart(2,'0')+' / '+String(STOPS.length).padStart(2,'0')+'</span><strong>'+mobileEsc(x.label)+'</strong></button>').join('')+'</div>'+
     '<p class="ms-tip">Touch guide: drag to look, swipe sideways to change a facet, pinch to zoom, and use the persistent bottom arrows to move between sections.</p>';
   mobileSheetContent.innerHTML=html; mobileSheetContent.scrollTop=0;
 }
-function mobileOpenSheet(){
-  if(!MOBILE_UI||uiState!=='journey'||jMode!=='docked') return;
-  mobileRenderStop(dockIdx); mobileLastFocus=document.activeElement; mobileSheet.hidden=false;
+function mobileShowSheet(k,focusClose){
+  mobileRenderStop(k); if(!mobileSheet.contains(document.activeElement)) mobileLastFocus=document.activeElement;
+  mobileSheet.hidden=false;
   document.getElementById('mobile-section').setAttribute('aria-expanded','true');
   ROOT.classList.add('mobile-sheet-open');
+  mobileSetModalInert(mobileSheet,true); mobileDismissCoach();
+  if(focusClose!==false) requestAnimationFrame(()=>document.getElementById('mobile-sheet-close').focus({preventScroll:true}));
+}
+function mobileOpenSheet(){
+  if(!MOBILE_UI||uiState!=='journey'||jMode!=='docked') return;
+  if(stopFacets) for(const F of stopFacets.facets) if(F.vOn) stopFacetVideo(F);
+  mobileShowSheet(dockIdx,true);
   history.pushState({pf:'sheet',stop:dockIdx},'',location.pathname+location.search+'#'+STOPS[dockIdx].id+'-details');
-  document.getElementById('mobile-sheet-close').focus({preventScroll:true});
 }
 function mobileHideSheet(restore){
   if(mobileSheet.hidden) return;
+  const activeInside=mobileSheet.contains(document.activeElement);
   mobileSheet.hidden=true; ROOT.classList.remove('mobile-sheet-open'); document.getElementById('mobile-section').setAttribute('aria-expanded','false');
   mobileSheetContent.querySelectorAll('video').forEach(v=>v.pause());
+  mobileSheetVideoState(); mobileSetModalInert(mobileSheet,false);
   if(restore!==false&&mobileLastFocus&&mobileLastFocus.focus) mobileLastFocus.focus({preventScroll:true});
+  else if(activeInside&&document.activeElement.blur) document.activeElement.blur();
 }
 function mobileCloseSheet(){
   if(mobileSheet.hidden) return;
@@ -2321,7 +2412,7 @@ function mobileDiscardSheet(after){
 function mobileSelectGallery(i){
   if(!stopFacets) return;
   const st=STOPS[dockIdx], g=st&&st.gallery&&st.gallery[i]; if(!g) return;
-  if(stopFacets.scrollMode){ timelineTo(i+1); return; }
+  if(stopFacets.scrollMode){ const slot=Array.isArray(st.scrollOrder)?st.scrollOrder.indexOf(i)+1:i+1; if(slot>0) timelineTo(slot); return; }
   const F=stopFacets.facets.find(x=>x.g===g); if(!F) return;
   let target=F.yaw-stopFacets.yaw0;
   while(target-freeYawT>Math.PI) target-=Math.PI*2;
@@ -2335,10 +2426,29 @@ function mobileTravelTo(k){
 }
 function mobileHistoryDock(k){
   if(!MOBILE_UI) return;
-  if(mobileHistoryLock){ mobileHistoryLock=false; return; }
   const hs=history.state;
+  if(hs&&hs.stop===k&&(hs.pf==='stop'||hs.pf==='sheet'||hs.pf==='project')){ mobileHistoryLock=false; return; }
+  if(mobileHistoryLock){ mobileHistoryLock=false; return; }
   if(hs&&hs.pf==='stop'&&hs.stop===k) return;
   history.pushState({pf:'stop',stop:k},'',location.pathname+location.search+'#'+STOPS[k].id);
+}
+function mobileNavigateHistoryStop(k){
+  if(k<0||k>=STOPS.length) return false;
+  mobileHistoryLock=true;
+  if(uiState==='overview'||uiState==='exiting'){ beginEnter(k); return false; }
+  if(uiState==='entering'){ if(enterToIdx!==k) beginEnter(k); return false; }
+  if(uiState==='journey'&&jMode==='docked'){
+    if(dockIdx===k){ mobileHistoryLock=false; return true; }
+    departTo(k); return false;
+  }
+  if(uiState==='journey'){ mobilePendingStop=k; return false; }
+  mobileHistoryLock=false; return false;
+}
+function mobileSheetVideoState(){
+  if(!MOBILE_UI) return;
+  const playing=[...mobileSheetContent.querySelectorAll('video')].some(v=>!v.paused&&!v.ended);
+  if(playing&&!mobileSheetVideoHeld){ mobileSheetVideoHeld=true; musicHold(); }
+  else if(!playing&&mobileSheetVideoHeld){ mobileSheetVideoHeld=false; musicRelease(); }
 }
 function mobileSync(){
   if(!MOBILE_UI) return;
@@ -2353,8 +2463,10 @@ function mobileSync(){
   }
   document.getElementById('mobile-section').disabled=!ready;
   mobileCurrent.textContent=ready?(STOPS[dockIdx].label||STOPS[dockIdx].title):(active?'Travelling':'Overview');
-  if(ready&&!sessionStorage.getItem('pf_mobile_coach')){
-    mobileCoach.hidden=false; sessionStorage.setItem('pf_mobile_coach','1');
+  let coachSeen=mobileCoachShown; try{ coachSeen=coachSeen||!!sessionStorage.getItem('pf_mobile_coach'); }catch(e){}
+  if(ready&&!coachSeen){
+    mobileCoachShown=true; mobileCoach.hidden=false; try{ sessionStorage.setItem('pf_mobile_coach','1'); }catch(e){}
+    clearTimeout(mobileCoachTimer); mobileCoachTimer=setTimeout(mobileDismissCoach,8000);
   }
 }
 if(MOBILE_UI){
@@ -2362,6 +2474,7 @@ if(MOBILE_UI){
   document.getElementById('mobile-prev').addEventListener('click',()=>{ if(jMode==='docked') departTo(dockIdx-1); });
   document.getElementById('mobile-next').addEventListener('click',()=>{ if(jMode==='docked') departTo(dockIdx+1); });
   document.getElementById('mobile-section').addEventListener('click',mobileOpenSheet);
+  mobileNav.addEventListener('click',mobileDismissCoach);
   document.getElementById('mobile-home').addEventListener('click',()=>{
     mobileHideSheet(false);
     if(uiState==='journey'){
@@ -2371,11 +2484,24 @@ if(MOBILE_UI){
   });
   document.getElementById('mobile-sheet-close').addEventListener('click',mobileCloseSheet);
   mobileSheet.querySelector('.mobile-sheet-backdrop').addEventListener('click',mobileCloseSheet);
-  mobileCoach.querySelector('button').addEventListener('click',()=>{ mobileCoach.hidden=true; });
+  mobileCoach.querySelector('button').addEventListener('click',mobileDismissCoach);
+  mobileSheet.addEventListener('keydown',e=>mobileTrapFocus(mobileSheet,e));
+  mobileSheetContent.addEventListener('play',e=>{
+    if(e.target.tagName!=='VIDEO') return;
+    mobileSheetContent.querySelectorAll('video').forEach(v=>{ if(v!==e.target&&!v.paused) v.pause(); }); mobileSheetVideoState();
+  },true);
+  mobileSheetContent.addEventListener('pause',()=>setTimeout(mobileSheetVideoState,0),true);
+  mobileSheetContent.addEventListener('ended',()=>setTimeout(mobileSheetVideoState,0),true);
   mobileSheetContent.addEventListener('click',e=>{
     const stop=e.target.closest('[data-mobile-stop]');
     const gallery=e.target.closest('[data-mobile-gallery]');
     const project=e.target.closest('[data-mobile-project]');
+    const copy=e.target.closest('[data-mobile-copy]');
+    if(copy){
+      const value=copy.dataset.mobileCopy,note=mobileSheetContent.querySelector('[data-mobile-copy-note]');
+      (navigator.clipboard?navigator.clipboard.writeText(value):Promise.reject()).then(()=>{ if(note) note.textContent=value+' copied to clipboard.'; }).catch(()=>{ if(note) note.textContent='Discord: '+value; });
+      return;
+    }
     if(stop){ const k=+stop.dataset.mobileStop; mobileDiscardSheet(()=>{ if(k!==dockIdx) mobileTravelTo(k); }); return; }
     if(gallery){ const i=+gallery.dataset.mobileGallery; mobileDiscardSheet(()=>mobileSelectGallery(i)); return; }
     if(project){
@@ -2384,33 +2510,26 @@ if(MOBILE_UI){
     }
   });
   addEventListener('popstate',e=>{
-    mobileHideSheet(false);
+    const after=mobileAfterSheet; mobileAfterSheet=null;
+    mobileHideSheet(!after); if(after) setTimeout(after,0);
     const s=e.state;
-    const after=mobileAfterSheet; mobileAfterSheet=null; if(after) setTimeout(after,0);
-    if(projectLiveOpen&&(!s||s.pf!=='project')) closeProjectLive(true,false,true);
-    if(s&&s.pf==='project'){
-      mobilePendingProject=s;
-      if(uiState==='overview'){ mobileHistoryLock=true; beginEnter(s.stop); }
-      else if(uiState==='journey'&&jMode==='docked'&&dockIdx!==s.stop){ mobileHistoryLock=true; departTo(s.stop); }
-      else if(uiState==='journey'&&jMode==='docked'){
-        mobilePendingProject=null; showProjectStage(s.id,true);
-      }
-      else if(uiState==='journey'){ mobileHistoryLock=true; mobilePendingStop=s.stop; }
+    mobilePendingStop=null; mobilePendingProject=null; mobilePendingSheet=null; mobileHistoryLock=false;
+    if(projectLiveOpen&&(!s||s.pf!=='project'||s.id!==projectStageState.id)) closeProjectLive(true,true,true);
+    if(!s||s.pf==='overview'){
+      if(uiState!=='overview') beginExit();
       return;
     }
-    if(!s||s.pf==='overview'){
-      if(uiState==='journey') beginExit();
+    if(s.pf==='project'){
+      mobilePendingProject=s;
+      if(mobileNavigateHistoryStop(s.stop)){ mobilePendingProject=null; showProjectStage(s.id,true); }
       return;
     }
     if(s.pf==='sheet'){
-      if(uiState==='journey'&&jMode==='docked'){ mobileRenderStop(s.stop); mobileSheet.hidden=false; ROOT.classList.add('mobile-sheet-open'); }
+      mobilePendingSheet=s;
+      if(mobileNavigateHistoryStop(s.stop)){ mobilePendingSheet=null; mobileShowSheet(s.stop,true); }
       return;
     }
-    if(s.pf==='stop'){
-      if(uiState==='overview'){ mobileHistoryLock=true; beginEnter(s.stop); }
-      else if(uiState==='journey'&&jMode==='docked'&&dockIdx!==s.stop){ mobileHistoryLock=true; departTo(s.stop); }
-      else if(jMode!=='docked'){ mobileHistoryLock=true; mobilePendingStop=s.stop; }
-    }
+    if(s.pf==='stop') mobileNavigateHistoryStop(s.stop);
   });
 }
 
@@ -2514,7 +2633,7 @@ controls.update();
    relief's depth is felt before it settles. Triggered from startIntroReveal(); driven by the
    'overview' branch of the frame loop. introCamPose(ek) maps eased progress 0..1 to a pose;
    at ek=1 the arc collapses to (frontPos2, look at faceCenter) — a seamless handoff to orbit. */
-const INTRO_CAM_MS=5000;
+const INTRO_CAM_MS=MOBILE_UI?2400:5000;
 const INTRO_START_D=5.2;                          // very close: ~5 glyph-rows in frame
 const INTRO_OVER_D=frontPos2.distanceTo(faceCenter);
 const INTRO_AZ=0.26, INTRO_EL=0.15;               // start swing: ~15deg to the right, ~9deg up
@@ -2695,7 +2814,7 @@ const PROJECT_LIVE_W=720, PROJECT_LIVE_H=405;
 const projectLive=document.createElement('div');
 projectLive.id='project-live'; projectLive.setAttribute('role','region'); projectLive.setAttribute('aria-label','Project surface'); projectLive.setAttribute('aria-hidden','true');
 projectLive.innerHTML=
-  '<div class="pl-mobile-head"><strong class="pl-mobile-title"></strong><a id="pl-mobile-action" target="_blank" rel="noopener">Open</a><a id="pl-mobile-repo" target="_blank" rel="noopener">Code</a><button class="pl-mobile-close" type="button" aria-label="Close project preview">Ã—</button></div><div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
+  '<div class="pl-mobile-head"><strong class="pl-mobile-title"></strong><a id="pl-mobile-action" target="_blank" rel="noopener">Open</a><a id="pl-mobile-repo" target="_blank" rel="noopener">Code</a><button class="pl-mobile-close" type="button" aria-label="Close project preview">&times;</button></div><div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
   '<img id="pl-image" alt="" hidden><div id="pl-load">LOADING PROJECT</div></div></div>';
 document.body.appendChild(projectLive);
 
@@ -2849,7 +2968,7 @@ function projectLiveMask(now,F){
 async function openProjectLive(id){
   const p=projectById(id), isImage=!!(p&&p.image); if(!p||(!p.live&&!isImage)) return;
   const F=projectStageFacet(); if(!F||!F.project||F.project.id!==id) return;
-  projectLiveReturnFocus=document.activeElement;
+  projectLiveReturnFocus=MOBILE_UI?document.getElementById('mobile-section'):document.activeElement;
   projectStageState.pinned=true;
   projectLiveOpen=true; projectLoadToken++;
   const token=projectLoadToken;
@@ -2862,6 +2981,8 @@ async function openProjectLive(id){
     projectLive.setAttribute('role','dialog'); projectLive.setAttribute('aria-modal','true');
     plMobileTitle.textContent=p.label; plMobileAction.href=p.actionUrl||p.live||p.repo; plMobileAction.textContent=p.actionLabel||'Open';
     plMobileRepo.href=p.repo; plMobileRepo.hidden=!p.repo;
+    mobileSetModalInert(projectLive,true); mobileDismissCoach();
+    requestAnimationFrame(()=>projectLive.querySelector('.pl-mobile-close').focus({preventScroll:true}));
     const hs=history.state;
     if(!hs||hs.pf!=='project'||hs.id!==id) history.pushState({pf:'project',stop:dockIdx,id},'',location.pathname+location.search+'#'+id);
   }
@@ -2923,11 +3044,15 @@ function projectLiveReady(token,id){
 }
 function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=false){
   if(!projectLiveOpen) return;
+  const activeInside=projectLive.contains(document.activeElement),wasFrame=MOBILE_UI&&!plFrame.hidden;
   if(dismissPreview&&projectStageState.id) projectStageState.previewDismissed=true;
   projectLiveOpen=false; projectLoadToken++; projectLive.classList.remove('open','ready','failed');
   projectLive.style.visibility='hidden';
   projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null;
-  if(MOBILE_UI){ projectLive.setAttribute('role','region'); projectLive.removeAttribute('aria-modal'); }
+  if(MOBILE_UI){
+    projectLive.setAttribute('role','region'); projectLive.removeAttribute('aria-modal'); mobileSetModalInert(projectLive,false);
+    if(wasFrame){ plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank'; projectLoadedId=null; }
+  }
   const F=projectStageFacet();
   if(F){ F.projectLiveOn=false; F.projectLiveT0=0;
     if(restoreStage&&F.project){
@@ -2935,10 +3060,12 @@ function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=fal
       else configureProjectStage(F,F.project,performance.now(),true);
     } }
   const back=projectLiveReturnFocus; projectLiveReturnFocus=null;
-  if(restoreFocus&&back&&back.isConnected) back.focus();
+  if(restoreFocus&&back&&back.isConnected) back.focus({preventScroll:true});
+  else if(activeInside&&document.activeElement.blur) document.activeElement.blur();
   if(MOBILE_UI&&mobileNeedsReflow) setTimeout(mobileReassembleDocked,0);
 }
 projectLive.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
+projectLive.addEventListener('keydown',e=>mobileTrapFocus(projectLive,e));
 projectLive.querySelector('.pl-mobile-close').addEventListener('click',()=>{
   closeProjectLive(true,true,true);
   if(MOBILE_UI&&history.state&&history.state.pf==='project') history.back();
@@ -3236,6 +3363,7 @@ const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge
    back to free roam, where the sweep re-arms: the whole site becomes one loop driven by
    a single wheel. Persisted like the fullscreen pref (localStorage pf_auto_tour). */
 let autoTour=false; try{ autoTour=localStorage.getItem('pf_auto_tour')==='1'; }catch(e){}
+if(REDUCED_MOTION) autoTour=false;
 /* ===== CURSOR SWAY (v62, dev panel > Journey > "Cursor sway (docked)", default OFF) =====
    Whether the docked camera follows the bare (undragged) mouse: the subtle ±~3° gaze sway
    in assemble mode and the classic ±30°/±17° mouse-look in panel mode. Off by default —
@@ -4960,6 +5088,14 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
      terrain-clearance height / shared gallery ring / 24° elevation cap are gone — the
      elliptical clearing (pass 3) already guarantees legibility over any terrain. */
   const viewHBase=2*Math.tan(THREE.MathUtils.degToRad(BASE_FOV)/2);
+  const mobileLandscape=camera.aspect>1.2;
+  /* Landscape phones lose meaningful vertical canvas to the music/navigation bands.
+     Fold that usable-height budget into the existing mobile fit instead of allowing the
+     old 1.30 boost to tuck content underneath the controls on short devices. */
+  const mobileUsableH=mobileLandscape?Math.max(180,innerHeight-122):innerHeight;
+  const mobileLandscapeFit=mobileLandscape
+    ?Math.max(0.78,Math.min(1.15,1.30*mobileUsableH/Math.max(1,innerHeight)))
+    :1;
   const facets=[];
   for(const d of defs){
     const yaw=yaw0+d.dy, dist=d.dist;
@@ -4972,7 +5108,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
     /* Desktop compositions keep their authored all-at-once fit. On phones, fit height
        first and let wide panoramas extend beyond the screen: readable facets can then be
        explored by drag/swipe instead of being crushed to a few pixels of text. */
-    const mobileHeightFit=heightFit*0.74*(camera.aspect>1.2?1.30:1);
+    const mobileHeightFit=heightFit*0.74*mobileLandscapeFit;
     const mobileViewW=2*Math.tan(THREE.MathUtils.degToRad(JOURNEY_FOV)/2)*dist*camera.aspect;
     const mobileFit=(isWelcome||(!scrollMode&&d.g))
       ?mobileHeightFit
@@ -5008,7 +5144,7 @@ function assembleStop(k){ // build the docked stop's facet panorama and partitio
          applying the project multiplier, so project focus keeps its established size. */
       const projectMainF=main.f*WPF_WELCOME_REF/WELCOME_SIZE;
       PF.f=MOBILE_UI
-        ?Math.min(projectMainF*WPF_SCALE,0.74*(camera.aspect>1.2?1.30:1)*focusViewH/PF.lay.h)
+        ?Math.min(projectMainF*WPF_SCALE,0.74*mobileLandscapeFit*focusViewH/PF.lay.h)
         :Math.min(projectMainF*WPF_SCALE,WPF_VIEW_FILL*focusViewH/PF.lay.h,WPF_VIEW_FILL*focusViewW/PF.lay.w);
       PF.anchor.copy(main.anchor);
       const fromEye=_aV.copy(PF.anchor).sub(_aP), centreDist=fromEye.length();
@@ -5641,6 +5777,7 @@ function cvTokens(pgn){ // strip comments / variations / NAGs / numbers / result
 }
 const CB_W=360, CB_H=470, CB_SQ=45; // internal px: 38px bars (v68: bigger names/clocks) + 8×45 board + 2+32px controls; scaled as one transform
 const cbWrap=document.createElement('div'); cbWrap.id='cboard';
+cbWrap.setAttribute('role','region'); cbWrap.setAttribute('aria-label','Interactive chess board'); cbWrap.setAttribute('aria-hidden','true');
 cbWrap.innerHTML=
   '<div class="cb-bar"><span class="nm"></span><span class="ck"></span></div>'+
   '<div id="cb-board"></div>'+
@@ -5649,7 +5786,10 @@ cbWrap.innerHTML=
   '<span id="cb-n" aria-live="polite"></span>'+
   '<button data-a="next" title="Next move" aria-label="Next move">&#8250;</button><button data-a="last" title="End" aria-label="Last move">&#187;|</button></div>';
 document.body.appendChild(cbWrap);
-const cbBoardEl=cbWrap.querySelector('#cb-board'), cbN=cbWrap.querySelector('#cb-n');
+const cbBoardEl=cbWrap.querySelector('#cb-board'), cbN=cbWrap.querySelector('#cb-n'), cbCtl=cbWrap.querySelector('#cb-ctl');
+/* On phones the move controls are a separate, unscaled touch surface. The board may
+   shrink to fit, but its four primary actions must remain true 48px targets. */
+if(MOBILE_UI) document.body.appendChild(cbCtl);
 const cbBars=cbWrap.querySelectorAll('.cb-bar'), cbTop=cbBars[0], cbBot=cbBars[1];
 const cbSquares=[]; // display order, top-left first; cvOrient maps display slot -> board index
 for(let s=0;s<64;s++){ const d=document.createElement('div');
@@ -5723,7 +5863,7 @@ function cvShow(k){
   cbBot.querySelector('.ck').classList.toggle('on',!over&&st.w!==cv.topW);
 }
 function cvStep(d){ cvShow(cv.ply+d); }
-cbWrap.querySelector('#cb-ctl').addEventListener('click',e=>{
+cbCtl.addEventListener('click',e=>{
   const a=e.target.dataset&&e.target.dataset.a; if(!a) return;
   if(a==='first') cvShow(0); else if(a==='prev') cvStep(-1);
   else if(a==='next') cvStep(1); else cvShow(cv.sans.length);
@@ -5755,10 +5895,13 @@ function facedSwitchFacet(){ // v68: the facet the visitor faces, if it has a ve
   return best;
 }
 let cbOnDom=false;
+let mobileChessLayout='';
 const CB_REVEAL_D=Array.from({length:64},(_,i)=>((i*37)%64)/63); // stable shuffled square order, like photo-tile development
 function cbHide(){ if(cbOnDom){ cbOnDom=false; cbWrap.classList.remove('on');
-    for(const sq of cbSquares){ sq.style.opacity='0'; sq.style.transform='scale(0.84)'; }
-    for(const el of cbBars) el.style.opacity='0'; cbWrap.querySelector('#cb-ctl').style.opacity='0'; } }
+    cbWrap.setAttribute('aria-hidden','true'); ROOT.classList.remove('mobile-chess-open');
+    cbCtl.classList.remove('mobile-on','mobile-landscape');
+    if(!MOBILE_UI) for(const sq of cbSquares){ sq.style.opacity='0'; sq.style.transform='scale(0.84)'; }
+    for(const el of cbBars) el.style.opacity='0'; cbCtl.style.opacity='0'; } }
 const _cbP0={x:0,y:0}, _cbP1={x:0,y:0}, _cbP2={x:0,y:0}, _cbP3={x:0,y:0};
 function cbQuadTransform(p0,p1,p2,p3,boxW=CB_W,boxH=CB_H){ // CSS matrix3d mapping a fixed-pixel box onto the projected
   // corner quad (TL,TR,BR,BL, screen px) — the classic square→quad homography (Heckbert),
@@ -5789,13 +5932,41 @@ function updateChessBoard(){ // per-frame, camera final: position the board over
   }
   // project the cover-grid rect with THIS frame's camera (render hasn't run yet — refresh the inverse ourselves)
   if(MOBILE_UI){
-    const landscape=innerWidth>innerHeight, boxH=landscape?414:CB_H;
-    const top=landscape?4:Math.max(64,Math.round(innerHeight*0.16));
-    const availH=Math.max(180,innerHeight-top-72), s=Math.min(1,(innerWidth-24)/CB_W,availH/boxH);
-    cbWrap.style.transform='translate3d('+((innerWidth-CB_W*s)/2).toFixed(1)+'px,'+top.toFixed(1)+'px,0) scale('+s.toFixed(4)+')';
-    if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); }
-    for(const el of cbBars) el.style.opacity='1'; cbWrap.querySelector('#cb-ctl').style.opacity='1';
-    for(const sq of cbSquares){ sq.style.opacity='1'; sq.style.transform='scale(1)'; }
+    mobileDismissCoach(); ROOT.classList.add('mobile-chess-open');
+    const landscape=innerWidth>innerHeight;
+    const navTop=Math.max(120,mobileNav.getBoundingClientRect().top-8);
+    const musicEl=document.getElementById('music');
+    const musicBottom=musicEl?musicEl.getBoundingClientRect().bottom:48;
+    const top=landscape?8:Math.max(64,musicBottom+8);
+    const regionH=Math.max(120,navTop-top);
+    let s,x,y,ctlX,ctlY,ctlW,ctlH;
+    if(landscape){
+      ctlW=176; ctlH=104;
+      const boardPx=Math.max(120,Math.min(CB_W,regionH,innerWidth-36-ctlW));
+      s=boardPx/CB_W;
+      const total=boardPx+12+ctlW;
+      x=(innerWidth-total)/2; y=top+(regionH-boardPx)/2;
+      ctlX=x+boardPx+12; ctlY=top+(regionH-ctlH)/2;
+    } else {
+      ctlW=Math.min(CB_W,innerWidth-24); ctlH=56;
+      ctlX=(innerWidth-ctlW)/2; ctlY=navTop-ctlH;
+      const boardBottom=ctlY-8, stackH=CB_W+76;
+      s=Math.max(0.32,Math.min(1,(innerWidth-24)/CB_W,(boardBottom-top)/stackH));
+      x=(innerWidth-CB_W*s)/2; y=top+Math.max(0,(boardBottom-top-stackH*s)/2);
+    }
+    const layout=[landscape,s,x,y,ctlX,ctlY,ctlW,ctlH].map(v=>typeof v==='number'?v.toFixed(2):v).join('|');
+    if(layout!==mobileChessLayout){
+      mobileChessLayout=layout;
+      cbWrap.style.transform='translate3d('+x.toFixed(1)+'px,'+y.toFixed(1)+'px,0) scale('+s.toFixed(4)+')';
+      cbCtl.style.left=ctlX.toFixed(1)+'px'; cbCtl.style.top=ctlY.toFixed(1)+'px';
+      cbCtl.style.width=ctlW.toFixed(1)+'px'; cbCtl.style.height=ctlH.toFixed(1)+'px';
+      cbCtl.classList.toggle('mobile-landscape',landscape);
+    }
+    if(!cbOnDom){
+      cbOnDom=true; cbWrap.classList.add('on'); cbWrap.setAttribute('aria-hidden','false'); cbCtl.classList.add('mobile-on');
+      for(const el of cbBars) el.style.opacity='1'; cbCtl.style.opacity='1';
+      for(const sq of cbSquares){ sq.style.opacity='1'; sq.style.transform='scale(1)'; }
+    }
     F.cbRevealDone=true; return;
   }
   camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
@@ -5821,10 +5992,10 @@ function updateChessBoard(){ // per-frame, camera final: position the board over
     for(let i=0;i<64;i++){ const p=Math.min(1,Math.max(0,(now-F.cbDis-CB_REVEAL_D[i]*stagger)/tile));
       cbSquares[i].style.opacity=String(easeInOut(p)); cbSquares[i].style.transform='scale('+(0.84+0.16*easeOutCubic(p))+')'; if(p<1) all=false; }
     const chrome=easeInOut(Math.min(1,Math.max(0,(now-F.cbDis-stagger*0.28)/tile)));
-    for(const el of cbBars) el.style.opacity=String(chrome); cbWrap.querySelector('#cb-ctl').style.opacity=String(chrome);
+    for(const el of cbBars) el.style.opacity=String(chrome); cbCtl.style.opacity=String(chrome);
     F.cbRevealDone=all&&chrome>=1; renderDirty=true;
   }
-  if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); }
+  if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); cbWrap.setAttribute('aria-hidden','false'); }
 }
 const _plP0={x:0,y:0}, _plP1={x:0,y:0}, _plP2={x:0,y:0}, _plP3={x:0,y:0};
 function updateProjectLive(){ // pin the on-demand site to the project facet's 16:9 glyph screen
@@ -5864,10 +6035,10 @@ const cfWrap=document.createElement('div'); cfWrap.id='cfields';
 cfWrap.setAttribute('role','form'); cfWrap.setAttribute('aria-label','Contact Thomas');
 cfWrap.innerHTML=
   '<div class="cf-mobile-head"><strong>Say hello</strong><span>Your email stays private. Name, email and message are required.</span></div>'+
-  '<input id="cf-name" name="name" type="text" autocomplete="name" placeholder="Name" aria-label="Name" enterkeyhint="next">'+
-  '<input id="cf-email" name="_replyto" type="email" autocomplete="email" inputmode="email" placeholder="Email" aria-label="Email" enterkeyhint="next">'+
+  '<input id="cf-name" name="name" type="text" autocomplete="name" placeholder="Name" aria-label="Name" enterkeyhint="next" required>'+
+  '<input id="cf-email" name="_replyto" type="email" autocomplete="email" inputmode="email" placeholder="Email" aria-label="Email" enterkeyhint="next" required>'+
   '<input id="cf-subject" name="subject" type="text" placeholder="Subject (optional)" aria-label="Subject" enterkeyhint="next">'+
-  '<textarea id="cf-msg" name="message" placeholder="Message" aria-label="Message"></textarea>'+
+  '<textarea id="cf-msg" name="message" placeholder="Message" aria-label="Message" required></textarea>'+
   '<div id="cf-note" role="status" aria-live="polite"></div><button id="cf-mobile-send" type="button">Send message</button>';
 document.body.appendChild(cfWrap);
 const cfEls={}; for(const id of ['cf-name','cf-email','cf-subject','cf-msg','cf-note']) cfEls[id]=cfWrap.querySelector('#'+id);
@@ -5876,40 +6047,54 @@ function cfNote(t){ cfEls['cf-note'].textContent=t; }
 cfWrap.addEventListener('wheel',e=>e.stopPropagation(),{passive:true}); // scroll the message, not the zoom
 cfWrap.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ e.target.blur(); e.stopPropagation(); }               // first Esc just leaves the field
-  else if(e.key==='Enter'&&e.target.tagName==='INPUT'){ cformSubmit(); e.preventDefault(); }
+  else if(e.key==='Enter'&&e.target.tagName==='INPUT'){
+    if(MOBILE_UI){ const order=[cfEls['cf-name'],cfEls['cf-email'],cfEls['cf-subject'],cfEls['cf-msg']],i=order.indexOf(e.target); (order[i+1]||cfEls['cf-msg']).focus(); }
+    else cformSubmit();
+    e.preventDefault();
+  }
 });
 cfWrap.querySelector('#cf-mobile-send').addEventListener('click',cformSubmit);
 if(MOBILE_UI){
-  const mobileKeyboard=()=>{
+  const mobileKeyboard=(fromViewport=false)=>{
     const vv=window.visualViewport, gap=vv?Math.max(0,innerHeight-vv.height-vv.offsetTop):0;
     ROOT.style.setProperty('--mobile-keyboard',gap+'px');
+    if(fromViewport&&gap<32&&ROOT.classList.contains('mobile-keyboard')){
+      ROOT.classList.remove('mobile-keyboard');
+      if(mobileNeedsReflow){ mobileNeedsReflow=false; resizePortfolio(true); }
+    }
   };
   cfWrap.addEventListener('focusin',e=>{
-    if(e.target.matches('input,textarea')){ ROOT.classList.add('mobile-keyboard'); mobileKeyboard(); }
+    if(e.target.matches('input,textarea')){ ROOT.classList.add('mobile-keyboard'); mobileKeyboard(false); }
     else ROOT.classList.remove('mobile-keyboard');
   });
   cfWrap.addEventListener('focusout',()=>setTimeout(()=>{
     if(!document.activeElement.matches||!document.activeElement.matches('#cfields input,#cfields textarea')){
       ROOT.classList.remove('mobile-keyboard');
-      if(mobileNeedsReflow) mobileReassembleDocked();
+      if(mobileNeedsReflow){ mobileNeedsReflow=false; resizePortfolio(true); }
     }
   },0));
-  if(window.visualViewport) visualViewport.addEventListener('resize',mobileKeyboard,{passive:true});
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize',()=>mobileKeyboard(true),{passive:true});
+    visualViewport.addEventListener('scroll',()=>mobileKeyboard(true),{passive:true});
+  }
 }
 function cformSubmit(){
   if(cfBusy) return;
   const name=cfEls['cf-name'].value.trim(), em=cfEls['cf-email'].value.trim(),
         sub=cfEls['cf-subject'].value.trim(), msg=cfEls['cf-msg'].value.trim();
-  if(!name||!em||!msg){ cfNote('Name, email and a message are required.'); return; }
-  if(!/^\S+@\S+\.\S+$/.test(em)){ cfNote('That email address does not look right.'); return; }
-  cfBusy=true; cfNote('Sending…');
+  const required=[[cfEls['cf-name'],name],[cfEls['cf-email'],em],[cfEls['cf-msg'],msg]];
+  required.forEach(x=>x[0].removeAttribute('aria-invalid'));
+  const missing=required.find(x=>!x[1]);
+  if(missing){ missing[0].setAttribute('aria-invalid','true'); cfNote('Name, email and a message are required.'); missing[0].focus(); return; }
+  if(!/^\S+@\S+\.\S+$/.test(em)){ cfEls['cf-email'].setAttribute('aria-invalid','true'); cfNote('That email address does not look right.'); cfEls['cf-email'].focus(); return; }
+  const send=cfWrap.querySelector('#cf-mobile-send'); cfBusy=true; send.disabled=true; send.textContent='Sending'; cfNote('Sending…');
   const fd=new FormData();
   fd.append('name',name); fd.append('_replyto',em); if(sub) fd.append('subject',sub); fd.append('message',msg);
   fetch('https://formspree.io/f/mbdlvnjo',{method:'POST',headers:{Accept:'application/json'},body:fd})
     .then(r=>{ if(!r.ok) throw 0; cfNote('Sent — thank you. I read everything.');
       for(const id of ['cf-name','cf-email','cf-subject','cf-msg']) cfEls[id].value=''; })
     .catch(()=>{ cfNote('Could not send right now.'); })
-    .finally(()=>{ cfBusy=false; });
+    .finally(()=>{ cfBusy=false; send.disabled=false; send.textContent='Send message'; });
 }
 const _cfC=new THREE.Vector3(), _cfE=new THREE.Vector3();
 function cfProject(v,out){ v.project(camera); out.x=(v.x*0.5+0.5)*innerWidth; out.y=(-v.y*0.5+0.5)*innerHeight; return out; }
@@ -5930,7 +6115,7 @@ function updateContactForm(){
   }
   if(MOBILE_UI){
     for(const id of ['cf-name','cf-email','cf-subject','cf-msg','cf-note']) cfEls[id].style.display='';
-    if(!cfOn){ cfOn=true; cfWrap.classList.add('on'); }
+    if(!cfOn){ cfOn=true; cfWrap.classList.add('on'); mobileDismissCoach(); }
     return;
   }
   // project with THIS frame's camera (render hasn't run yet — refresh the inverse ourselves)
@@ -6413,6 +6598,7 @@ let lookTX=0,lookTY=0,lookX=0,lookY=0;
 const LOOK_YAW=0.52, LOOK_PITCH=0.3; // how far (rad) the mouse can swing the docked gaze
 let enterT0=0, enterDur=2.2, enterToIdx=0;
 let exitT0=0, exitDur=REDUCED_MOTION?0.24:1.6;
+const DOCK_BLEND_MS=REDUCED_MOTION?80:1600;
 const enterFromPos=new THREE.Vector3(), enterFromQuat=new THREE.Quaternion();
 const exitFromPos=new THREE.Vector3(), exitFromQuat=new THREE.Quaternion();
 const _jPos=new THREE.Vector3(), _jQuat=new THREE.Quaternion(), _jOff=new THREE.Quaternion(), _jEuler=new THREE.Euler(), _fwd=new THREE.Vector3();
@@ -6481,7 +6667,7 @@ function beginEnter(toIdx){
 let dockT0=0; const dockPos=new THREE.Vector3(), dockQuat=new THREE.Quaternion();
 function dock(k){
   jMode='docked'; dockIdx=k; flight=null; depart=0;
-  dockCool=performance.now()+650; // let trackpad inertia die before a scroll can depart again
+  dockCool=performance.now()+(REDUCED_MOTION?80:650); // let trackpad inertia die before a scroll can depart again
   // capture the exact touchdown pose: the docked branch blends from it, so the residual
   // lag of the flight's damped follow, the mouse sway and the idle drift all fade in
   // instead of cutting over — no discontinuity of any kind at flight end (v41)
@@ -6506,6 +6692,9 @@ function dock(k){
   if(MOBILE_UI&&mobilePendingProject&&mobilePendingProject.stop===k){
     const p=mobilePendingProject; mobilePendingProject=null; setTimeout(()=>showProjectStage(p.id,true),0);
   }
+  if(MOBILE_UI&&mobilePendingSheet&&mobilePendingSheet.stop===k){
+    const s=mobilePendingSheet; mobilePendingSheet=null; setTimeout(()=>mobileShowSheet(s.stop,true),0);
+  }
   // flipped stop (v59, reworked): the flight/enter already swivelled the half-turn onto the
   // scene mid-approach (flip ramp in frame()), so touchdown faces the content directly —
   // freeYaw stays 0 and the old post-landing pan is gone.
@@ -6526,6 +6715,7 @@ function departTo(k){
   mobileHideSheet(false); mobileSync();
   const mode=(Math.abs(k-dockIdx)===1)?travelAdjacent:travelFar; // adjacent hop vs. jump across the path
   flight=buildFlight(stopS[dockIdx],stopS[k],k,mode);
+  if(REDUCED_MOTION) flight.dur=240;
   // flipped destination (contact): the camera swivels the half-turn onto the scene DURING
   // the approach (frame()'s flip ramp), so touchdown already faces the assembled content
   if(stopInfoMode==='assemble'&&STOPS[k].flip) flight.flip=true;
@@ -7000,12 +7190,14 @@ let mobileMainPointer=-1,mobilePinchDist=0,mobilePinchZoom=1,mobileDragYaw=0,mob
 addEventListener('pointerdown',e=>{
   if(e.target&&e.target.tagName!=='CANVAS') return; // don't hijack clicks on the rail/panels
   if(inspectActive()){ inspectDown(e); return; } // inspector: drag paints a selection box, not a look-around
-  if(MOBILE_UI&&e.pointerType==='touch'){
+  if(MOBILE_UI&&e.pointerType==='touch'&&uiState==='journey'&&jMode==='docked'){
+    mobileDismissCoach();
     mobilePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId);
     if(mobilePointers.size>=2){
       const p=[...mobilePointers.values()]; mobilePinchDist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)||1;
-      mobilePinchZoom=dockZoomT; mobilePinchActive=true; dragging=false; return;
+      mobilePinchZoom=dockZoomT; mobilePinchActive=true; dragging=false;
+      welcomeScrollDrag=null; welcomeScrollPointer=-1; renderer.domElement.style.cursor=''; return;
     }
     mobileMainPointer=e.pointerId; mobileDragYaw=freeYawT; mobileDragPitch=freePitchT;
   }
@@ -7092,7 +7284,13 @@ addEventListener('pointerup',e=>{
   }
   dragging=false; if(MOBILE_UI&&e.pointerType==='touch') mobileMainPointer=-1;
 });
-addEventListener('pointercancel',e=>{ dragging=false; welcomeScrollDrag=null; welcomeScrollPointer=-1; mobilePointers.delete(e.pointerId); if(!mobilePointers.size) mobilePinchActive=false; mobileMainPointer=-1; inspect.dragging=false; inspect.boxOn=false; inspectBox.style.display='none'; });
+function mobileCancelPointers(){
+  dragging=false; welcomeScrollDrag=null; welcomeScrollPointer=-1; mobilePointers.clear();
+  mobilePinchActive=false; mobileMainPointer=-1; renderer.domElement.style.cursor='';
+  inspect.dragging=false; inspect.boxOn=false; inspectBox.style.display='none';
+}
+addEventListener('pointercancel',mobileCancelPointers);
+addEventListener('lostpointercapture',e=>{ if(MOBILE_UI&&e.pointerType==='touch') mobileCancelPointers(); });
 addEventListener('pointermove',e=>{
   lookTX=(e.clientX/innerWidth)*2-1; lookTY=(e.clientY/innerHeight)*2-1;
   if(MOBILE_UI&&e.pointerType==='touch'&&mobilePointers.has(e.pointerId)){
@@ -7384,7 +7582,7 @@ function frame(){
       // arrival blend (v41): ease from the exact touchdown pose into the docked pose math,
       // so the flight's damped-follow residual, the mouse sway and the breathing all fade
       // in — nothing cuts over at flight end
-      const dr=easeInOut(Math.min(1,(now-dockT0)/1600));
+      const dr=easeInOut(Math.min(1,(now-dockT0)/DOCK_BLEND_MS));
       camera.position.lerpVectors(dockPos,_jPos,dr);
       if(autoTour) tourLook(now); // guided mode: the gaze tours the facets by itself
       if(stopInfoMode==='assemble'&&stopFacets){
@@ -7901,32 +8099,58 @@ genEl('genCopy').addEventListener('click',async()=>{
 });
 
 /* resize: camera + canvas track the window live (cheap), but composer.setSize — which
-   reallocates the 4×MSAA half-float target AND the whole bloom mip chain — is debounced,
+   reallocates its target (desktop: 4x MSAA half-float; mobile: byte/no-MSAA) and the bloom mip chain — is debounced,
    because entering fullscreen (with the pref on, fsFirst fires on the same click as
    Enter) delivers a storm of resize events right as the enter flight starts; realloc
    once, after it settles.
    Mid-storm the composer upscales its last-sized frame to the canvas — imperceptible. */
 let composerResizeT=0,mobileReflowT=0,mobileLayoutW=innerWidth,mobileLayoutH=innerHeight,mobileNeedsReflow=false;
+function mobileRestoreFacetState(k,state,tries=0){
+  if(!state||uiState!=='journey'||jMode!=='docked'||dockIdx!==k||!stopFacets) return;
+  const pool=stopFacets.scrollFacets||stopFacets.facets;
+  const F=pool.find(x=>x.g===state.g);
+  if(!F) return;
+  if(F.elist) F.eIdx=Math.max(0,Math.min(F.elist.length-1,state.eIdx||0));
+  if(F.state!=='hold'){
+    if(tries<75) setTimeout(()=>mobileRestoreFacetState(k,state,tries+1),80);
+    return;
+  }
+  if(F.vids&&state.vIdx>0&&state.vIdx<F.vids.length) facetGoVideo(F,state.vIdx);
+  if(F.games&&state.cbIdx>=0&&state.cbIdx<F.games.length){ facetChessGame(F,state.cbIdx); cvShow(state.chessPly||0); }
+  if(state.moreDetail&&F.caseBaseLay) toggleCaseMore(F,true);
+  renderDirty=true; glyphsDirty=true;
+}
 function mobileReassembleDocked(){
   if(!MOBILE_UI||uiState!=='journey'||jMode!=='docked'||!stopFacets) return;
   if(projectLiveOpen||cfWrap.contains(document.activeElement)){ mobileNeedsReflow=true; return; }
   mobileNeedsReflow=false;
   const k=dockIdx, old=stopFacets, scrollIndex=old.scrollMode?old.scrollIndex:0;
-  let galleryIndex=-1;
+  let galleryIndex=-1, activeFacet=old.scrollMode?old.scrollFacets[scrollIndex]:null;
   if(!old.scrollMode&&STOPS[k].gallery){
     let best=null,bd=Infinity;
     for(const F of old.facets) if(F.g){ const d=Math.abs(wrapAng((old.yaw0+freeYaw)-F.yaw)); if(d<bd){bd=d;best=F;} }
-    if(best) galleryIndex=STOPS[k].gallery.indexOf(best.g);
+    if(best){ galleryIndex=STOPS[k].gallery.indexOf(best.g); activeFacet=best; }
   }
+  const nested=activeFacet?{g:activeFacet.g,vIdx:activeFacet.vIdx||0,cbIdx:activeFacet.cbIdx,
+    chessPly:activeFacet.cbOn?cv.ply:0,eIdx:activeFacet.eIdx||0,moreDetail:!!activeFacet.moreDetail}:null;
+  const projectSnapshot={id:projectStageState.id,pinned:projectStageState.pinned,previewDismissed:projectStageState.previewDismissed};
   disassemble(true); assembleStop(k);
   if(scrollIndex>0) setTimeout(()=>timelineTo(scrollIndex),0);
   else if(galleryIndex>=0) mobileSelectGallery(galleryIndex);
+  if(projectSnapshot.id){
+    showProjectStage(projectSnapshot.id,projectSnapshot.pinned);
+    projectStageState.previewDismissed=projectSnapshot.previewDismissed;
+  }
+  if(nested) setTimeout(()=>mobileRestoreFacetState(k,nested),0);
   renderDirty=true; glyphsDirty=true;
 }
-function resizePortfolio(){
-  if(MOBILE_UI&&ROOT.classList.contains('mobile-keyboard')) return;
+function resizePortfolio(forceReflow=false){
   const w=innerWidth,h=innerHeight,orientationChanged=(w>h)!==(mobileLayoutW>mobileLayoutH);
   const widthChanged=Math.abs(w-mobileLayoutW)>20;
+  if(MOBILE_UI&&ROOT.classList.contains('mobile-keyboard')){
+    if(widthChanged) mobileNeedsReflow=true; // physical rotation changes width; keyboard-only height changes do not
+    return;
+  }
   camera.aspect=w/h; camera.updateProjectionMatrix();
   frontPos2.z=midZ+overviewDistance(camera.aspect);
   _dummy.position.copy(frontPos2); _dummy.up.set(0,1,0); _dummy.lookAt(faceCenter); _dummy.updateMatrixWorld(); exploreQuat.copy(_dummy.quaternion);
@@ -7937,7 +8161,7 @@ function resizePortfolio(){
   renderer.setSize(w,h); renderDirty=true;
   clearTimeout(composerResizeT);
   composerResizeT=setTimeout(()=>{ composer.setSize(innerWidth,innerHeight); renderDirty=true; },180);
-  if(MOBILE_UI&&(orientationChanged||widthChanged)){
+  if(MOBILE_UI&&(forceReflow||orientationChanged||widthChanged)){
     mobileLayoutW=w; mobileLayoutH=h; clearTimeout(mobileReflowT);
     mobileReflowT=setTimeout(mobileReassembleDocked,260);
   }
