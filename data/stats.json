@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-24T21:53:14.544Z",
+  "generatedAt": "2026-08-24T22:24:59.491Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 5,
+    "today": 3,
     "month": 29,
     "year": 227,
     "total": 262,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 4,
+    "today": 3,
     "month": 28,
     "year": 221,
     "total": 252
@@ -2217,6 +2217,12 @@
       "count": 3,
       "level": "FIRST_QUARTILE",
       "weekday": 1
+    },
+    {
+      "date": "2026-08-25",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 2
     }
   ],
   "repos": {
@@ -2258,7 +2264,7 @@
       "name": "Portfolio",
       "description": null,
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-08-24T21:01:43Z",
+      "pushedAt": "2026-08-24T21:53:17Z",
       "language": "HTML"
     },
     "featured": [
