@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T07:26:28.860Z",
+  "generatedAt": "2026-08-31T15:17:44.653Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 0,
@@ -2258,7 +2258,7 @@
       "name": "Portfolio",
       "description": null,
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-08-31T01:27:39Z",
+      "pushedAt": "2026-08-31T07:26:32Z",
       "language": "HTML"
     },
     "featured": [
@@ -2310,7 +2310,7 @@
     ]
   },
   "profile": {
-    "followers": 6,
+    "followers": 5,
     "createdAt": "2024-11-19T21:48:55Z"
   }
 }
