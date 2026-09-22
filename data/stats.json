@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-09-22T19:48:43.039Z",
+  "generatedAt": "2026-09-22T22:43:49.239Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 2,
-    "month": 34,
-    "year": 262,
-    "total": 297,
-    "currentStreak": 1,
+    "month": 36,
+    "year": 264,
+    "total": 299,
+    "currentStreak": 2,
     "longestStreak": 9,
     "breakdown": {
-      "commits": 253,
+      "commits": 255,
       "issues": 0,
       "pullRequests": 0,
       "reviews": 0
@@ -17,9 +17,9 @@
   },
   "commits": {
     "today": 2,
-    "month": 31,
-    "year": 253,
-    "total": 284
+    "month": 33,
+    "year": 255,
+    "total": 286
   },
   "calendar": [
     {
@@ -2220,9 +2220,15 @@
     },
     {
       "date": "2026-09-22",
+      "count": 2,
+      "level": "FIRST_QUARTILE",
+      "weekday": 2
+    },
+    {
+      "date": "2026-09-23",
       "count": 0,
       "level": "NONE",
-      "weekday": 2
+      "weekday": 3
     }
   ],
   "repos": {
@@ -2276,11 +2282,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": null,
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-09-22T16:24:16Z",
-      "language": "HTML"
+      "name": "Neural-Scaling-of-the-Drosophila-Connectome",
+      "description": "Academic report on participation calibration and memory retention in Drosophila-derived circuits, with technical supplement, experimental code, protocols and complete reproducibility evidence.",
+      "url": "https://github.com/T-Julsgaard/Neural-Scaling-of-the-Drosophila-Connectome",
+      "pushedAt": "2026-09-22T21:14:28Z",
+      "language": "Python"
     },
     "featured": [
       {
