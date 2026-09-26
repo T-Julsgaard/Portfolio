@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T15:47:40.245Z",
+  "generatedAt": "2026-09-26T19:00:11.736Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 1,
@@ -2303,13 +2303,13 @@
       "name": "Portfolio",
       "description": null,
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-09-26T11:39:58Z",
+      "pushedAt": "2026-09-26T15:47:44Z",
       "language": "HTML"
     },
     "featured": [
       {
         "name": "Chess-Review",
-        "description": "Free, open source game review. Produces accuracy scores within ~95% of Chess.com's. [Currently 300+ users]",
+        "description": "Free, open source game review. Produces accuracy scores within ~95% of Chess.com's. [Currently 400+ users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
         "pushedAt": "2026-09-19T12:18:42Z",
