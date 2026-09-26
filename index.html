@@ -49,11 +49,11 @@
     font:inherit; cursor:pointer; transition:color .18s ease;
   }
   .rail-toggle:is(:hover,:focus-visible) { color:#fff; outline:none; }
-  .rail-heading { font-size:11px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
-  .rail-arrow { font-size:10px; line-height:1; }
+  .rail-heading { font-size:13px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
+  .rail-arrow { font-size:12px; line-height:1; }
   .rail-items { display:grid; grid-template-rows:0fr; opacity:0; margin-top:0; pointer-events:none;
     transition:grid-template-rows .22s cubic-bezier(.22,.8,.28,1), opacity .16s ease, margin-top .22s ease; }
-  .rail-items-inner { min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:9px; }
+  .rail-items-inner { min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:10px; }
   #rail-about .rail-items-inner { align-items:flex-start; }
   #rail-portfolio .rail-items-inner { align-items:flex-end; }
   .journey-rail.expanded .rail-items { grid-template-rows:1fr; opacity:1; margin-top:7px; pointer-events:auto; }
@@ -63,12 +63,12 @@
     color:rgba(255,255,255,0.55); font-family:inherit;
   }
   .rail-stop .lbl {
-    font-size:9px; letter-spacing:0.16em; text-transform:uppercase;
+    font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
     opacity:0; transform:translateX(6px);
     transition:opacity 0.18s ease, transform 0.18s cubic-bezier(0.2,0.8,0.2,1), color 0.18s ease;
   }
   .rail-stop .dot {
-    width:8px; height:8px; border-radius:50%; flex:none;
+    width:10px; height:10px; border-radius:50%; flex:none;
     border:1px solid rgba(255,255,255,0.65); background:transparent;
     transition:background 0.25s ease, box-shadow 0.25s ease;
   }
@@ -82,7 +82,7 @@
   #rail-portfolio .rail-project .dot { border-radius:50%; transform:none; }
   #journey-rails.docked .rail-project:is(:hover,:focus-visible) { opacity:1; }
   .rail-stop.done .dot,.rail-stop.current .dot { background:transparent; box-shadow:none; }
-  /* Group headings appear while docked; visitors expand either link list on demand.
+  /* Group headings and links appear while docked; visitors can retract either list.
      Welcome hides both rails because its in-scene columns already navigate. */
 
   /* Only project surfaces that benefit from being experienced in place develop into the
@@ -2057,9 +2057,10 @@ function terrainH(x,y){ /* tallest glyph within ~±3 units of (x,y); minZ where 
    v65 emboard embed could show neither ratings nor clocks and offered no outside
    control, so the v64 PGN engine is back). Per game: w/wr b/br = usernames +
    ratings, base = starting clock in seconds, link = the game on chess.com, pgn =
-   movetext straight from the chess.com public API
-   (api.chess.com/pub/player/julsgaard/games/YYYY/MM) - KEEP the {[%clk ...]}
-   comments, they drive the bullet clocks. me = which color Thomas played; that
+   movetext (usually from the chess.com public API)
+   (api.chess.com/pub/player/julsgaard/games/YYYY/MM) - KEEP any {[%clk ...]}
+   comments: they drive the clocks. Without them, times after the opening are unavailable.
+   me = which color Thomas played; that
    side sits at the bottom of the board. */
 const CHESS_GAMES=[
   {w:'Nixkram',wr:2516,b:'Julsgaard',br:1812,base:60,me:'b', cap:'vs Nixkram (2516) - Bullet', link:'https://www.chess.com/game/live/145985164978', // 0-1 bullet, Nov 26 2025 - won as Black
@@ -2068,6 +2069,8 @@ const CHESS_GAMES=[
    pgn:'1. d3 {[%clk 0:00:59.9]} 1... g6 {[%clk 0:00:59.7]} 2. c3 {[%clk 0:00:59.8]} 2... Bg7 {[%clk 0:00:59.6]} 3. Qc2 {[%clk 0:00:59.6]} 3... Nf6 {[%clk 0:00:59.5]} 4. e4 {[%clk 0:00:59]} 4... d5 {[%clk 0:00:58.6]} 5. Be2 {[%clk 0:00:58.9]} 5... dxe4 {[%clk 0:00:57.6]} 6. dxe4 {[%clk 0:00:58.8]} 6... Be6 {[%clk 0:00:56.6]} 7. Be3 {[%clk 0:00:58.7]} 7... Nc6 {[%clk 0:00:55.6]} 8. Nd2 {[%clk 0:00:58.6]} 8... Qd7 {[%clk 0:00:54.4]} 9. h3 {[%clk 0:00:58.5]} 9... O-O-O {[%clk 0:00:53.9]} 10. a4 {[%clk 0:00:58.3]} 10... Ne5 {[%clk 0:00:52.2]} 11. g4 {[%clk 0:00:58.2]} 11... Nc4 {[%clk 0:00:50.8]} 12. f4 {[%clk 0:00:58.1]} 12... Nxe3 {[%clk 0:00:49.5]} 13. Qb1 {[%clk 0:00:57.1]} 13... Ng2+ {[%clk 0:00:47.9]} 14. Kf2 {[%clk 0:00:56.7]} 14... Nxf4 {[%clk 0:00:47]} 15. Bf1 {[%clk 0:00:56.6]} 15... Nd3+ {[%clk 0:00:45.8]} 16. Kg2 {[%clk 0:00:55.1]} 16... Nc5 {[%clk 0:00:45.2]} 17. Ngf3 {[%clk 0:00:55]} 17... Ncxe4 {[%clk 0:00:44.6]} 18. Nxe4 {[%clk 0:00:54.1]} 18... Nxe4 {[%clk 0:00:44.1]} 19. Qxe4 {[%clk 0:00:54]} 19... h5 {[%clk 0:00:37.7]} 20. g5 {[%clk 0:00:53.1]} 20... Bd5 {[%clk 0:00:34.9]} 21. Qe3 {[%clk 0:00:52.4]} 21... Qf5 {[%clk 0:00:34.1]} 22. Qxa7 {[%clk 0:00:51.1]} 22... Qxf3+ {[%clk 0:00:31.9]} 23. Kg1 {[%clk 0:00:50.6]} 23... Qg3+ {[%clk 0:00:30.5]} 24. Bg2 {[%clk 0:00:49.2]} 24... Qxg2# {[%clk 0:00:29.4]} 0-1'},
   {w:'Julsgaard',wr:1802,b:'DonquixotDoflamingo',br:2202,base:60,me:'w', cap:'vs DonquixotDoflamingo (2202) - Bullet', link:'https://www.chess.com/game/live/147627507266', // 1-0 bullet, Jan 5 2026 - won as White
    pgn:'1. d4 {[%clk 0:00:58.5]} 1... e5 {[%clk 0:00:59.8]} 2. Bf4 {[%clk 0:00:58.1]} 2... exf4 {[%clk 0:00:58.9]} 3. e3 {[%clk 0:00:57.5]} 3... fxe3 {[%clk 0:00:57.1]} 4. fxe3 {[%clk 0:00:57.4]} 4... Nf6 {[%clk 0:00:56.4]} 5. Nf3 {[%clk 0:00:57.3]} 5... Bb4+ {[%clk 0:00:55.1]} 6. c3 {[%clk 0:00:56.5]} 6... Be7 {[%clk 0:00:54.5]} 7. Nbd2 {[%clk 0:00:56.4]} 7... d5 {[%clk 0:00:54]} 8. Nc4 {[%clk 0:00:56.3]} 8... c6 {[%clk 0:00:53.7]} 9. Nce5 {[%clk 0:00:55.4]} 9... Nbd7 {[%clk 0:00:52.3]} 10. Bd3 {[%clk 0:00:53.9]} 10... Nxe5 {[%clk 0:00:51.7]} 11. Nxe5 {[%clk 0:00:53.8]} 11... Be6 {[%clk 0:00:50.3]} 12. Qf3 {[%clk 0:00:52.8]} 12... O-O {[%clk 0:00:48.9]} 13. h3 {[%clk 0:00:50.9]} 13... Nd7 {[%clk 0:00:47.7]} 14. Ng4 {[%clk 0:00:48.3]} 14... f5 {[%clk 0:00:43.8]} 15. Ne5 {[%clk 0:00:47.2]} 15... Nxe5 {[%clk 0:00:43]} 16. dxe5 {[%clk 0:00:47.1]} 16... Bc5 {[%clk 0:00:41.4]} 17. O-O-O {[%clk 0:00:45.3]} 17... a5 {[%clk 0:00:40]} 18. Qh5 {[%clk 0:00:43.6]} 18... h6 {[%clk 0:00:38.8]} 19. Qg6 {[%clk 0:00:41.8]} 19... Qg5 {[%clk 0:00:36.9]} 20. Qxg5 {[%clk 0:00:39.7]} 20... hxg5 {[%clk 0:00:36.8]} 21. g4 {[%clk 0:00:38.1]} 21... Bxe3+ {[%clk 0:00:31.5]} 22. Kc2 {[%clk 0:00:37.6]} 22... f4 {[%clk 0:00:31]} 23. h4 {[%clk 0:00:35.8]} 23... Bxg4 {[%clk 0:00:21.8]} 24. hxg5 {[%clk 0:00:34.7]} 24... Bxd1+ {[%clk 0:00:20.2]} 25. Kxd1 {[%clk 0:00:33.4]} 25... c5 {[%clk 0:00:19.3]} 26. Bg6 {[%clk 0:00:32.6]} 26... d4 {[%clk 0:00:15.8]} 27. Bh7+ {[%clk 0:00:31.1]} 27... Kf7 {[%clk 0:00:14.5]} 28. g6+ {[%clk 0:00:30.7]} 28... Ke7 {[%clk 0:00:13.3]} 29. Rh5 {[%clk 0:00:29.3]} 29... dxc3 {[%clk 0:00:11.6]} 30. bxc3 {[%clk 0:00:28.3]} 30... Rad8+ {[%clk 0:00:11.3]} 31. Ke2 {[%clk 0:00:27.2]} 31... Rd2+ {[%clk 0:00:11.2]} 32. Kf3 {[%clk 0:00:26.5]} 32... Rfd8 {[%clk 0:00:10.5]} 33. Ke4 {[%clk 0:00:26.2]} 33... c4 {[%clk 0:00:08.6]} 34. Bg8 {[%clk 0:00:25.6]} 34... R2d4+ {[%clk 0:00:06.1]} 35. Kf5 {[%clk 0:00:24.5]} 35... R4d7 {[%clk 0:00:04.1]} 36. Bxc4 {[%clk 0:00:23.1]} 36... Rf8+ {[%clk 0:00:02.2]} 37. Ke4 {[%clk 0:00:22.6]} 37... Rc7 {[%clk 0:00:02]} 38. Bb5 {[%clk 0:00:20.9]} 38... Rxc3 {[%clk 0:00:01.9]} 39. Rh7 {[%clk 0:00:19.8]} 39... Rc5 {[%clk 0:00:01.8]} 40. Rxg7+ {[%clk 0:00:19.2]} 40... Ke6 {[%clk 0:00:01]} 41. Bd7# {[%clk 0:00:16.6]} 1-0'},
+  {w:'Julsgaard',wr:1516,b:'I_Always_Play_Vienna',br:2238,base:180,me:'w', cap:'vs I_Always_Play_Vienna (2238) - Blitz', link:'https://www.chess.com/game/live/184386194054', // 1-0 blitz (3+2), Sep 26 2026 - won as White; supplied PGN has no clock comments
+   pgn:'1. d4 e6 2. Bf4 d5 3. e3 c5 4. c3 Bd6 5. Bg3 Bxg3 6. hxg3 Ne7 7. Nf3 cxd4 8. cxd4 O-O 9. Bd3 Qb6 10. Bxh7+ Kh8 11. Bd3+ Kg8 12. Qc2 Nf5 13. g4 Nh6 14. g5 Nf5 15. g4 Ne7 16. Bh7+ Kh8 17. Bg8+ Kxg8 18. Qh7# 1-0'},
 ];
 const JOURNEY=[
   {xf: 0.06, yf: 1.00},
@@ -2199,7 +2202,7 @@ const JOURNEY=[
      chess.com mark hangs TILTED beside the board (`mark.side`). Volunteering is a
      quiet static two-entry list: both jobs assemble at equal emphasis with no
      selector arrows or download control. */
-  {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Beyond the work', body:'', media:[],
+  {xf: 0.04, yf:-0.08, stop:{id:'interests', label:'Interests', title:'Interests', body:'', media:[],
     gallery:[
       {img:'chessboard', title:'Chess', imgScale:1.95, hFit:1.5,
         games:CHESS_GAMES,
@@ -2210,7 +2213,7 @@ const JOURNEY=[
         btns:[{t:'PLAY',kind:'vplay'}]},
       {title:'Volunteering', staticList:true,
         list:[{h:'Vice chairman - Askov Folk High School', d:'Student association board - Aug 2022 - present'},
-              {h:'Tutor - Aalborg University', d:'Welcoming and guiding the new Techno-Anthropology students - Sep - Dec 2023'}]}
+              {h:'Tutor - Aalborg University', d:'Welcoming and guiding the new students - Sep - Dec 2023'}]}
     ]}},
   {xf: 0.32, yf:-0.14},
   {xf: 0.34, yf:-0.30},
@@ -2758,11 +2761,12 @@ const railAbout=document.getElementById('rail-about'), railPortfolio=document.ge
 const railEls=[];
 function initRailGroup(nav,label){
   const toggle=document.createElement('button'), shell=document.createElement('div'), inner=document.createElement('div');
-  toggle.type='button'; toggle.className='rail-toggle'; toggle.setAttribute('aria-expanded','false');
-  toggle.setAttribute('aria-label','Expand '+label+' links');
-  toggle.innerHTML='<span class="rail-heading">[ '+label+' ]</span><span class="rail-arrow" aria-hidden="true">&#8595;</span>';
+  toggle.type='button'; toggle.className='rail-toggle'; toggle.setAttribute('aria-expanded','true');
+  toggle.setAttribute('aria-label','Collapse '+label+' links');
+  toggle.innerHTML='<span class="rail-heading">[ '+label+' ]</span><span class="rail-arrow" aria-hidden="true">&#8593;</span>';
   shell.className='rail-items'; inner.className='rail-items-inner'; inner.id=nav.id+'-items';
   toggle.setAttribute('aria-controls',inner.id); shell.appendChild(inner); nav.append(toggle,shell);
+  nav.classList.add('expanded');
   toggle.addEventListener('click',()=>{
     const expanded=nav.classList.toggle('expanded');
     toggle.setAttribute('aria-expanded',String(expanded));
@@ -5840,6 +5844,7 @@ function cvLoad(gi){
   cvShow(0);
 }
 function cvClkAt(k,white){ // remaining time after that side's latest move among the first k plies
+  if(!cv.clks.length) return k===0?CHESS_GAMES[cv.gi].base:null; // supplied PGN has no clock trail
   let t=CHESS_GAMES[cv.gi].base;                            // both clocks start at base
   for(let i=white?0:1;i<k&&i<cv.clks.length;i+=2) t=cv.clks[i]; // white moves = plies 1,3,5… (0-based even)
   return t;
@@ -5856,8 +5861,9 @@ function cvShow(k){
   }
   cbN.textContent=cv.ply+' / '+cv.sans.length;
   const wc=cvClkAt(cv.ply,true), bc=cvClkAt(cv.ply,false);
-  cbTop.querySelector('.ck').textContent=cvFmtClk(cv.topW?wc:bc);
-  cbBot.querySelector('.ck').textContent=cvFmtClk(cv.topW?bc:wc);
+  const topClock=cv.topW?wc:bc, botClock=cv.topW?bc:wc;
+  cbTop.querySelector('.ck').textContent=topClock===null?'--:--':cvFmtClk(topClock);
+  cbBot.querySelector('.ck').textContent=botClock===null?'--:--':cvFmtClk(botClock);
   const over=cv.ply===cv.sans.length&&!cv.err;   // at the final position nobody is "to move"
   cbTop.querySelector('.ck').classList.toggle('on',!over&&st.w===cv.topW);
   cbBot.querySelector('.ck').classList.toggle('on',!over&&st.w!==cv.topW);

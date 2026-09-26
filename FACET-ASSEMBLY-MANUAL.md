@@ -5,6 +5,14 @@ Written after v43 (July 2026). This is the playbook for extending or modifying t
 **Case studies**, changing clearing behavior, or debugging glyph transitions. It records
 what we built, *why* it's built that way, and the methodology that made v43 succeed.
 
+## 2026-09-26 addendum: PGNs without clock comments
+
+A new Interests chess game can use the existing CHESS_GAMES shape with a base
+matching its time control. The SAN viewer parses the supplied movetext and the
+match-list loop adds its caption automatically. If the PGN lacks clock comments,
+cvClkAt only knows the initial time; later clock chips show --:--. Never infer
+per-move times from the time control alone.
+
 ## v96 addendum: one facet system, two responsive presentations
 
 There is still one facet/donor system and one content model. `html.mobile-ui` never adds

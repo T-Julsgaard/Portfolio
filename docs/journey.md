@@ -2,6 +2,15 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## 2026-09-26: open and larger desktop journey rails
+
+The ABOUT ME and PORTFOLIO rail groups initialize expanded, with an up arrow and
+matching accessible state and action label. Each toggle still changes only its own
+group; travel and docking never reset that class, so a visitor's collapsed choice
+persists across stops. The existing docked gate still hides both columns during
+flights and at Welcome. Headings are 13 px, arrows 12 px, links 11 px, dots 10 px,
+and row gaps 10 px. Mobile continues to use its separate section controls.
+
 ## v96: persistent phone journey controls and browser-history unwind
 
 Phones keep the same six stops, Catmull-Rom path, docking state, and canvas flight. A

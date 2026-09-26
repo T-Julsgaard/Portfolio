@@ -1,5 +1,15 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## 2026-09-26: Interests copy and fourth chess game
+
+The shared Interests stop title is now Interests; the Tutor entry says
+"Welcoming and guiding the new students". Both reach the mobile Details sheet from
+the same JOURNEY data. CHESS_GAMES adds Julsgaard vs I_Always_Play_Vienna (2238),
+3+2 Blitz, 2026-09-26. The supplied 35-ply PGN has no clock comments: the viewer
+shows the known 3:00 starting time and --:-- after moves, while existing games
+keep their per-move clocks. The fourth match-list line is produced by the existing
+loop and needs no separate selector wiring.
+
 ## v96 - mobile facet fit and native interaction surfaces
 
 Mobile changes presentation, not terrain claims. `assembleStop()` keeps every desktop
