@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T15:37:27.468Z",
+  "generatedAt": "2026-09-30T20:32:10.420Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 2,
@@ -2237,7 +2237,7 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58663847,
+        "bytes": 58715396,
         "percent": 94
       },
       {
@@ -2247,7 +2247,7 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 602988,
+        "bytes": 636012,
         "percent": 1
       },
       {
@@ -2257,7 +2257,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 114355,
+        "bytes": 119436,
         "percent": 0.2
       },
       {
@@ -2282,19 +2282,19 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": null,
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-09-30T08:52:06Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-09-30T20:11:20Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
         "name": "Chess-Review",
-        "description": "Free, open source game review. Produces accuracy scores within ~95% of Chess.com's. [Currently 500+ active, weekly users]",
+        "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-09-29T16:18:53Z",
+        "pushedAt": "2026-09-30T20:11:20Z",
         "stars": 15,
         "language": "JavaScript"
       },
