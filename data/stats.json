@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-01T19:16:18.299Z",
+  "generatedAt": "2026-10-01T23:20:24.314Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 14,
+    "today": 8,
     "month": 14,
     "year": 301,
     "total": 336,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 14,
+    "today": 8,
     "month": 14,
     "year": 289,
     "total": 320
@@ -2235,6 +2235,12 @@
       "count": 8,
       "level": "SECOND_QUARTILE",
       "weekday": 4
+    },
+    {
+      "date": "2026-10-02",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 5
     }
   ],
   "repos": {
@@ -2288,11 +2294,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": null,
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-01T13:43:54Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-10-01T21:16:56Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2300,7 +2306,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-09-30T23:51:16Z",
+        "pushedAt": "2026-10-01T21:16:56Z",
         "stars": 16,
         "language": "JavaScript"
       },
