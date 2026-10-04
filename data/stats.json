@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-10-04T20:20:00.067Z",
+  "generatedAt": "2026-10-04T23:27:24.494Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 79,
+    "today": 47,
     "month": 224,
     "year": 578,
     "total": 613,
-    "currentStreak": 9,
-    "longestStreak": 9,
+    "currentStreak": 10,
+    "longestStreak": 10,
     "breakdown": {
       "commits": 563,
       "issues": 1,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 76,
+    "today": 45,
     "month": 221,
     "year": 563,
     "total": 594
@@ -2211,10 +2211,16 @@
       "count": 47,
       "level": "FOURTH_QUARTILE",
       "weekday": 0
+    },
+    {
+      "date": "2026-10-05",
+      "count": 4,
+      "level": "FIRST_QUARTILE",
+      "weekday": 1
     }
   ],
   "repos": {
-    "publicCount": 8,
+    "publicCount": 9,
     "totalStars": 17,
     "languages": [
       {
@@ -2229,7 +2235,7 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 953999,
+        "bytes": 960368,
         "percent": 1.5
       },
       {
@@ -2269,11 +2275,11 @@
       }
     ],
     "mostRecent": {
-      "name": "entropy-forge",
-      "description": "Multi-API entropy harvester. The API version of Cloudflare's lava-lamp wall.",
-      "url": "https://github.com/T-Julsgaard/entropy-forge",
-      "pushedAt": "2026-10-04T18:31:08Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-10-04T23:24:05Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2281,7 +2287,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-04T17:06:10Z",
+        "pushedAt": "2026-10-04T23:24:05Z",
         "stars": 17,
         "language": "JavaScript"
       },
