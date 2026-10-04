@@ -17,6 +17,14 @@ AST layout validation against the real 13,268-glyph terrain measures Chess 1,353
 Entropy 1,614, DocuRAG 1,443, Wind 1,679, and Bitcoin 1,594. Welcome's 3,437 claims
 plus the maximum reserve leave 8,152 spare. Case Studies content is unchanged.
 
+## 2026-10-05: explicit facet navigation with a fixed gaze
+
+Canvas drags no longer steer freeYaw/freePitch. Explicit arrows, keyboard, selection,
+mobile swipe release and opt-in auto tour retain the existing smoothed panorama and
+gaze/handoff lifecycle. Hover and canvas button clicks still run their existing hit
+tests, and Welcome scrollbars still own their drags. Idle breathing and cursor sway
+are removed. Centred FOV zoom is unchanged, so facet anchors, clearing cones and pool
+claims remain identical; no new glyph content is allocated.
 
 ## 2026-09-26: Interests copy and fourth chess game
 

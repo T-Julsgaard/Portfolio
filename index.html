@@ -780,7 +780,7 @@
       </section>
     </div>
     <div id="mobile-coach" role="status" hidden>
-      Drag to look &bull; swipe to change view &bull; pinch to zoom &bull; use the bottom arrows to travel
+      Swipe to change view &bull; pinch to zoom straight ahead &bull; use the bottom arrows to travel
       <button type="button" aria-label="Dismiss touch guide">&times;</button>
     </div>
   </div>
@@ -865,7 +865,6 @@
           </select>
         </label>
         <div class="row"><span>Auto tour (scroll-only)</span><input type="checkbox" id="toggleAutoTour"></div>
-        <div class="row"><span>Cursor sway (docked)</span><input type="checkbox" id="toggleCursorSway"></div>
         <label>Experience &amp; Education
           <select id="timelineNavSelect">
             <option value="scroll">Scroll timeline</option>
@@ -2080,7 +2079,7 @@ const JOURNEY=[
   /* github:true → assemble mode builds this stop with buildWelcomeLayout (title +
      live contribution calendar + commit ticker + the mini-me figure) instead of the
      generic title/body layout. Panel mode still shows the title/body below. */
-  {xf:-0.58, yf: 0.82, stop:{id:'welcome', label:'Welcome', title:'Welcome', github:true, body:'Hi, I\'m Thomas.\nThis landscape is my face — 13,268 ASCII characters of it.\nScroll to travel: the path snakes over the terrain and pauses at six stops, each one a piece of what I do. Drag to look around at any stop.', media:[]}},
+  {xf:-0.58, yf: 0.82, stop:{id:'welcome', label:'Welcome', title:'Welcome', github:true, body:'Hi, I\'m Thomas.\nThis landscape is my face — 13,268 ASCII characters of it.\nUse the section links to visit six stops, each one a piece of what I do. Scroll to zoom straight ahead; use the arrows to change views.', media:[]}},
   {xf:-0.26, yf: 0.80},
   /* Work experience: five roles ring the visitor (same 360° facet machinery as the case
      studies), CHRONOLOGICAL — most recent immediately to the RIGHT of the intro, oldest
@@ -2378,7 +2377,7 @@ function mobileRenderStop(k){
   if(st.links&&st.links.length) html+='<h3 class="ms-heading">Links and documents</h3><div class="ms-actions">'+st.links.map(x=>mobileAction(x.href,x.label,false)).join('')+'</div>';
   html+='<h3 class="ms-heading">All sections</h3><div class="ms-grid">'+STOPS.map((x,i)=>
     '<button class="ms-card" type="button" data-mobile-stop="'+i+'"'+(i===dockIdx?' aria-current="page"':'')+'><span class="ms-meta">'+String(i+1).padStart(2,'0')+' / '+String(STOPS.length).padStart(2,'0')+'</span><strong>'+mobileEsc(x.label)+'</strong></button>').join('')+'</div>'+
-    '<p class="ms-tip">Touch guide: drag to look, swipe sideways to change a facet, pinch to zoom, and use the persistent bottom arrows to move between sections.</p>';
+    '<p class="ms-tip">Touch guide: swipe sideways to change a facet, pinch to zoom straight ahead, and use the persistent bottom arrows to move between sections.</p>';
   mobileSheetContent.innerHTML=html; mobileSheetContent.scrollTop=0;
 }
 function mobileShowSheet(k,focusClose){
@@ -2602,8 +2601,7 @@ buildJourney(JCLEAR);
    stop is announced only by the assembled text (or the HTML panel). The flight path
    itself is unchanged; stops are reached via scroll/drag, arrow keys and the rail. --- */
 
-/* overview camera: OrbitControls so the visitor can freely look around the whole portrait before entering
-   (left-drag to orbit, ctrl/shift/right-drag to pan, scroll to zoom — OrbitControls' own default scheme) */
+/* Fixed overview: wheel/pinch zoom along the portrait centre axis; dragging never orbits or pans. */
 const OVERVIEW_AUTHORED_DIST=(midZ+(farDist*0.55-midZ)*1.20)-midZ;
 function overviewDistance(aspect){
   if(!MOBILE_UI) return OVERVIEW_AUTHORED_DIST;
@@ -2630,7 +2628,9 @@ camera.position.copy(frontPos2);
 const controls=new OrbitControls(camera, renderer.domElement);
 controls.target.copy(faceCenter);
 controls.enableDamping=true; controls.dampingFactor=0.08;
-controls.minDistance=spanY*0.15; controls.maxDistance=scene.fog.far*0.97;
+controls.enableRotate=false; controls.enablePan=false;
+controls.zoomToCursor=false; // zoom stays centred, wherever the pointer is
+controls.minDistance=spanY*0.15; controls.maxDistance=overviewDistance(camera.aspect); // never retreat behind the initial view
 controls.update();
 
 /* intro parallax-lift: on load the camera hangs in close at a 3/4 angle — as if leaning over
@@ -3158,12 +3158,12 @@ function showStop(k){
   panel.classList.toggle('in',!mini);
   railSet(k);
   railDock(k);
-  /* v63: no standing hint at assembled stops — drag-look is discoverable and scroll now
+  /* No standing hint at assembled stops: their controls provide navigation and scroll
      zooms instead of departing, so "scroll to continue" would lie. The auto tour (scroll
      IS travel there) and the classic panel mode keep their hints. */
   if(stopInfoMode==='assemble'&&!autoTour) hideHint();
   else {
-    const look=(stopInfoMode==='assemble')?'Drag to look around · ':'';
+    const look='';
     setHint(k===STOPS.length-1 ? look+'End of the journey — scroll up to revisit, or press Free roam' : look+'Scroll to continue');
     showHint();
   }
@@ -3409,12 +3409,6 @@ const ROT_CELL=0.22, ROT_GAP=1.1; // arrow cell pitch / gap between content edge
    a single wheel. Persisted like the fullscreen pref (localStorage pf_auto_tour). */
 let autoTour=false; try{ autoTour=localStorage.getItem('pf_auto_tour')==='1'; }catch(e){}
 if(REDUCED_MOTION) autoTour=false;
-/* ===== CURSOR SWAY (v62, dev panel > Journey > "Cursor sway (docked)", default OFF) =====
-   Whether the docked camera follows the bare (undragged) mouse: the subtle ±~3° gaze sway
-   in assemble mode and the classic ±30°/±17° mouse-look in panel mode. Off by default —
-   the passive drift reads as unwanted movement to some visitors; the checkbox brings the
-   old behaviour back. Persisted like the auto tour (localStorage pf_cursor_sway). */
-let cursorSway=false; try{ cursorSway=localStorage.getItem('pf_cursor_sway')==='1'; }catch(e){}
 const tour={p:0, pT:0, hint:false, k:-1, armed:false, step:0, holdUntil:0};
 const TOUR_WHEEL=0.00055; // wheel delta -> sweep progress (a ~18-notch scroll spans the arc)
 const ASM_DIST=21, ASM_IMG_DIST=18;                  // facet plane distance: text / covers
@@ -3648,7 +3642,7 @@ const VCAP_MID=new THREE.Color('#b4b4b4'); // v68: hover lift for the clickable 
 const LIST_BODY=new THREE.Color('#d2d2d2'), LIST_DIM2=new THREE.Color('#464646'); // v68: highlight-list detail lines (current / other)
 const BTN_POP_DELAY=1500, BTN_POP_MS=450;            // the download button's attention "pop" after the facet settles
 let stopFacets=null, asmRetired=[];                  // docked stop's facets / facets still flying home after departure
-let freeYaw=0,freeYawT=0,freePitch=0,freePitchT=0;   // 360° docked look (drag), smoothed
+let freeYaw=0,freeYawT=0,freePitch=0,freePitchT=0;   // deliberate facet navigation only, smoothed
 /* docked scroll-zoom (v63): the wheel no longer charges a departure in assemble mode —
    it drives this FOV zoom instead (travel is the section list / rail / space / PageUp/Down;
    v68: ←/→ rotate the panorama, ↑/↓ drive the faced facet's vertical switcher).
@@ -5599,7 +5593,7 @@ function downloadPDF(href){ // open the report in its own tab — the site keeps
 function rotateDock(dir){ // rotation-hint arrows: turn the docked view one facet step (+1 = left)
   if(!stopFacets) return;
   const n=stopFacets.facets.length; if(n<2) return;
-  /* v63: land SQUARE on the target facet — after a manual drag-look the yaw sits between
+  /* v63: land SQUARE on the target facet — after a previous navigation the yaw may sit between
      facet slots and the pitch off level, so a bare +=step arrived skewed. Snap the yaw
      onto the facet grid (nearest slot + the step), level the pitch, and ease the scroll-
      zoom home; the existing smoothing turns it into one clean pan. */
@@ -6641,8 +6635,6 @@ let uiState='overview';
 let jMode='docked', dockIdx=-1, depart=0, dockCool=0;
 let flight=null; // {mode,s0,s1,t0,dur,toIdx,...} — per-mode fields built in buildFlight
 let bounceT=-1e9, bounceDir=1;
-let lookTX=0,lookTY=0,lookX=0,lookY=0;
-const LOOK_YAW=0.52, LOOK_PITCH=0.3; // how far (rad) the mouse can swing the docked gaze
 let enterT0=0, enterDur=2.2, enterToIdx=0;
 let exitT0=0, exitDur=REDUCED_MOTION?0.24:1.6;
 const DOCK_BLEND_MS=REDUCED_MOTION?80:1600;
@@ -7231,7 +7223,7 @@ addEventListener('wheel',e=>{
   if(depart>=1) departTo(dockIdx+1);
   else if(depart<=-1) departTo(dockIdx-1);
 },{passive:true});
-let dragging=false,lastY=0,lastX=0,downX=0,downY=0,welcomeScrollDrag=null,welcomeScrollPointer=-1;
+let dragging=false,downX=0,downY=0,welcomeScrollDrag=null,welcomeScrollPointer=-1;
 const mobilePointers=new Map();
 let mobileMainPointer=-1,mobilePinchDist=0,mobilePinchZoom=1,mobileDragYaw=0,mobileDragPitch=0,mobilePinchActive=false;
 addEventListener('pointerdown',e=>{
@@ -7255,7 +7247,7 @@ addEventListener('pointerdown',e=>{
       if(e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId);
       renderer.domElement.style.cursor='grabbing'; return;
     }
-    dragging=true; lastX=downX=e.clientX; lastY=downY=e.clientY;
+    dragging=true; downX=e.clientX; downY=e.clientY;
   }
 });
 addEventListener('pointerup',e=>{
@@ -7339,7 +7331,6 @@ function mobileCancelPointers(){
 addEventListener('pointercancel',mobileCancelPointers);
 addEventListener('lostpointercapture',e=>{ if(MOBILE_UI&&e.pointerType==='touch') mobileCancelPointers(); });
 addEventListener('pointermove',e=>{
-  lookTX=(e.clientX/innerWidth)*2-1; lookTY=(e.clientY/innerHeight)*2-1;
   if(MOBILE_UI&&e.pointerType==='touch'&&mobilePointers.has(e.pointerId)){
     mobilePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(mobilePointers.size>=2){
@@ -7361,16 +7352,7 @@ addEventListener('pointermove',e=>{
     renderer.domElement.style.cursor=(hit||barHit)?'pointer':'';
     if(welcome.active){ if(dragging) hideCalTip(); else welcomeCalTip(e.clientX,e.clientY); } // calendar hover tooltip
   }
-  if(!dragging) return;
-  if(stopInfoMode==='assemble'){ // drag to look around: the world follows the pointer, street-view style
-    // (drag rate divides by the scroll-zoom so a zoomed-in look pans at the same feel)
-    freeYawT+=(e.clientX-lastX)*0.0032/dockZoom;
-    freePitchT=Math.max(-1.5,Math.min(1.5,freePitchT+(e.clientY-lastY)*0.0026/dockZoom));
-    lastX=e.clientX; lastY=e.clientY;
-  } else if(performance.now()>=dockCool){ // classic panel mode: vertical drag charges the departure
-    depart=Math.max(-1.001,Math.min(1.001,depart+(lastY-e.clientY)*0.004)); lastY=e.clientY;
-    if(depart>=1) departTo(dockIdx+1); else if(depart<=-1) departTo(dockIdx-1);
-  }
+  // Canvas drags only measure click/swipe intent; they never steer or charge travel.
 });
 addEventListener('keydown',e=>{
   const t=e.target&&e.target.tagName;
@@ -7618,26 +7600,20 @@ function frame(){
         const g=fk>0.55?easeInOut(Math.min(1,(fk-0.55)/0.43)):0;
         if(g>0){ _fwd.set(0,0,1); _jOff.setFromAxisAngle(_fwd,Math.PI*g); camera.quaternion.premultiply(_jOff); }
       }
-      lookX*=Math.exp(-dt*3); lookY*=Math.exp(-dt*3);
       if(done){ if(stopInfoMode==='assemble'&&STOPS[flight.toIdx].github) welcomeLookQuat(camera.position,camera.quaternion); dock(flight.toIdx); }
     } else {
       poseAt(stopS[dockIdx],_jPos,_jQuat);
-      if(!REDUCED_MOTION){
-        _jPos.x+=Math.sin(now*0.00047)*0.16;                // idle drift: the camera breathes
-        _jPos.z+=Math.sin(now*0.0008)*0.14;
-      }
       // arrival blend (v41): ease from the exact touchdown pose into the docked pose math,
-      // so the flight's damped-follow residual, the mouse sway and the breathing all fade
-      // in — nothing cuts over at flight end
+      // so the flight's damped-follow residual settles without a cut at flight end
       const dr=easeInOut(Math.min(1,(now-dockT0)/DOCK_BLEND_MS));
       camera.position.lerpVectors(dockPos,_jPos,dr);
       if(autoTour) tourLook(now); // guided mode: the gaze tours the facets by itself
       if(stopInfoMode==='assemble'&&stopFacets){
-        // free 360° look: drag steers yaw/pitch (smoothed), bare mouse adds a subtle sway
+        // Only arrows, explicit facet selection, touch swipes or the opt-in tour change the gaze.
         freeYaw+=(freeYawT-freeYaw)*Math.min(1,dt*6);
         freePitch+=(freePitchT-freePitch)*Math.min(1,dt*6);
-        const cy=stopFacets.yaw0+freeYaw-(cursorSway?lookTX*0.05:0);
-        const cp=Math.max(-1.25,Math.min(1.25,stopFacets.pitch0+freePitch-(cursorSway?lookTY*0.04:0)));
+        const cy=stopFacets.yaw0+freeYaw;
+        const cp=Math.max(-1.25,Math.min(1.25,stopFacets.pitch0+freePitch));
         const ccp=Math.cos(cp);
         _fwd.set(ccp*Math.cos(cy),ccp*Math.sin(cy),Math.sin(cp));
         _pd.position.copy(camera.position); _pd.up.set(0,0,1);
@@ -7645,11 +7621,7 @@ function frame(){
         camera.quaternion.slerpQuaternions(dockQuat,_pd.quaternion,dr);
         facetGaze(cy,cp,dt); // facets fire as they enter the gaze, release as it leaves
       } else {
-        lookX+=((cursorSway?-lookTX*LOOK_YAW:0)-lookX)*Math.min(1,dt*3.4); // classic clamped mouse-look (eases to centre when sway is off)
-        lookY+=((cursorSway?-lookTY*LOOK_PITCH:0)-lookY)*Math.min(1,dt*3.4);
-        _jOff.setFromEuler(_jEuler.set(lookY,lookX,0,'YXZ'));
-        _lq.copy(_jQuat).multiply(_jOff);
-        camera.quaternion.slerpQuaternions(dockQuat,_lq,dr);
+        camera.quaternion.slerpQuaternions(dockQuat,_jQuat,dr);
       }
       depart*=Math.exp(-dt*1.7); if(Math.abs(depart)<0.004) depart=0;
     }
@@ -7731,7 +7703,7 @@ const DEV_TIPS={
   introSelect:'Chooses how the portrait resolves when the page opens.', stopInfoSelect:'Switches between in-scene assembled content and the classic overlay.',
   coverSpeed:'Controls every ASCII-to-image, video-still and chess-board develop animation.', toggleAbsorbView:'Pulls the entire visible glyph field into the active facet for a clean reading plane.',
   travelAdjSelect:'Camera style used when moving to the neighbouring stop.', travelFarSelect:'Camera style used when jumping across several stops.',
-  toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.', toggleCursorSway:'Adds a subtle passive camera response to pointer position while docked.',
+  toggleAutoTour:'Lets the wheel drive an automatic overview and facet tour.',
   timelineNavSelect:'Chooses linear cards or the classic circular panorama for Experience and Education.',
   timelineStyleSelect:'Formats the persistent Experience and Education list without changing its navigation behavior.',
   toggleTimelineArrows:'Shows boundary-aware up/down controls beside the Experience and Education list.',
@@ -7774,7 +7746,7 @@ bindRange('bloomRadius','valBloomRadius',v=>baseBloom.radius=v);
 bindRange('bloomThreshold','valBloomThreshold',v=>baseBloom.threshold=v);
 bindRange('fov','valFov',v=>BASE_FOV=v,v=>String(v));
 bindRange('fogNear','valFogNear',v=>{ baseFog.near=spanY*v; sceneFog.near=baseFog.near; });
-bindRange('fogFar','valFogFar',v=>{ baseFog.far=spanY*v; sceneFog.far=baseFog.far; controls.maxDistance=baseFog.far*0.97; });
+bindRange('fogFar','valFogFar',v=>{ baseFog.far=spanY*v; sceneFog.far=baseFog.far; controls.maxDistance=overviewDistance(camera.aspect); });
 bindRange('jHeight','valJHeight',v=>{ JCLEAR=v; buildJourney(JCLEAR); },v=>v.toFixed(1));
 bindRange('coverSpeed','valCoverSpeed',v=>{ coverDevelopSpeed=v; },v=>v.toFixed(2)+'x');
 const vignetteCheck=document.getElementById('toggleVignette');
@@ -7825,13 +7797,6 @@ function applyAutoTour(on){
 }
 autoTourCheck.checked=autoTour;
 autoTourCheck.addEventListener('change',e=>applyAutoTour(e.target.checked));
-/* cursor sway: read live each frame by the docked-camera math; when turned off mid-dock
-   the panel-mode look eases back to centre by itself (the target lerps to 0) */
-const cursorSwayCheck=document.getElementById('toggleCursorSway');
-cursorSwayCheck.checked=cursorSway;
-cursorSwayCheck.addEventListener('change',e=>{
-  cursorSway=e.target.checked; try{ localStorage.setItem('pf_cursor_sway',cursorSway?'1':'0'); }catch(err){}
-  renderDirty=true; });
 function reassembleDocked(){ // live-rebuild whatever assembled stop is currently docked
   if(uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&dockIdx>=0) assembleStop(dockIdx);
 }
@@ -7966,7 +7931,7 @@ const CTRL_DEF={
   toggleVignette:['check',true], toggleFullscreen:['check',false], toggleInvert:['check',false], toggleRaw:['check',true],
   uiFontSelect:['select',UI_FONT_DEFAULT],
   jHeight:['range',7], introSelect:['select','progressive-soft'], stopInfoSelect:['select','assemble'], coverSpeed:['range',1.5],
-  toggleAutoTour:['check',false], toggleCursorSway:['check',false], toggleAbsorbView:['check',true],
+  toggleAutoTour:['check',false], toggleAbsorbView:['check',true],
   timelineNavSelect:['select','scroll'], timelineStyleSelect:['select','milestones'], toggleTimelineArrows:['check',true],
   arrowSelect:['select','stream'],
   travelAdjSelect:['select','swoop4'], travelFarSelect:['select','swoop5'],
@@ -7977,7 +7942,7 @@ const CTRL_DEF={
 };
 const SECT_CTRLS={
   render:['bloomStrength','bloomRadius','bloomThreshold','fov','fogNear','fogFar','toggleVignette','toggleFullscreen','toggleInvert','toggleRaw','uiFontSelect'],
-  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleCursorSway','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','arrowSelect','travelAdjSelect','travelFarSelect'],
+  journey:['jHeight','introSelect','stopInfoSelect','coverSpeed','toggleAutoTour','toggleAbsorbView','timelineNavSelect','timelineStyleSelect','toggleTimelineArrows','arrowSelect','travelAdjSelect','travelFarSelect'],
   text:['asmAdv'],
   welcome:['welFigSelect','welWaveSelect','welCalSelect','welTitleSelect','welBannerSelect','welHeadingSelect','welScrollSelect','welScrollSideSelect','toggleWelAboutScroll','welSize','welHalo']
 };
@@ -8200,6 +8165,7 @@ function resizePortfolio(forceReflow=false){
   }
   camera.aspect=w/h; camera.updateProjectionMatrix();
   frontPos2.z=midZ+overviewDistance(camera.aspect);
+  controls.maxDistance=overviewDistance(camera.aspect);
   _dummy.position.copy(frontPos2); _dummy.up.set(0,1,0); _dummy.lookAt(faceCenter); _dummy.updateMatrixWorld(); exploreQuat.copy(_dummy.quaternion);
   if(MOBILE_UI&&orientationChanged&&uiState==='overview'){
     camera.position.copy(frontPos2); camera.up.set(0,1,0); controls.target.copy(faceCenter); controls.update();

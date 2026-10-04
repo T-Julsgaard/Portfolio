@@ -2,6 +2,25 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## 2026-10-05: fixed views and centred forward zoom
+
+Normal browsing uses a fixed gaze. Overview OrbitControls disable rotation, pan and
+zoom-to-cursor; wheel/two-finger zoom follows the face-centre axis. Its maximum
+distance is the initial profile/aspect-derived overview distance, refreshed on resize,
+so zoom-out can return to the initial view but cannot retreat behind it. The existing
+minimum distance is unchanged.
+
+Docked canvas presses/drags no longer write yaw/pitch or charge panel-mode departure.
+Pointer tracking still distinguishes clicks from drags, and Welcome scrollbar drags,
+button hit testing, hover, the inspector, touch swipe navigation and pinch zoom remain.
+Settled stops have no breathing offset or passive pointer sway. The Cursor sway
+setting/binding is removed, so saved preferences cannot restore that movement.
+Section travel, explicit content selection/arrows/keyboard and the opt-in auto tour
+still use the existing transitions. Mobile swipes change one facet on release, without
+moving the view under the finger. Docked wheel/pinch zoom retains the existing centred
+FOV range of 1-2.8; zoom-out stops at the authored framing. No terrain path, facet
+placement or glyph-budget constants change.
+
 ## 2026-10-05: section headers return to Welcome
 
 The fixed `[ ABOUT ME ]` and `[ PORTFOLIO ]` headings are now `rail-home` buttons
