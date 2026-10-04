@@ -1,5 +1,17 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## 2026-10-05: concise Chess Review and poster-first video
+
+Chess Review's shared project record now carries a local video and thumbnail rather
+than the old product screenshot. The concise description summarizes the repository
+README's one-click Chess.com/Lichess reviews and local Stockfish analysis, followed
+by the owner's 1,000+ active weekly users figure. The screen frame develops into the
+thumbnail with Piano's punched-out PLAY treatment; playback starts on click with
+native controls. Closing, switching projects, or hiding the tab stops playback.
+Every project's terrain repository button reads OPEN REPO; phone links use Open repo.
+Project focus, donor handoff, calendar restoration, and other image/iframe surfaces
+retain their existing lifecycle. See `docs/facets.md` for media and budget details.
+
 ## v96 - mobile Welcome framing and semantic companion
 
 The phone scene preserves the assembled portrait, hero, mini-me, contribution calendar,

@@ -1,5 +1,23 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## 2026-10-05: Chess Review introduction video
+
+`PORTFOLIO_PROJECTS` supports `video` plus `poster` alongside `image` and `live`.
+Chess Review uses `videos/chess-review-intro.mp4` and
+`images/chess-review-thumbnail.png`, with concise README-based copy and the owner's
+1,000+ active weekly users figure. Its stage assembles only the screen frame before
+developing into the thumbnail; it no longer assembles the synthetic chess workspace.
+`#pl-play` reuses `layBtnRow()`'s punched-out PLAY cells as an SVG inside a semantic
+button. The video has native controls, `playsinline`, and `preload="none"`; only a
+click starts playback. Playing holds the music bar, pause/end releases it, and
+close/project-switch unloads the source. Hidden tabs pause playback. Reopen restores
+the poster. All project repository actions now read OPEN REPO, including mobile links.
+
+AST layout validation against the real 13,268-glyph terrain measures Chess 1,353,
+Entropy 1,614, DocuRAG 1,443, Wind 1,679, and Bitcoin 1,594. Welcome's 3,437 claims
+plus the maximum reserve leave 8,152 spare. Case Studies content is unchanged.
+
+
 ## 2026-09-26: Interests copy and fourth chess game
 
 The shared Interests stop title is now Interests; the Tutor entry says

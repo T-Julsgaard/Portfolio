@@ -2,6 +2,7 @@
 
 The mobile portfolio is a responsive presentation of the same `index.html`, scene, journey state, and content objects as desktop. There is deliberately no `mobile.html` and no duplicate copy deck. `JOURNEY`, each stop's `gallery`, `PORTFOLIO_PROJECTS`, GitHub stats, links, PDFs, games, and recordings remain the source of truth for both profiles.
 
+
 ## Invariants
 
 1. A desktop content change must reach mobile through shared data, not a second hand-maintained markup copy.
@@ -71,6 +72,12 @@ A completed pinch consumes both pointer releases, preventing the last finger fro
 ### Projects
 
 The ASCII project focus remains in-scene, but a developed project becomes a safe-area-aware screen-space dialog rather than a 720×405 plane shrunk through a homography. Its 60 px header exposes the project name, primary action, repository, and Close. It traps focus, makes the canvas/chrome inert, returns focus to the stable section control, and unloads an interactive iframe on close so hidden timers/audio/network work cannot continue. Interactive projects use their responsive iframe size; desktop-only 1440 px sampling is disabled on mobile. Static screenshots remain contained without distortion.
+
+Project `video` / `poster` records use the same shared player as desktop. Chess Review
+shows its thumbnail and a semantic stencil PLAY overlay, then native video controls
+with `playsinline` and `preload="none"`. Closing/switching unloads playback; hiding
+the tab pauses it. The contained media fits both portrait and landscape. The header
+and project-sheet repository links read Open repo, matching the terrain OPEN REPO action.
 
 ### Chess
 

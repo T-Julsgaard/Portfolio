@@ -96,8 +96,13 @@
     overflow:hidden; background:#080808; border:0;
     box-shadow:0 18px 60px rgba(0,0,0,.46); }
   .pl-stage { position:relative; min-height:0; flex:1; overflow:hidden; background:#080808; }
-  #pl-frame,#pl-image { width:100%; height:100%; border:0; display:block; background:#080808; }
-  #pl-image { object-fit:contain; }
+  #pl-frame,#pl-image,#pl-video { width:100%; height:100%; border:0; display:block; background:#080808; }
+  #pl-image,#pl-video { object-fit:contain; }
+  #pl-play { position:absolute; inset:0; width:100%; border:0; padding:0; display:flex; align-items:center; justify-content:center;
+    background:transparent; color:#f5f5f2; cursor:pointer; }
+  #pl-play svg { width:156px; height:61px; padding:4px; background:#080808; box-shadow:0 4px 24px rgba(0,0,0,.6); }
+  #pl-play:hover svg { color:#fff; transform:scale(1.04); }
+  #pl-play:focus-visible { outline:3px solid #fff; outline-offset:-4px; }
   .pl-stage [hidden] { display:none!important; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
      2x internal viewport, then sample them down into the 720px in-scene surface. */
@@ -2242,8 +2247,8 @@ const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
     repo:'https://github.com/T-Julsgaard/Chess-Review',
     actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'TRY IT OUT',
-    image:'images/chess-review.png', visual:'chess', accent:'#9ed46b',
-    blurb:"Free, open-source game review for your online chess games, powered by Stockfish's Efficiently Updatable Neural Network (NNUE), running locally in your browser. Produces accuracy scores within ~95% of Chess.com's.\n\nOne click turns any Chess.com or Lichess game into a full review. Includes accuracy scores, move-by-move classifications, an evaluation graph, and an estimated rating."},
+    video:'videos/chess-review-intro.mp4', poster:'images/chess-review-thumbnail.png', visual:'chess', accent:'#9ed46b',
+    blurb:"Free, open-source extension for one-click Chess.com and Lichess game reviews. Local Stockfish analysis delivers accuracy scores, move insights, and estimated ratings.\n\n1,000+ active weekly users."},
   {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
     repo:'https://github.com/T-Julsgaard/entropy-forge',
     actionUrl:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', actionLabel:'TRY IT OUT',
@@ -2348,7 +2353,7 @@ function mobileGalleryHTML(g,i){
 function mobileProjectHTML(p){
   return '<article class="ms-card"><span class="ms-meta">Software project</span><strong>'+mobileEsc(p.label)+'</strong><p>'+mobileEsc(p.blurb)+'</p>'+
     '<div class="ms-actions"><button class="ms-action primary" type="button" data-mobile-project="'+mobileEsc(p.id)+'">View project</button>'+
-    mobileAction(p.actionUrl,p.actionLabel||'Open',false)+mobileAction(p.repo,'GitHub',false)+'</div></article>';
+    mobileAction(p.actionUrl,p.actionLabel||'Open',false)+mobileAction(p.repo,'Open repo',false)+'</div></article>';
 }
 function mobileRenderStop(k){
   const st=STOPS[Math.max(0,Math.min(STOPS.length-1,k))]; if(!st) return;
@@ -2806,17 +2811,52 @@ for(const r of [railAbout,railPortfolio]){
    The dossier is no longer a screen-space card. Welcome owns one auxiliary facet,
    hung on the same world plane to PORTFOLIO's right. Its terrain glyphs assemble
    the selected project's normalized frame and reorder in place on selection changes.
-   Wind and Bitcoin develop into projected iframes; Chess develops into a supplied
-   screenshot. Every project keeps its links as terrain-built stencil buttons. */
+   Wind and Bitcoin develop into projected iframes; Chess develops into a video poster.
+   Every project keeps its links as terrain-built stencil buttons. */
 const PROJECT_LIVE_W=720, PROJECT_LIVE_H=405;
 const projectLive=document.createElement('div');
 projectLive.id='project-live'; projectLive.setAttribute('role','region'); projectLive.setAttribute('aria-label','Project surface'); projectLive.setAttribute('aria-hidden','true');
 projectLive.innerHTML=
-  '<div class="pl-mobile-head"><strong class="pl-mobile-title"></strong><a id="pl-mobile-action" target="_blank" rel="noopener">Open</a><a id="pl-mobile-repo" target="_blank" rel="noopener">Code</a><button class="pl-mobile-close" type="button" aria-label="Close project preview">&times;</button></div><div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
-  '<img id="pl-image" alt="" hidden><div id="pl-load">LOADING PROJECT</div></div></div>';
+  '<div class="pl-mobile-head"><strong class="pl-mobile-title"></strong><a id="pl-mobile-action" target="_blank" rel="noopener">Open</a><a id="pl-mobile-repo" target="_blank" rel="noopener">Open repo</a><button class="pl-mobile-close" type="button" aria-label="Close project preview">&times;</button></div><div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
+  '<img id="pl-image" alt="" hidden><video id="pl-video" controls playsinline preload="none" hidden></video><button id="pl-play" type="button" aria-label="Play project introduction" hidden></button><div id="pl-load" role="status" aria-live="polite">LOADING PROJECT</div></div></div>';
 document.body.appendChild(projectLive);
 
 const plFrame=projectLive.querySelector('#pl-frame'), plImage=projectLive.querySelector('#pl-image'), plLoad=projectLive.querySelector('#pl-load');
+const plVideo=projectLive.querySelector('#pl-video'), plPlay=projectLive.querySelector('#pl-play');
+let projectVideoHeld=false;
+function projectPlayMarkup(){
+  // Reuse Piano's punched-out PLAY cells without borrowing any extra terrain glyphs.
+  const items=[], W=stCols('PLAY')+2;
+  layBtnRow(items,[],[{t:'PLAY',kind:'play'}],0,W+2,1);
+  return '<svg viewBox="0 0 '+W+' 9" aria-hidden="true" focusable="false" fill="currentColor">'+items.map(it=>
+    '<rect x="'+(it.x+W/2-0.5)+'" y="'+(-it.y-0.5)+'" width="1" height="1"/>').join('')+'</svg>';
+}
+function releaseProjectVideoMusic(){
+  if(projectVideoHeld){ projectVideoHeld=false; musicRelease(); }
+}
+function resetProjectVideo(){
+  plVideo.pause(); releaseProjectVideoMusic();
+  plVideo.removeAttribute('src'); plVideo.removeAttribute('poster'); plVideo.load();
+  plVideo.hidden=true; plPlay.hidden=true;
+}
+plPlay.addEventListener('click',()=>{
+  if(!projectLiveOpen||!projectLive.classList.contains('ready')) return;
+  const token=projectLoadToken;
+  plVideo.hidden=false; plImage.hidden=true; plPlay.hidden=true;
+  if(plVideo.ended) plVideo.currentTime=0;
+  plVideo.play().catch(()=>{
+    if(token!==projectLoadToken||!projectLiveOpen) return;
+    releaseProjectVideoMusic(); plPlay.hidden=false;
+    plPlay.setAttribute('aria-label','Retry playing project introduction');
+  });
+});
+plVideo.addEventListener('play',()=>{ if(!projectVideoHeld){ projectVideoHeld=true; musicHold(); } plPlay.hidden=true; });
+plVideo.addEventListener('pause',releaseProjectVideoMusic);
+plVideo.addEventListener('ended',()=>{ releaseProjectVideoMusic(); plPlay.hidden=false; });
+plVideo.addEventListener('error',()=>{
+  if(projectLiveOpen&&plVideo.getAttribute('src')){ releaseProjectVideoMusic(); projectLiveFailed(projectLoadToken,'THE VIDEO COULD NOT LOAD'); }
+});
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) plVideo.pause(); });
 const plMobileTitle=projectLive.querySelector('.pl-mobile-title'),plMobileAction=projectLive.querySelector('#pl-mobile-action'),plMobileRepo=projectLive.querySelector('#pl-mobile-repo');
 const projectStageState={id:null,pinned:false,previewDismissed:false};
 let projectLiveOpen=false, projectLoadToken=0, projectLiveReturnFocus=null, projectLoadedId=null;
@@ -2830,7 +2870,7 @@ function showProjectStage(id,pin){
   const p=projectById(id); if(!p) return;
   const changed=projectStageState.id!==id;
   const wasPinned=projectStageState.id===id&&projectStageState.pinned;
-  if(projectLiveOpen&&changed) closeProjectLive(false,false,false);
+  if(projectLiveOpen&&(changed||projectLive.dataset.project!==id)) closeProjectLive(false,false,false);
   projectStageState.id=id; projectStageState.pinned=!!pin||wasPinned;
   projectStageState.previewDismissed=false;
   if(welcome.active&&welcome.F&&welcome.F.state==='hold')
@@ -2944,7 +2984,7 @@ function projectEmbedPatch(p){
   if(p.id==='danish-wind-mapper') return `<style>html,body{background:#0b171b!important}</style>`;
   return '';
 }
-function projectCanPreview(p){ return !!(p&&(p.image||p.live)); }
+function projectCanPreview(p){ return !!(p&&(p.video||p.image||p.live)); }
 function projectLiveMask(now,F){
   const hidden='linear-gradient(transparent,transparent) 0 0 / 100% 100% no-repeat';
   if(!F||!F.projectLiveOn){ projectLive.style.webkitMask=hidden; projectLive.style.mask=hidden; return; }
@@ -2964,7 +3004,7 @@ function projectLiveMask(now,F){
   if(!all) renderDirty=true;
 }
 async function openProjectLive(id){
-  const p=projectById(id), isImage=!!(p&&p.image); if(!p||(!p.live&&!isImage)) return;
+  const p=projectById(id), isVideo=!!(p&&p.video), isImage=!!(p&&(p.image||p.video)); if(!projectCanPreview(p)) return;
   const F=projectStageFacet(); if(!F||!F.project||F.project.id!==id) return;
   projectLiveReturnFocus=MOBILE_UI?document.getElementById('mobile-section'):document.activeElement;
   projectStageState.pinned=true;
@@ -2984,19 +3024,25 @@ async function openProjectLive(id){
     const hs=history.state;
     if(!hs||hs.pf!=='project'||hs.id!==id) history.pushState({pf:'project',stop:dockIdx,id},'',location.pathname+location.search+'#'+id);
   }
+  resetProjectVideo();
   plFrame.hidden=isImage; plImage.hidden=!isImage;
+  if(isVideo){
+    plVideo.src=p.video; plVideo.poster=p.poster; plVideo.setAttribute('aria-label',p.label+' introduction');
+    plPlay.innerHTML=projectPlayMarkup(); plPlay.hidden=false;
+    plPlay.setAttribute('aria-label','Play '+p.label+' introduction');
+  }
   plFrame.classList.toggle('pl-desktop',!!p.desktop&&!MOBILE_UI);
-  plLoad.textContent=isImage?'DEVELOPING PROJECT SCREENSHOT':p.liveMode==='raw'?'LOADING ORIGINAL PROJECT FILE':p.liveMode==='rebased'?'PREPARING INTERACTIVE PREVIEW':'LOADING LIVE PROJECT';
+  plLoad.textContent=isVideo?'LOADING VIDEO THUMBNAIL':isImage?'DEVELOPING PROJECT SCREENSHOT':p.liveMode==='raw'?'LOADING ORIGINAL PROJECT FILE':p.liveMode==='rebased'?'PREPARING INTERACTIVE PREVIEW':'LOADING LIVE PROJECT';
   if(projectLoadedId===id){ projectLiveReady(token,id); return; }
   plImage.onload=null; plImage.onerror=null;
   plFrame.onload=null; plFrame.removeAttribute('srcdoc'); plFrame.src='about:blank';
   projectLoadedId=null;
   try{
     if(isImage){
-      plImage.alt=p.label+' project screenshot';
+      plImage.alt=p.label+(isVideo?' introduction thumbnail':' project screenshot');
       plImage.onload=()=>projectLiveReady(token,id);
-      plImage.onerror=()=>projectLiveFailed(token,'THE SCREENSHOT COULD NOT LOAD');
-      plImage.src=p.image;
+      plImage.onerror=()=>projectLiveFailed(token,isVideo?'THE THUMBNAIL COULD NOT LOAD':'THE SCREENSHOT COULD NOT LOAD');
+      plImage.src=isVideo?p.poster:p.image;
     } else if(p.preview==='wind'){
       /* The full Folium export is about 11 MB and made the first project develop stall.
          This source-faithful local surface paints immediately, then lets its small Leaflet
@@ -3045,6 +3091,7 @@ function closeProjectLive(restoreStage=true,restoreFocus=true,dismissPreview=fal
   const activeInside=projectLive.contains(document.activeElement),wasFrame=MOBILE_UI&&!plFrame.hidden;
   if(dismissPreview&&projectStageState.id) projectStageState.previewDismissed=true;
   projectLiveOpen=false; projectLoadToken++; projectLive.classList.remove('open','ready','failed');
+  resetProjectVideo();
   projectLive.style.visibility='hidden';
   projectLive.setAttribute('aria-hidden','true'); plFrame.onload=null;
   if(MOBILE_UI){
@@ -4168,7 +4215,7 @@ function buildProjectStageLayout(p){
       items.push({ch:':',x:sx0,y,s:0.31,L:0.26,projectScreen:true,projectFrame:true});
       items.push({ch:':',x:sx1,y,s:0.31,L:0.26,projectScreen:true,projectFrame:true});
     }
-    const art=projectStageArt(p.visual), cols=Math.max(...art.map(r=>r.length)), cw=(PROJECT_SCREEN_W-0.9)/cols, rowH=0.61;
+    const art=p.video?[]:projectStageArt(p.visual), cols=Math.max(1,...art.map(r=>r.length)), cw=(PROJECT_SCREEN_W-0.9)/cols, rowH=0.61;
     const artTop=screenTop-0.78;
     art.forEach((row,r)=>{
       const line=row.padEnd(cols,' ');
@@ -4182,7 +4229,7 @@ function buildProjectStageLayout(p){
 
   const actions=[];
   if(p.actionUrl) actions.push({t:p.actionLabel||'OPEN PROJECT',kind:'project-action',data:p.actionUrl});
-  actions.push({t:'OPEN REPOSITORY',kind:'project-repo',data:p.repo});
+  actions.push({t:'OPEN REPO',kind:'project-repo',data:p.repo});
   layBtnRow(items,btns,actions,PROJECT_ACTION_TOP,W-2.0,0.105);
 
   return {items,w:W,h:H,btns,projectRect,project:p};
