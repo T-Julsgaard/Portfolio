@@ -2,6 +2,17 @@
 
 Deep reference for the camera journey over the portrait-as-terrain. Read this before touching the path, docking/departing, flight styles, the auto tour, or the fullscreen toggle.
 
+## 2026-10-05: section headers return to Welcome
+
+The fixed `[ ABOUT ME ]` and `[ PORTFOLIO ]` headings are now `rail-home` buttons
+that navigate to the shared Welcome stop through the same guarded entry/departure
+route as section rows. Welcome no longer appears as a duplicate row in either
+group. Both lists stay open; the expansion arrows, collapsed state, and toggle
+accessibility attributes are removed. Up/Down and Home/End include the heading
+alongside the remaining rows, and headings have a visible keyboard focus outline.
+The existing docking/Welcome visibility gates still apply. Mobile hides these
+desktop rails and retains Welcome in its shared section index and Previous control.
+
 ## 2026-09-26: open and larger desktop journey rails
 
 The ABOUT ME and PORTFOLIO rail groups initialize expanded, with an up arrow and

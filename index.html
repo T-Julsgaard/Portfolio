@@ -43,20 +43,18 @@
     right:22px; align-items:flex-end; transform:translate(7px,-50%);
   }
   #journey-rails.docked .journey-rail { opacity:1; pointer-events:auto; transform:translate(0,-50%); }
-  .rail-toggle {
-    display:flex; flex-direction:column; align-items:center; gap:2px;
+  .rail-home {
+    display:flex; align-items:center;
     border:0; padding:3px 2px; background:transparent; color:rgba(255,255,255,.58);
     font:inherit; cursor:pointer; transition:color .18s ease;
   }
-  .rail-toggle:is(:hover,:focus-visible) { color:#fff; outline:none; }
+  .rail-home:is(:hover,:focus-visible) { color:#fff; outline:none; }
+  .rail-home:focus-visible { outline:1px solid currentColor; outline-offset:3px; }
   .rail-heading { font-size:13px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
-  .rail-arrow { font-size:12px; line-height:1; }
-  .rail-items { display:grid; grid-template-rows:0fr; opacity:0; margin-top:0; pointer-events:none;
-    transition:grid-template-rows .22s cubic-bezier(.22,.8,.28,1), opacity .16s ease, margin-top .22s ease; }
-  .rail-items-inner { min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:10px; }
+  .rail-items { margin-top:7px; }
+  .rail-items-inner { display:flex; flex-direction:column; gap:10px; }
   #rail-about .rail-items-inner { align-items:flex-start; }
   #rail-portfolio .rail-items-inner { align-items:flex-end; }
-  .journey-rail.expanded .rail-items { grid-template-rows:1fr; opacity:1; margin-top:7px; pointer-events:auto; }
   .rail-stop {
     display:flex; align-items:center; gap:9px;
     background:transparent; border:none; padding:2px; cursor:pointer;
@@ -82,7 +80,7 @@
   #rail-portfolio .rail-project .dot { border-radius:50%; transform:none; }
   #journey-rails.docked .rail-project:is(:hover,:focus-visible) { opacity:1; }
   .rail-stop.done .dot,.rail-stop.current .dot { background:transparent; box-shadow:none; }
-  /* Group headings and links appear while docked; visitors can retract either list.
+  /* Group headings return to Welcome; links stay visible while docked.
      Welcome hides both rails because its in-scene columns already navigate. */
 
   /* Only project surfaces that benefit from being experienced in place develop into the
@@ -2759,20 +2757,19 @@ const railWrap=document.getElementById('journey-rails');
 railWrap.dataset.railStyle='nodes';
 const railAbout=document.getElementById('rail-about'), railPortfolio=document.getElementById('rail-portfolio');
 const railEls=[];
+const welcomeRailIdx=STOPS.findIndex(st=>st.id==='welcome');
+function navigateFromRail(k){
+  if(uiState==='overview') beginEnter(k);
+  else if(uiState==='journey'&&jMode==='docked'&&k!==dockIdx) departTo(k);
+}
 function initRailGroup(nav,label){
-  const toggle=document.createElement('button'), shell=document.createElement('div'), inner=document.createElement('div');
-  toggle.type='button'; toggle.className='rail-toggle'; toggle.setAttribute('aria-expanded','true');
-  toggle.setAttribute('aria-label','Collapse '+label+' links');
-  toggle.innerHTML='<span class="rail-heading">[ '+label+' ]</span><span class="rail-arrow" aria-hidden="true">&#8593;</span>';
+  const home=document.createElement('button'), shell=document.createElement('div'), inner=document.createElement('div');
+  home.type='button'; home.className='rail-home';
+  home.setAttribute('aria-label',label+' — Go to Welcome');
+  home.innerHTML='<span class="rail-heading">[ '+label+' ]</span>';
   shell.className='rail-items'; inner.className='rail-items-inner'; inner.id=nav.id+'-items';
-  toggle.setAttribute('aria-controls',inner.id); shell.appendChild(inner); nav.append(toggle,shell);
-  nav.classList.add('expanded');
-  toggle.addEventListener('click',()=>{
-    const expanded=nav.classList.toggle('expanded');
-    toggle.setAttribute('aria-expanded',String(expanded));
-    toggle.setAttribute('aria-label',(expanded?'Collapse ':'Expand ')+label+' links');
-    toggle.querySelector('.rail-arrow').textContent=expanded?'\u2191':'\u2193';
-  });
+  shell.appendChild(inner); nav.append(home,shell);
+  home.addEventListener('click',()=>navigateFromRail(welcomeRailIdx));
   return inner;
 }
 const railAboutItems=initRailGroup(railAbout,'ABOUT ME');
@@ -2781,7 +2778,7 @@ function addRailStop(parent,st,k){
   const b=document.createElement('button'); b.className='rail-stop'; b.type='button';
   b.setAttribute('aria-label','Go to '+st.label);
   b.innerHTML='<span class="lbl">'+st.label+'</span><span class="dot"></span>'; // v69: bare section names — the numbering is gone
-  b.addEventListener('click',()=>{ if(uiState==='overview') beginEnter(k); else if(uiState==='journey'&&jMode==='docked'&&k!==dockIdx) departTo(k); });
+  b.addEventListener('click',()=>navigateFromRail(k));
   parent.appendChild(b); railEls.push({el:b,k});
 }
 function addRailProject(project){
@@ -2791,17 +2788,14 @@ function addRailProject(project){
   row.addEventListener('click',()=>selectProjectFromRail(project.id));
   railPortfolioItems.appendChild(row);
 }
-const welcomeRailIdx=STOPS.findIndex(st=>st.id==='welcome');
-addRailStop(railAboutItems,STOPS[welcomeRailIdx],welcomeRailIdx);
 STOPS.forEach((st,k)=>{ if(st.id!=='welcome'&&st.id!=='cases') addRailStop(railAboutItems,st,k); });
-addRailStop(railPortfolioItems,STOPS[welcomeRailIdx],welcomeRailIdx);
 const casesRailIdx=STOPS.findIndex(st=>st.id==='cases');
 addRailStop(railPortfolioItems,STOPS[casesRailIdx],casesRailIdx);
 PORTFOLIO_PROJECTS.forEach(addRailProject);
 for(const r of [railAbout,railPortfolio]){
   r.addEventListener('keydown',e=>{
     if(e.key!=='ArrowUp'&&e.key!=='ArrowDown'&&e.key!=='Home'&&e.key!=='End') return;
-    const opts=[...r.querySelectorAll('button.rail-stop')], i=opts.indexOf(document.activeElement);
+    const opts=[...r.querySelectorAll('button.rail-home,button.rail-stop')], i=opts.indexOf(document.activeElement);
     if(i<0) return;
     const ni=e.key==='Home'?0:e.key==='End'?opts.length-1:Math.max(0,Math.min(opts.length-1,i+(e.key==='ArrowDown'?1:-1)));
     opts[ni].focus(); e.preventDefault(); e.stopPropagation();
