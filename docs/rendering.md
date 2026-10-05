@@ -10,9 +10,11 @@ screenshot tabs still measured localhost DPR 1.1 (110% zoom), canvas 1919x918
 against a 1745x835 CSS viewport, while the live origin measured DPR 1, canvas and
 CSS viewport both 1920x919. Render controls, font and desktop profile matched.
 Opening the exact same current file through 127.0.0.1 used DPR 1 and produced the
-sharp portrait. The launcher now opens that verified loopback-IP origin and retains
-its existing cache buster/server behavior. Browser preferences remain per origin;
-this avoids localhost's saved setting rather than modifying it.
+sharp portrait. The launcher briefly used that loopback-IP origin, but this caused
+YouTube error 150 on many music embeds (see `docs/music-bar.md`). It now opens
+localhost again and retains its existing cache buster/server behavior. Browser
+preferences remain per origin; reset localhost zoom to 100% with Ctrl+0 for the
+same sharpness instead of changing the preview hostname.
 
 Fresh HTML comparisons identified the public build as commit 8c3f3f0 and the served
 local file as 0060f06 before this launcher update. The local server's HTML matched

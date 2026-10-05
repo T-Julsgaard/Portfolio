@@ -48,7 +48,7 @@ Never run tiers 3–4 for changes with no visual surface. Animation *feel* and f
 - `scripts/fetch-stats.js` — Node 20 (native `fetch`) script the Actions workflow runs to write `data/stats.json`. Token from `process.env.GH_TOKEN` only, never logged/committed; exits non-zero without writing on any API failure (never publishes partial/zero data over good data).
 - `.github/workflows/stats.yml` — runs the fetch every 30 min + on demand, commits `data/stats.json` as `github-actions[bot]` only when it changed (`chore: update stats [skip ci]`). Needs the `STATS_TOKEN` repo secret (`read:user` scope). See `README.md` for token rotation / troubleshooting.
 - `data/stats.sample.json` — fake but structurally identical stats for local preview; the deployed site never uses it.
-- `open portfolio.bat` (repo root) — starts `python -m http.server 8123` minimized and opens `http://127.0.0.1:8123/`; the double-click way to browse the site with working music (YouTube refuses ALL embeds on `file://` pages).
+- `open portfolio.bat` (repo root) — starts `python -m http.server 8123` minimized and opens `http://localhost:8123/`; the double-click way to browse the site with working music (YouTube refuses ALL embeds on `file://` pages and rejects many music embeds on `127.0.0.1`).
 - Media images and PDFs live in `images/` and `pdfs/`; piano videos in `videos/`.
 
 ## Versioning (git — no more numbered files)

@@ -1,5 +1,18 @@
 # Music bar (YouTube streaming player)
 
+## 2026-10-05 - local preview must use localhost
+
+The launcher must open `http://localhost:8123/`. Switching it to `127.0.0.1`
+to avoid an origin-specific saved browser zoom caused YouTube error 150 on the
+first five songs, making the playlist start at Prince of Denmark. With the same
+files and server, Gorillaz plays on localhost. Public embed metadata also reports
+the first four sources unavailable with the IP referrer and playable with the
+localhost referrer; the fifth (Mac DeMarco) still reports unavailable. The mass
+skipping is an origin-dependent restriction, not a reason to replace the playlist.
+Desktop and explicit mobile
+playback both use the same supported hostname. If localhost looks soft, reset
+browser zoom to 100% with Ctrl+0 instead of changing the preview hostname.
+
 ## v96 - explicit phone playback and touch-sized controls
 
 Desktop retains the established muted-autostart/first-engagement state machine described
