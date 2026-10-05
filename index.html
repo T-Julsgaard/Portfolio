@@ -1627,6 +1627,9 @@ const camera=new THREE.PerspectiveCamera(BASE_FOV, innerWidth/innerHeight, 0.1, 
 const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(innerWidth,innerHeight,{
   type:MOBILE_UI?THREE.UnsignedByteType:THREE.HalfFloatType,samples:MOBILE_UI?0:4
 }));
+// A custom target starts at CSS size; allocate it at the renderer's actual pixel ratio.
+composer.setSize(innerWidth,innerHeight);
+let composerPixelRatio=renderer.getPixelRatio();
 composer.addPass(new RenderPass(scene,camera));
 const BASE_BLOOM=0.7;
 const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),BASE_BLOOM,0.5,0.2);
@@ -8233,7 +8236,11 @@ function resizePortfolio(forceReflow=false){
   renderer.setPixelRatio(Math.min(devicePixelRatio,MOBILE_UI?MOBILE_DPR:2));
   renderer.setSize(w,h); renderDirty=true;
   clearTimeout(composerResizeT);
-  composerResizeT=setTimeout(()=>{ composer.setSize(innerWidth,innerHeight); renderDirty=true; },180);
+  composerResizeT=setTimeout(()=>{
+    const ratio=renderer.getPixelRatio();
+    if(ratio!==composerPixelRatio){ composer.setPixelRatio(ratio); composerPixelRatio=ratio; }
+    composer.setSize(innerWidth,innerHeight); renderDirty=true;
+  },180);
   if(MOBILE_UI&&(forceReflow||orientationChanged||widthChanged)){
     mobileLayoutW=w; mobileLayoutH=h; clearTimeout(mobileReflowT);
     mobileReflowT=setTimeout(mobileReassembleDocked,260);

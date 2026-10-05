@@ -2,6 +2,24 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## 2026-10-05: crisp composer output at browser zoom and HiDPI
+
+Localhost and the deployed origin can have different saved Chrome zoom levels.
+During diagnosis, localhost was at DPR 1.1 (110% on this display) while the live
+site was at DPR 1 (100%), with matching Render controls and desktop profiles.
+The launcher only serves/opens the site; it does not set browser zoom or quality.
+For equally sized UI, reset the local browser tab to 100% with Ctrl+0.
+
+Three.js 0.160.0 EffectComposer adopts the renderer pixel ratio, but a supplied
+render target initially keeps its CSS-sized allocation. Call composer.setSize()
+right after construction to allocate the multisampled buffers at effective pixel
+size before the first processed frame. On the existing debounced resize callback,
+synchronize its pixel ratio when it differs from the renderer, then set the current
+CSS size. This prevents initial upscaling and stale resolution after browser zoom
+or monitor/DPR changes. Normal same-DPR resizes keep their single resize call.
+Desktop DPR cap 2, half-float/4x MSAA, phone DPR cap 1.35 (1 with Save-Data), byte/
+no-MSAA targets, bloom chain and canvas rendering remain the authored profiles.
+
 ## v96: phone rendering profile, progressive build and resilient lifecycle
 
 `html.mobile-ui` selects an intentionally lighter rendering profile without altering the
