@@ -50,7 +50,7 @@ All files live under `data/traffic/chess-review/`:
   recorded date span, shared between both graphs. Short histories use daily bins;
   longer histories use the mean count per observed day in each bin. Empty bins are
   `null`, while known zero days stay zero. Raw snapshots and full daily history are
-  still retained; this compact representation only bounds the display's glyph cost.
+  still retained; this compact representation bounds the display's point count.
 
 All responses and existing history are validated before writing anything. API
 errors, missing tokens, malformed responses, or corrupt history abort without
@@ -71,13 +71,14 @@ API exposes, not every individual event.
 The Chess Review `PORTFOLIO_PROJECTS` record owns the traffic path, remote URL, and
 clone/view labels. The shared formatter drives two separated totals on one
 horizontal line above the video, the mobile project dialog's compact two-column
-footer, and the readable project card in Details. **Total clones** and **Total
-views** cover all recorded dates. Each has a tiny green graph directly below it,
-without axes, dates, captions, or a recent-window comparison. Desktop graphs
-assemble from `#` terrain glyphs using the existing contribution palette; mobile
-uses semantic SVG companions from the same normalized three-row bar data.
-Each metric scales to its own peak; the graphs show change over time, not relative
-clone/view magnitude. Unknown bins are blank and known zero bins are dark green.
+footer, and the readable project card in Details. **Total GitHub clones** and
+**Total GitHub views** cover all recorded dates. Each has a thin green line graph
+directly below it, without axes, dates, captions, or a recent-window comparison.
+Both profiles use the same SVG generator with unquantized bin values. Desktop
+projects the lines onto the facet plane; mobile shows them in the native footer
+and card. Each metric scales to its own peak; the graphs show change over time,
+not relative clone/view magnitude. Unknown bins break the line, known zeros lie
+on the baseline, and isolated observations appear as points.
 Missing totals show `--`; a missing trend produces no graph. Failed refreshes
 retain the prior observation. Older summaries without `totals` never silently
 substitute the 14-day count for the full recorded total. Dates and rolling-window

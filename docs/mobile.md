@@ -7,8 +7,9 @@ The mobile portfolio is a responsive presentation of the same `index.html`, scen
 
 Projects with a shared `traffic` record render only cumulative clone/view totals
 for all recorded dates, with tiny green graphs under the two columns in the
-Details card and developed project dialog. Graphs use accessible SVG cells from
-the same normalized data as desktop's terrain glyphs, with no axes or date captions.
+Details card and developed project dialog. Both profiles use the same accessible
+SVG line graphs, with no axes or date captions. Null bins leave gaps and recorded
+zeros lie on the baseline. Labels read Total GitHub clones / Total GitHub views.
 The latter uses a compact
 two-column `#pl-traffic` footer inside `.pl-shell`, leaving the media stage as
 the remaining flexible space. It adds no terrain claims and does not cover video

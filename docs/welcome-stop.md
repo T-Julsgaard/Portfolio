@@ -3,7 +3,8 @@
 ## 2026-10-05: Chess Review repository traffic
 
 Chess Review now displays only cumulative repository clones and views over its
-entire recorded history, side by side with tiny green graphs below, above the video
+entire recorded history, labeled Total GitHub clones / Total GitHub views, side by
+side with tiny green SVG line graphs below, above the video
 on desktop, in the mobile video dialog's footer, and in the
 Welcome Details project card. These surfaces use `PORTFOLIO_PROJECTS.traffic` and
 one shared formatter. The daily archive is separate from the contribution stats
@@ -22,7 +23,7 @@ limitations, and archive semantics live in `docs/repository-traffic.md`.
 Chess Review's shared project record now carries a local video and thumbnail rather
 than the old product screenshot. The concise description summarizes the repository
 README's one-click Chess.com/Lichess reviews and local Stockfish analysis, followed
-by the owner's 1,000+ active weekly users figure. The screen frame develops into the
+by the owner's 1,000+ active Chrome extension users figure. The screen frame develops into the
 thumbnail with an ASCII `#` play triangle; playback starts on click with
 native controls. Closing, switching projects, or hiding the tab stops playback.
 Every project's terrain repository button reads OPEN REPO; phone links use Open repo.

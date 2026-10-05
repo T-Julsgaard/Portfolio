@@ -7,18 +7,19 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ## 2026-10-05 addendum: archived Chess Review traffic totals
 
-Chess Review's shared `traffic` record adds separated cumulative clone/view totals
-on the same line, with tiny green `#` graphs below, between its prose and video.
-Totals use ordinary `putLine()` glyphs and graphs use existing `{cal:n}` colors;
-the preview rectangle, button row, camera fit, and donor lifecycle are unchanged.
-Phone Details and the project dialog read the same record/formatter, with a native
-footer that consumes no terrain glyphs. Missing observations show `--`, never zero.
-Traffic refreshes update DOM companions and layouts for the next selection without
-reassigning active donors or interrupting playback. See `docs/repository-traffic.md`.
-The real-data check measures Chess at 1,422 records; the largest project reserve
-remains Wind's 1,679. The current Welcome layout plus reserve leaves 8,155 glyphs
-spare. Even 28 full three-row graph columns per metric with maximum safe totals
-need only 1,584 Chess records. Desktop, phone portrait, and landscape checks pass.
+Chess Review's shared `traffic` record adds separated cumulative Total GitHub
+clones / Total GitHub views on the same line, with thin green SVG lines below,
+between its prose and video. Totals use ordinary `putLine()` glyphs. Graphs consume
+no terrain claims: a pointer-transparent DOM layer follows the facet's four-corner
+homography while project focus holds, and hides on departure. Phone Details and
+the project dialog use the same record, formatter, and SVG generator. Unknown bins
+break the line; recorded zero bins stay on the baseline. Missing totals show `--`.
+The preview rectangle, button row, camera fit, and donor lifecycle are unchanged.
+Traffic refreshes update graph DOM and layouts for the next selection without
+reassigning active donors or interrupting playback. See `docs/facets.md` and
+`docs/repository-traffic.md`. The real-data check measures Chess at 1,401 records;
+maximum-safe totals use 1,437. The largest project reserve remains Wind's 1,679,
+and the current Welcome layout plus reserve leaves 8,155 glyphs spare.
 
 ## 2026-10-05 addendum: resisted look, original scene dynamics
 

@@ -109,9 +109,15 @@
     border-top:1px solid rgba(255,255,255,.18); border-bottom:1px solid rgba(255,255,255,.18); }
   .project-traffic strong { display:block; overflow-wrap:anywhere; font-size:22px; font-weight:500; }
   .project-traffic .traffic-total { display:flex; align-items:baseline; gap:8px; min-width:0; }
+  .project-traffic .traffic-total strong { flex-shrink:0; white-space:nowrap; }
   .project-traffic .traffic-total span { min-width:0; }
   .project-traffic span { display:block; font-size:11px; line-height:1.5; }
   .traffic-trend { display:block; width:100%; height:18px; margin-top:5px; }
+  #project-traffic-graphs { position:fixed; left:0; top:0; z-index:6; width:720px; height:28px;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9.09%;
+    transform-origin:top left; visibility:hidden; pointer-events:none; }
+  #project-traffic-graphs .traffic-trend { height:100%; margin:0; }
+  html.mobile-ui #project-traffic-graphs { display:none; }
   #pl-traffic { display:none; }
   #pl-traffic[hidden] { display:none!important; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
@@ -2265,10 +2271,10 @@ const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.
 const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
     repo:'https://github.com/T-Julsgaard/Chess-Review',
-    traffic:{path:'data/traffic/chess-review/summary.json', url:'https://raw.githubusercontent.com/T-Julsgaard/Portfolio/main/data/traffic/chess-review/summary.json', labels:{clones:'Total clones',views:'Total views'}},
+    traffic:{path:'data/traffic/chess-review/summary.json', url:'https://raw.githubusercontent.com/T-Julsgaard/Portfolio/main/data/traffic/chess-review/summary.json', labels:{clones:'Total GitHub clones',views:'Total GitHub views'}},
     actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'TRY IT OUT',
     video:'videos/chess-review-intro.mp4', poster:'images/chess-review-thumbnail.png', visual:'chess', accent:'#9ed46b',
-    blurb:"Free, open-source extension for one-click Chess.com and Lichess game reviews. Local Stockfish analysis delivers accuracy scores, move insights, and estimated ratings.\n\n1,000+ active weekly users."},
+    blurb:"Free, open-source extension for one-click Chess.com and Lichess game reviews. Local Stockfish analysis delivers accuracy scores, move insights, and estimated ratings.\n\n1,000+ active Chrome extension users."},
   {id:'entropy-forge', label:'Entropy Forge', repoName:'entropy-forge',
     repo:'https://github.com/T-Julsgaard/entropy-forge',
     actionUrl:'https://t-julsgaard.github.io/entropy-forge/web/harvest-theater.html', actionLabel:'TRY IT OUT',
@@ -2303,18 +2309,27 @@ function projectTrafficInfo(p){
   const data=PROJECT_TRAFFIC.get(p.id);
   const metrics=['clones','views'].map(name=>{
     const total=data&&data.totals&&data.totals[name];
-    const series=data&&data.trends&&data.trends[name]||[], max=Math.max(0,...series.filter(value=>value!==null));
+    const series=data&&data.trends&&data.trends[name]||[];
     return {name,label:p.traffic.labels[name],value:total&&total.recordedDays?total.count.toLocaleString('en-US'):'--',
-      bars:series.map(value=>value===null?null:(value===0?0:Math.max(1,Math.ceil(value/Math.max(1,max)*3))))};
+      series};
   });
   return {metrics};
 }
 function projectTrafficGraphHTML(metric){
-  if(!metric.bars.length) return '';
-  const w=metric.bars.length*5;
-  return '<svg class="traffic-trend" viewBox="0 0 '+w+' 12" preserveAspectRatio="none" role="img" aria-label="'+mobileEsc(metric.name)+' trend over recorded history">'+
-    metric.bars.map((height,i)=>height===null?'':Array.from({length:Math.max(1,height)},(_,r)=>
-      '<rect x="'+(i*5)+'" y="'+(8-r*4)+'" width="3" height="3" fill="'+(height===0?'#0e4429':['#006d32','#26a641','#39d353'][height-1])+'"/>').join('')).join('')+'</svg>';
+  const series=metric.series;
+  if(!series.length||!series.some(value=>value!==null)) return '';
+  const peak=Math.max(1,...series.filter(value=>value!==null)), segments=[];
+  let segment=[];
+  series.forEach((value,i)=>{
+    if(value===null){ if(segment.length) segments.push(segment); segment=[]; return; }
+    const x=series.length===1?100:2+i*196/(series.length-1), y=21-value/peak*18;
+    segment.push([x.toFixed(2),y.toFixed(2)]);
+  });
+  if(segment.length) segments.push(segment);
+  const lines=segments.map(points=>points.length===1?
+    '<circle cx="'+points[0][0]+'" cy="'+points[0][1]+'" r="1.2" fill="#39d353"/>':
+    '<path d="'+points.map((point,i)=>(i?'L':'M')+point.join(' ')).join(' ')+'" fill="none" stroke="#39d353" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>').join('');
+  return '<svg class="traffic-trend" viewBox="0 0 200 24" preserveAspectRatio="none" role="img" aria-label="GitHub '+mobileEsc(metric.name)+' trend over recorded history">'+lines+'</svg>';
 }
 function projectTrafficHTML(p){
   if(!p||!p.traffic) return '';
@@ -2867,6 +2882,10 @@ projectLive.innerHTML=
   '<div class="pl-mobile-head"><strong class="pl-mobile-title"></strong><a id="pl-mobile-action" target="_blank" rel="noopener">Open</a><a id="pl-mobile-repo" target="_blank" rel="noopener">Open repo</a><button class="pl-mobile-close" type="button" aria-label="Close project preview">&times;</button></div><div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
   '<img id="pl-image" alt="" hidden><video id="pl-video" controls playsinline preload="none" hidden></video><button id="pl-play" type="button" aria-label="Play project introduction" hidden></button><div id="pl-load" role="status" aria-live="polite">LOADING PROJECT</div></div><section id="pl-traffic" class="project-traffic" aria-label="Repository traffic" hidden></section></div>';
 document.body.appendChild(projectLive);
+const projectTrafficGraphs=document.createElement('div');
+projectTrafficGraphs.id='project-traffic-graphs'; projectTrafficGraphs.setAttribute('aria-hidden','true');
+document.body.appendChild(projectTrafficGraphs);
+let projectGraphId=null, projectGraphData=null;
 
 const plFrame=projectLive.querySelector('#pl-frame'), plImage=projectLive.querySelector('#pl-image'), plLoad=projectLive.querySelector('#pl-load');
 const plVideo=projectLive.querySelector('#pl-video'), plPlay=projectLive.querySelector('#pl-play');
@@ -4298,12 +4317,6 @@ function buildProjectStageLayout(p){
       const q=layoutLine(asciiSafe(text).toUpperCase(),0.36), size=q.w>width?0.36*width/q.w:0.36;
       copyLeft=cx-layoutLine(asciiSafe(text).toUpperCase(),size).w/2;
       putLine(text,size,PROJECT_SCREEN_TOP+1.25,width,0.86);
-      const cell=width/28, gap=width/Math.max(1,metric.bars.length), bottom=PROJECT_SCREEN_TOP+0.42;
-      metric.bars.forEach((height,c)=>{
-        if(height===null) return;
-        for(let r=0;r<Math.max(1,height);r++) items.push({ch:'#',x:cx-width/2+(c+0.5)*gap,
-          y:bottom+r*0.15,s:cell*0.80,L:{cal:height===0?1:height+1},trafficGraph:true});
-      });
     });
   }
   if(hasSurface){
@@ -6150,8 +6163,32 @@ function updateChessBoard(){ // per-frame, camera final: position the board over
   if(!cbOnDom){ cbOnDom=true; cbWrap.classList.add('on'); cbWrap.setAttribute('aria-hidden','false'); }
 }
 const _plP0={x:0,y:0}, _plP1={x:0,y:0}, _plP2={x:0,y:0}, _plP3={x:0,y:0};
+function updateProjectTrafficGraphs(F){
+  const hide=()=>{ projectTrafficGraphs.style.visibility='hidden'; projectTrafficGraphs.setAttribute('aria-hidden','true'); };
+  if(MOBILE_UI||!welcome.active||!welcome.focus||welcome.focus.mode!=='hold'||!F||F.state!=='hold'||!F.project||!F.project.traffic){ hide(); return; }
+  const data=PROJECT_TRAFFIC.get(F.project.id);
+  if(projectGraphId!==F.project.id||projectGraphData!==data){
+    projectTrafficGraphs.innerHTML=projectTrafficInfo(F.project).metrics.map(metric=>'<div>'+projectTrafficGraphHTML(metric)+'</div>').join('');
+    projectGraphId=F.project.id; projectGraphData=data;
+  }
+  if(!projectTrafficGraphs.querySelector('svg')){ hide(); return; }
+  // Same facet plane and four-corner projection as the video: two quiet lines below its totals.
+  camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+  _cfC.copy(F.anchor).addScaledVector(F.up,(PROJECT_SCREEN_TOP+0.59)*F.f);
+  if(_cfE.copy(_cfC).sub(camera.position).dot(F.dir)<=0.5){ hide(); return; }
+  const HW=14.3*F.f/2, HH=0.55*F.f/2;
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right,-HW).addScaledVector(F.up, HH),_plP0);
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right, HW).addScaledVector(F.up, HH),_plP1);
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right, HW).addScaledVector(F.up,-HH),_plP2);
+  cfProject(_cfE.copy(_cfC).addScaledVector(F.right,-HW).addScaledVector(F.up,-HH),_plP3);
+  const tf=cbQuadTransform(_plP0,_plP1,_plP2,_plP3,720,28);
+  if(!tf){ hide(); return; }
+  projectTrafficGraphs.style.transform=tf; projectTrafficGraphs.style.visibility='visible';
+  projectTrafficGraphs.setAttribute('aria-hidden','false');
+}
 function updateProjectLive(){ // pin the on-demand site to the project facet's 16:9 glyph screen
   const F=projectStageFacet();
+  updateProjectTrafficGraphs(F);
   if(!projectLiveOpen||!F||F.state!=='hold'||!F.lay.projectRect){
     projectLive.style.visibility='hidden'; return;
   }

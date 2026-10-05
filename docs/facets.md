@@ -3,24 +3,28 @@
 ## 2026-10-05: repository traffic row on Chess Review
 
 The shared Chess Review project record owns `traffic.path`, `traffic.url`, and its
-clone/view labels. `projectTrafficInfo()` formats cumulative totals for the entire
-recorded period and at most 28 three-row graph bars per metric, normalized to its
-own peak. `buildProjectStageLayout()` places the totals at
-`PROJECT_SCREEN_TOP + 1.25`, centered at x=-3.9 / +3.9. Green `#` graphs sit below
-each total from `PROJECT_SCREEN_TOP + 0.42`, with 0.15 row spacing and `{cal:n}`
-colors so assembly, invert mode, and home restoration use existing paths.
-No dates, recent-window comparison, or axes remain in the visible composition.
-The preview dimensions, button row, and donor transitions are unchanged. Phone
-surfaces display the same metric in native DOM companions. Missing data uses `--`
-and an awaiting-update caption. Refreshes prepare layouts for the next project
-selection; they do not retarget an active donor flight or reset video playback.
+Total GitHub clones / Total GitHub views labels. `projectTrafficInfo()` formats
+cumulative totals for the entire recorded period and supplies the saved trend bins.
+`buildProjectStageLayout()` places the two totals at `PROJECT_SCREEN_TOP + 1.25`,
+centered at x=-3.9 / +3.9. Graphs consume no terrain glyphs: the pointer-transparent
+`#project-traffic-graphs` layer displays two thin green SVG lines, projected onto
+the same facet plane with `cbQuadTransform()`. Its 14.3 x 0.55 world-unit rectangle
+is centered at y=`PROJECT_SCREEN_TOP + 0.59`, below the totals and above the video.
+It appears only while Welcome project focus and the stage are both holding, follows
+camera drift/zoom, and hides on departure or selection changes. Mobile hides this
+layer and uses the same SVG generator in the native project footer and Details card.
 
-Real-data validation: Chess uses 1,422 glyphs with the initial 571 clones / 255 views;
-Entropy 1,614, DocuRAG 1,443, Wind 1,679, Bitcoin 1,594. The maximum reserve remains
-1,679; the current 3,434-item Welcome layout leaves 8,155 of the 13,268 glyphs spare.
-The maximum-graph/max-safe-total variant uses 1,584 records, below the same reserve.
-Case Studies content is unchanged. See `docs/repository-traffic.md` for collection,
-authentication, raw snapshots, and the history/summary schema.
+Each line scales to its own peak with actual bin magnitudes, no three-level
+quantization, axes, fills, or grid. Null bins break the line; known zero days remain
+on the baseline; isolated observations render as a small point. Missing totals use
+`--` and missing trends draw nothing. Refreshes update graph DOM and prepare glyph
+layouts for the next selection without retargeting donors or resetting playback.
+
+Real-data validation: Chess uses 1,401 glyphs with 571 clones / 255 views; Entropy
+1,614, DocuRAG 1,443, Wind 1,679, Bitcoin 1,594. The maximum reserve remains 1,679;
+the 3,434-item Welcome layout leaves 8,155 of the 13,268 glyphs spare. Maximum-safe
+totals use 1,437 Chess records. Case Studies content is unchanged. See
+`docs/repository-traffic.md` for collection and the history/summary schema.
 
 ## 2026-10-05: bounded drag offsets around the selected facet
 
@@ -38,7 +42,7 @@ clearing membership or world position changes are introduced.
 `PORTFOLIO_PROJECTS` supports `video` plus `poster` alongside `image` and `live`.
 Chess Review uses `videos/chess-review-intro.mp4` and
 `images/chess-review-thumbnail.png`, with concise README-based copy and the owner's
-1,000+ active weekly users figure. Its stage assembles only the screen frame before
+1,000+ active Chrome extension users figure. Its stage assembles only the screen frame before
 developing into the thumbnail; it no longer assembles the synthetic chess workspace.
 `#pl-play` displays a right-facing play triangle made of literal `#` characters in
 an aria-hidden `<pre>` inside its semantic button. Its accessible Play label remains;
