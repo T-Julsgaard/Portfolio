@@ -1,5 +1,16 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## 2026-10-05: bounded drag offsets around the selected facet
+
+The static view is reverted. Assembled-stop drag-look uses separate spring offsets
+around the existing navigation heading, saturating smoothly at +/-20 degrees yaw
+and +/-12 degrees pitch. The combined yaw offset, including optional cursor sway,
+stays below F_GAZE_IN, so dragging alone cannot switch away from the selected facet.
+Release gently recentres. Arrows, keyboard, mobile selection/swipes and auto tour
+retain the original panorama/gaze/handoff behavior. Assembly resets both current
+and target offsets; explicit navigation clears the targets. No layout, donor count,
+clearing membership or world position changes are introduced.
+
 ## 2026-10-05: Chess Review introduction video
 
 `PORTFOLIO_PROJECTS` supports `video` plus `poster` alongside `image` and `live`.
@@ -17,14 +28,6 @@ AST layout validation against the real 13,268-glyph terrain measures Chess 1,353
 Entropy 1,614, DocuRAG 1,443, Wind 1,679, and Bitcoin 1,594. Welcome's 3,437 claims
 plus the maximum reserve leave 8,152 spare. Case Studies content is unchanged.
 
-## 2026-10-05: explicit facet navigation with a fixed gaze
-
-Canvas drags no longer steer freeYaw/freePitch. Explicit arrows, keyboard, selection,
-mobile swipe release and opt-in auto tour retain the existing smoothed panorama and
-gaze/handoff lifecycle. Hover and canvas button clicks still run their existing hit
-tests, and Welcome scrollbars still own their drags. Idle breathing and cursor sway
-are removed. Centred FOV zoom is unchanged, so facet anchors, clearing cones and pool
-claims remain identical; no new glyph content is allocated.
 
 ## 2026-09-26: Interests copy and fourth chess game
 

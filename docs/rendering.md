@@ -2,15 +2,6 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
-## 2026-10-05: settled camera stability
-
-Docked breathing offsets and all cursor-sway camera math are removed. The hidden
-author panel no longer contains Cursor sway or its defaults/bindings; old saved
-preferences cannot re-enable it. Arrival blending and explicit facet navigation remain.
-Docked zoom continues to divide FOV by the existing 1-2.8 factor around screen centre.
-Overview disables orbit/pan/zoom-to-cursor and caps distance at its initial framing,
-refreshed on resize; fog authoring no longer expands this zoom bound.
-
 ## v96: phone rendering profile, progressive build and resilient lifecycle
 
 `html.mobile-ui` selects an intentionally lighter rendering profile without altering the

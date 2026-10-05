@@ -5,6 +5,16 @@ Written after v43 (July 2026). This is the playbook for extending or modifying t
 **Case studies**, changing clearing behavior, or debugging glyph transitions. It records
 what we built, *why* it's built that way, and the methodology that made v43 succeed.
 
+## 2026-10-05 addendum: resisted look, original scene dynamics
+
+The fixed-view experiment is reverted. Docked assembled content retains its original
+framing, drift and zoom, with bounded spring drag-look: a tanh curve resists early,
+limits yaw/pitch to +/-20/+/-12 degrees around the selected facet, and gently returns
+on release. Navigation heading remains separate from the drag offset, so repeated
+drags cannot bypass the bound. Explicit facet navigation and mobile swipe release
+keep the established gaze/handoff lifecycle. See `docs/journey.md` for input/reset
+ownership; all assembly positions and glyph claims remain unchanged.
+
 ## 2026-10-05 addendum: project videos and shorter repository actions
 
 Project surfaces accept shared `video` / `poster` records. Video stages assemble the
@@ -16,15 +26,6 @@ mobile uses the existing semantic project dialog. All repository actions use OPE
 Real-data/AST validation measures a 1,679-record maximum project reserve; Welcome plus
 that reserve leaves 8,152 of 13,268 glyphs spare. See `docs/facets.md` for full counts.
 
-## 2026-10-05 addendum: fixed browsing views
-
-Free mouse/touch drag-look is removed. Arrows, keyboard, explicit selection and mobile
-swipe release still drive the existing facet gaze and handoff; pinch/wheel zoom remains
-centred on the current view. Welcome scrollbar drags and canvas button hit tests retain
-pointer tracking. Settled stops have no camera breathing or passive cursor sway.
-Assembly layout, clearing membership and glyph counts are unchanged. These controls
-supersede historical drag-look descriptions in this manual; see `docs/journey.md` and
-`docs/mobile.md` for input ownership and zoom bounds.
 
 ## 2026-09-26 addendum: PGNs without clock comments
 

@@ -2,18 +2,17 @@
 
 The mobile portfolio is a responsive presentation of the same `index.html`, scene, journey state, and content objects as desktop. There is deliberately no `mobile.html` and no duplicate copy deck. `JOURNEY`, each stop's `gallery`, `PORTFOLIO_PROJECTS`, GitHub stats, links, PDFs, games, and recordings remain the source of truth for both profiles.
 
-## 2026-10-05: fixed touch framing
 
-One-finger canvas movement no longer steers the camera. Horizontal/vertical swipes
-still select facets/timeline entries/recordings on release; pinch changes the existing
-centred zoom, and taps retain their 14 px tolerance. Pinch release consumption and
-Welcome scrollbar ownership are unchanged. Overview disables orbit and pan while
-retaining centred two-finger zoom, bounded by the initial framing for the current
-aspect. Portrait/landscape resize refreshes that bound. The touch coach and Details
-guide now describe swipe navigation and straight-ahead pinch zoom.
+## 2026-10-05: resisted touch look
 
-This supersedes the drag-look descriptions below. Travel/assembly and the optional
-auto tour still animate, but settled stops have no camera breathing or mouse sway.
+The original presentation and pinch zoom are restored. One-finger drag-look now
+uses the same early-resisting tanh offset as desktop: +/-20 degrees sideways and
++/-12 degrees vertically around the selected content, with a gentle return on
+release/cancel. It cannot accumulate across gestures. Horizontal/vertical swipe
+release still selects facets, timeline entries and recordings with the old 52 px
+threshold; pinch startup releases the look offset and consumes both releases.
+Welcome scrollbars and the 14 px tap tolerance retain their existing ownership.
+Overview orbit/pan/zoom and portrait/landscape framing are restored unchanged.
 
 ## Invariants
 
