@@ -45,8 +45,11 @@ Chess Review uses `videos/chess-review-intro.mp4` and
 1,000+ active Chrome extension users figure. Its stage assembles only the screen frame before
 developing into the thumbnail; it no longer assembles the synthetic chess workspace.
 `#pl-play` displays a right-facing play triangle made of literal `#` characters in
-an aria-hidden `<pre>` inside its semantic button. Its accessible Play label remains;
-landscape phones shrink the type so the triangle fits the short media stage.
+an aria-hidden, five-row `<pre>` inside a compact 48 px circular mark. Courier New
+uses 10 px type / 6 px line spacing so its character cells and overall triangle
+have square proportions. Landscape phones use a 40 px mark with 8 px / 4.8 px type.
+The full poster remains clickable; hover highlights the ring and keyboard focus
+outlines the mark. Its accessible Play label remains.
 The video has native controls, `playsinline`, and `preload="none"`; only a
 click starts playback. Playing holds the music bar, pause/end releases it, and
 close/project-switch unloads the source. Hidden tabs pause playback. Reopen restores

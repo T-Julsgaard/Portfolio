@@ -100,10 +100,15 @@
   #pl-image,#pl-video { object-fit:contain; }
   #pl-play { position:absolute; inset:0; width:100%; border:0; padding:0; display:flex; align-items:center; justify-content:center;
     background:transparent; color:#f5f5f2; cursor:pointer; }
-  #pl-play pre { font:700 14px/12px "Share Tech Mono",monospace; letter-spacing:0; text-align:left;
-    padding:12px 16px; background:rgba(8,8,8,.78); text-shadow:0 1px 8px #000; }
-  #pl-play:hover pre { color:#fff; transform:scale(1.04); }
-  #pl-play:focus-visible { outline:3px solid #fff; outline-offset:-4px; }
+  #pl-play .pl-play-mark { width:48px; height:48px; box-sizing:border-box; display:flex;
+    align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.45); border-radius:50%;
+    background:rgba(8,8,8,.78); box-shadow:0 3px 18px rgba(0,0,0,.3);
+    transition:background .15s ease,border-color .15s ease; }
+  #pl-play pre { margin:0; padding:0; font:700 10px/6px "Courier New",monospace;
+    letter-spacing:0; text-align:left; transform:translateX(2px); }
+  #pl-play:hover .pl-play-mark { background:rgba(8,8,8,.92); border-color:#fff; }
+  #pl-play:focus-visible { outline:none; }
+  #pl-play:focus-visible .pl-play-mark { outline:2px solid #fff; outline-offset:3px; }
   .pl-stage [hidden] { display:none!important; }
   .project-traffic { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:12px 0; padding:10px 0;
     border-top:1px solid rgba(255,255,255,.18); border-bottom:1px solid rgba(255,255,255,.18); }
@@ -667,7 +672,8 @@
   html.mobile-ui #project-live .pl-shell { height:calc(100% - 60px); }
   html.mobile-ui #pl-traffic { display:grid; flex:none; margin:0; padding:8px 12px; border-bottom:0; }
   @media (orientation:landscape) {
-    html.mobile-ui #pl-play pre { font-size:9px; line-height:8px; padding:6px 10px; }
+    html.mobile-ui #pl-play .pl-play-mark { width:40px; height:40px; }
+    html.mobile-ui #pl-play pre { font-size:8px; line-height:4.8px; }
   }
 
   html.mobile-ui #cboard { z-index:20; background:#000; box-shadow:0 18px 54px rgba(0,0,0,.72); }
@@ -2891,7 +2897,7 @@ const plFrame=projectLive.querySelector('#pl-frame'), plImage=projectLive.queryS
 const plVideo=projectLive.querySelector('#pl-video'), plPlay=projectLive.querySelector('#pl-play');
 let projectVideoHeld=false;
 function projectPlayMarkup(){
-  return '<pre aria-hidden="true">'+['#','###','#####','#######','#########','#######','#####','###','#'].join('\n')+'</pre>';
+  return '<span class="pl-play-mark" aria-hidden="true"><pre>'+['#','###','#####','###','#'].join('\n')+'</pre></span>';
 }
 function releaseProjectVideoMusic(){
   if(projectVideoHeld){ projectVideoHeld=false; musicRelease(); }

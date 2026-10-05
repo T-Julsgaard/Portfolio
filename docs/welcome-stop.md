@@ -24,7 +24,7 @@ Chess Review's shared project record now carries a local video and thumbnail rat
 than the old product screenshot. The concise description summarizes the repository
 README's one-click Chess.com/Lichess reviews and local Stockfish analysis, followed
 by the owner's 1,000+ active Chrome extension users figure. The screen frame develops into the
-thumbnail with an ASCII `#` play triangle; playback starts on click with
+thumbnail with a small circular ASCII `#` play control; playback starts on click with
 native controls. Closing, switching projects, or hiding the tab stops playback.
 Every project's terrain repository button reads OPEN REPO; phone links use Open repo.
 Project focus, donor handoff, calendar restoration, and other image/iframe surfaces

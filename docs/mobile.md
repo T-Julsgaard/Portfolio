@@ -16,8 +16,9 @@ the remaining flexible space. It adds no terrain claims and does not cover video
 controls. Chess Review is the first record using it. Missing data is an explicit
 `--`; no sample or fake counts are shown. Targeted
 393x852 and 844x390 checks verify readable copy, contained media, and no document
-overflow. The video Play overlay uses a literal `#` triangle, shrinking in landscape
-to fit the remaining media height. See `docs/repository-traffic.md` for collection
+overflow. The video Play overlay uses a compact five-row `#` triangle in a 48 px
+circular mark, with square character cells; landscape shrinks the mark to 40 px
+and the type proportionally. The full poster remains a touch target. See `docs/repository-traffic.md` for collection
 and refresh semantics.
 
 ## 2026-10-05: resisted touch look
