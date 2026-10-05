@@ -3,15 +3,16 @@
 ## 2026-10-05: repository traffic row on Chess Review
 
 The shared Chess Review project record owns `traffic.path`, `traffic.url`, and its
-label. `projectTrafficInfo()` formats the API's latest rolling clone total and UTC
-collection date. `buildProjectStageLayout()` places those two typeset lines at
-`PROJECT_SCREEN_TOP + 0.90` / `+ 0.47`, between the existing prose and screen.
+clone/view labels. `projectTrafficInfo()` formats cumulative totals for the entire
+recorded period, the latest 14-day figures, and a recorded-range/UTC-date caption.
+`buildProjectStageLayout()` places those three typeset lines at
+`PROJECT_SCREEN_TOP + 1.35` / `+ 0.88` / `+ 0.47`, between prose and screen.
 The preview dimensions, button row, and donor transitions are unchanged. Phone
 surfaces display the same metric in native DOM companions. Missing data uses `--`
 and an awaiting-update caption. Refreshes prepare layouts for the next project
 selection; they do not retarget an active donor flight or reset video playback.
 
-Real-data validation: Chess uses 1,393 glyphs with the initial 571-clone observation;
+Real-data validation: Chess uses 1,450 glyphs with the initial 571 clones / 255 views;
 Entropy 1,614, DocuRAG 1,443, Wind 1,679, Bitcoin 1,594. The maximum reserve remains
 1,679; the current 3,434-item Welcome layout leaves 8,155 of the 13,268 glyphs spare.
 Case Studies content is unchanged. See `docs/repository-traffic.md` for collection,

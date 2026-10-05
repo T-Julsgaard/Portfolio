@@ -39,7 +39,13 @@ All files live under `data/traffic/chess-review/`:
   as zero. `firstCollectedAt` and `lastCollectedAt` describe archive coverage.
 - `summary.json`: the latest API-reported 14-day views/clones totals and their
   corresponding rolling unique counts, plus `generatedAt` and repository identity.
-  The portfolio displays **total clones**, not unique cloners or extension installs.
+  Its additive `totals.views` / `totals.clones` objects sum the deduplicated daily
+  history across the entire recorded period. Each contains `count`, `from`,
+  `through`, `recordedDays`, and `missingDays` within that date span. Overlapping
+  date corrections replace their previous contribution to the total; the totals
+  continue to grow after dates fall outside the live API's 14-day window. No
+  lifetime unique count is calculated. The portfolio displays total clone and
+  view **events**, not unique people, extension installs, or unrecorded history.
 
 All responses and existing history are validated before writing anything. API
 errors, missing tokens, malformed responses, or corrupt history abort without
@@ -58,10 +64,16 @@ API exposes, not every individual event.
 ## Portfolio display
 
 The Chess Review `PORTFOLIO_PROJECTS` record owns the traffic path, remote URL, and
-label. The shared formatter drives the terrain glyph row above the video, the
-mobile project dialog's small footer, and the readable project card in Details.
-Every count carries an **As of … UTC** date. Missing data shows `--` and
-`Awaiting first traffic update`; failed refreshes retain the prior observation.
+clone/view labels. The shared formatter drives three terrain text rows above the
+video, the mobile project dialog's compact two-column footer, and the readable
+project card in Details. **Total clones** and **Total views** are the primary
+figures for all recorded dates, with the latest **Last 14 days** figures underneath.
+The caption names the recorded date range and **As of … UTC** collection date,
+and marks gaps if any recorded metric has missing days within its range.
+Missing data shows `--` and `Awaiting first traffic update`; failed refreshes
+retain the prior observation. Older summaries without `totals` still supply the
+14-day figures but show cumulative totals as awaiting an archive update, never
+silently substituting the 14-day count for the full recorded total.
 
 The deployed site reads the public summary from Portfolio's `main` branch at
 `raw.githubusercontent.com`, with the deployed JSON as a fallback. This avoids a
@@ -75,7 +87,8 @@ selection; polling must not interrupt video or reassign donors mid-transition.
 
 Run `node --test scripts/fetch-traffic.test.js` with Node 20+ (the desktop runtime
 also supplies Node). Tests cover raw-response retention, date replacement,
-corrections/zero counts, missed-day gaps, API failures, and corrupt history.
+corrections/zero counts, totals beyond 14 days, missed-day gaps, API failures,
+and corrupt history.
 Run the repository's esprima syntax check and targeted desktop/phone visual checks
 for changes to the display. Preserve the real portrait glyph budget.
 

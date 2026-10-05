@@ -104,11 +104,13 @@
   #pl-play:hover svg { color:#fff; transform:scale(1.04); }
   #pl-play:focus-visible { outline:3px solid #fff; outline-offset:-4px; }
   .pl-stage [hidden] { display:none!important; }
-  .project-traffic { display:flex; align-items:center; gap:12px; margin:12px 0; padding:10px 0;
+  .project-traffic { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px; margin:12px 0; padding:10px 0;
     border-top:1px solid rgba(255,255,255,.18); border-bottom:1px solid rgba(255,255,255,.18); }
-  .project-traffic strong { font-size:22px; font-weight:500; }
+  .project-traffic strong { display:block; overflow-wrap:anywhere; font-size:22px; font-weight:500; }
+  .project-traffic .traffic-total { display:flex; align-items:baseline; gap:8px; min-width:0; }
+  .project-traffic .traffic-total span { min-width:0; }
   .project-traffic span { display:block; font-size:11px; line-height:1.5; }
-  .project-traffic small { display:block; font-size:10px; line-height:1.5; opacity:.55; }
+  .project-traffic small { grid-column:1/-1; display:block; font-size:10px; line-height:1.5; opacity:.55; }
   #pl-traffic { display:none; }
   #pl-traffic[hidden] { display:none!important; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
@@ -656,7 +658,7 @@
   html.mobile-ui .pl-mobile-close { width:48px; height:48px; display:flex; align-items:center; justify-content:center;
     border:1px solid rgba(255,255,255,.36); background:transparent; color:#fff; font:20px/1 inherit; cursor:pointer; }
   html.mobile-ui #project-live .pl-shell { height:calc(100% - 60px); }
-  html.mobile-ui #pl-traffic { display:flex; flex:none; margin:0; padding:8px 12px; border-bottom:0; }
+  html.mobile-ui #pl-traffic { display:grid; flex:none; margin:0; padding:8px 12px; border-bottom:0; }
 
   html.mobile-ui #cboard { z-index:20; background:#000; box-shadow:0 18px 54px rgba(0,0,0,.72); }
   html.mobile-ui #cb-ctl { position:fixed; left:0; top:0; z-index:21; height:56px; margin:0; gap:8px; padding:4px;
@@ -2257,7 +2259,7 @@ const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.
 const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
     repo:'https://github.com/T-Julsgaard/Chess-Review',
-    traffic:{path:'data/traffic/chess-review/summary.json', url:'https://raw.githubusercontent.com/T-Julsgaard/Portfolio/main/data/traffic/chess-review/summary.json', label:'Clones in the last 14 days'},
+    traffic:{path:'data/traffic/chess-review/summary.json', url:'https://raw.githubusercontent.com/T-Julsgaard/Portfolio/main/data/traffic/chess-review/summary.json', labels:{clones:'Total clones',views:'Total views'}},
     actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'TRY IT OUT',
     video:'videos/chess-review-intro.mp4', poster:'images/chess-review-thumbnail.png', visual:'chess', accent:'#9ed46b',
     blurb:"Free, open-source extension for one-click Chess.com and Lichess game reviews. Local Stockfish analysis delivers accuracy scores, move insights, and estimated ratings.\n\n1,000+ active weekly users."},
@@ -2293,15 +2295,28 @@ const PORTFOLIO_PROJECTS=[
 const PROJECT_TRAFFIC=new Map();
 function projectTrafficInfo(p){
   const data=PROJECT_TRAFFIC.get(p.id);
-  return data?{
-    value:data.clones.count.toLocaleString('en-US'),
-    caption:'As of '+new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(data.generatedAt))+' UTC'
-  }:{value:'--',caption:'Awaiting first traffic update'};
+  const formatDate=(date,year=true)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:year?'numeric':undefined,timeZone:'UTC'}).format(new Date(date));
+  const metrics=['clones','views'].map(name=>{
+    const total=data&&data.totals&&data.totals[name];
+    return {name,label:p.traffic.labels[name],value:total&&total.recordedDays?total.count.toLocaleString('en-US'):'--'};
+  });
+  const recorded=data&&data.totals?Object.values(data.totals).filter(total=>total.recordedDays):[];
+  let caption='Awaiting first traffic update';
+  if(data){
+    const from=recorded.map(total=>total.from).sort()[0], through=recorded.map(total=>total.through).sort().pop();
+    caption=from?'Recorded '+formatDate(from,from.slice(0,4)!==through.slice(0,4))+' - '+formatDate(through)+(recorded.some(total=>total.missingDays)?' (gaps)':''):'Recorded totals awaiting archive update';
+    caption+=' | As of '+formatDate(data.generatedAt)+' UTC';
+  }
+  return {
+    metrics, main:metrics.map(metric=>metric.value+' '+metric.label).join(' / '), caption,
+    recent:data?'Last 14 days: '+['clones','views'].map(name=>data[name].count.toLocaleString('en-US')+' '+name).join(' / '):'Last 14 days: -- clones / -- views'
+  };
 }
 function projectTrafficHTML(p){
   if(!p||!p.traffic) return '';
   const info=projectTrafficInfo(p);
-  return '<strong>'+mobileEsc(info.value)+'</strong><div><span>'+mobileEsc(p.traffic.label)+'</span><small>'+mobileEsc(info.caption)+'</small></div>';
+  return info.metrics.map(metric=>'<div class="traffic-total"><strong>'+mobileEsc(metric.value)+'</strong><span>'+mobileEsc(metric.label)+'</span></div>').join('')+
+    '<small>'+mobileEsc(info.recent)+'</small><small>'+mobileEsc(info.caption)+'</small>';
 }
 
 /* Mobile accessibility/content layer. It reads the same STOPS, gallery and project
@@ -3374,7 +3389,13 @@ async function loadProjectTraffic(){
       try{ data=await fetchJSON((local?p.traffic.path:p.traffic.url)+'?t='+Date.now()); }
       catch(e){ if(local) throw e; data=await fetchJSON(p.traffic.path+'?t='+Date.now()); }
       if(data.schemaVersion!==1||data.repository!==new URL(p.repo).pathname.slice(1)||data.windowDays!==14||
-        !Number.isFinite(Date.parse(data.generatedAt))||!data.clones||!Number.isSafeInteger(data.clones.count)||data.clones.count<0) return;
+        !Number.isFinite(Date.parse(data.generatedAt))||!['clones','views'].every(name=>data[name]&&Number.isSafeInteger(data[name].count)&&data[name].count>=0)) return;
+      if(data.totals&&!['clones','views'].every(name=>{
+        const total=data.totals[name];
+        return total&&Number.isSafeInteger(total.count)&&total.count>=0&&Number.isSafeInteger(total.recordedDays)&&total.recordedDays>=0&&
+          Number.isSafeInteger(total.missingDays)&&total.missingDays>=0&&(!total.recordedDays||
+          (Number.isFinite(Date.parse(total.from))&&Number.isFinite(Date.parse(total.through))&&total.from<=total.through));
+      })) return;
       PROJECT_TRAFFIC.set(p.id,data);
       document.querySelectorAll('[data-project-traffic="'+p.id+'"]').forEach(el=>{ el.innerHTML=projectTrafficHTML(p); });
       // Fresh observations are used at the next project selection. Do not interrupt
@@ -4271,8 +4292,9 @@ function buildProjectStageLayout(p){
   let projectRect=null;
   if(p.traffic){
     const info=projectTrafficInfo(p);
-    putLine(info.value+' '+p.traffic.label,0.32,PROJECT_SCREEN_TOP+0.90,copyWidth,0.86);
-    putLine(info.caption,0.22,PROJECT_SCREEN_TOP+0.47,copyWidth,0.45);
+    putLine(info.main,0.32,PROJECT_SCREEN_TOP+1.35,copyWidth,0.86);
+    putLine(info.recent,0.25,PROJECT_SCREEN_TOP+0.88,copyWidth,0.57);
+    putLine(info.caption,0.19,PROJECT_SCREEN_TOP+0.47,copyWidth,0.45);
   }
   if(hasSurface){
     const screenTop=PROJECT_SCREEN_TOP;

@@ -42,6 +42,8 @@ test('archives all raw endpoints and preserves rolling unique totals without sto
   assert.deepEqual(summary.clones, { count: 4, uniques: 2 });
   assert.equal(JSON.stringify(snapshot).includes('test-secret'), false);
   assert.equal((await json(output, 'history.json')).days['2026-10-04'].clones.count, 4);
+  assert.deepEqual(summary.totals.clones, { count: 4, from: '2026-10-04', through: '2026-10-04', recordedDays: 1, missingDays: 0 });
+  assert.equal('uniques' in summary.totals.clones, false);
 });
 
 test('overlapping dates replace observations, zero is valid, and older dates survive gaps', async t => {
@@ -59,6 +61,40 @@ test('overlapping dates replace observations, zero is valid, and older dates sur
   assert.equal(history.firstCollectedAt, '2026-10-05T03:37:00.000Z');
   assert.deepEqual(Object.keys(history.days), ['2026-10-04', '2026-10-24']); // Unknown days are not fabricated as zero.
   assert.equal((await fs.readdir(path.join(output, 'snapshots/2026'))).length, 4);
+  const summary = await json(output, 'summary.json');
+  assert.equal(summary.totals.views.count, 3);
+  assert.equal(summary.totals.clones.count, 3);
+  assert.equal(summary.totals.clones.recordedDays, 2);
+  assert.equal(summary.totals.clones.missingDays, 19);
+});
+
+test('totals grow beyond the 14-day window without counting overlapping days twice', async t => {
+  const output = await temporary(t);
+  function windowEnding(end) {
+    const data = fixture();
+    for (const name of ['views', 'clones']) {
+      data[name][name] = Array.from({ length: 14 }, (_, i) => ({
+        timestamp: new Date(Date.parse(end) - (13 - i) * 86400000).toISOString().replace('.000', ''),
+        count: name === 'views' ? 3 : 2, uniques: 1,
+      }));
+      data[name].count = name === 'views' ? 42 : 28;
+      data[name].uniques = 5;
+    }
+    return data;
+  }
+  await collect(output, windowEnding('2026-10-04'), '2026-10-05T03:37:00Z');
+  const data = windowEnding('2026-10-05');
+  data.clones.clones[0].count = 5; // Correct an overlapping date from 2 to 5.
+  data.clones.count = 31;
+  const summary = await collect(output, data, '2026-10-06T03:37:00Z');
+  assert.equal(summary.views.count, 42);
+  assert.equal(summary.clones.count, 31);
+  assert.equal(summary.totals.views.count, 45); // Fifteen dates, not 42 + 42.
+  assert.equal(summary.totals.clones.count, 33); // Fifteen dates plus the correction.
+  assert.equal(summary.totals.clones.recordedDays, 15);
+  assert.equal(summary.totals.clones.missingDays, 0);
+  assert.equal(summary.totals.clones.from, '2026-09-21');
+  assert.equal(summary.totals.clones.through, '2026-10-05');
 });
 
 test('any failed endpoint preserves existing summary/history and creates no snapshot', async t => {

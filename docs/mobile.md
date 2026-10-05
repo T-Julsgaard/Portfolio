@@ -5,9 +5,10 @@ The mobile portfolio is a responsive presentation of the same `index.html`, scen
 
 ## 2026-10-05: shared project traffic display
 
-Projects with a shared `traffic` record render their latest clone count, label, and
-UTC collection date in the Details card and developed project dialog. The latter
-uses a compact `#pl-traffic` footer inside `.pl-shell`, leaving the media stage as
+Projects with a shared `traffic` record render cumulative clone/view totals for
+all recorded dates, recent 14-day figures, the recorded range, and a UTC collection
+date in the Details card and developed project dialog. The latter uses a compact
+two-column `#pl-traffic` footer inside `.pl-shell`, leaving the media stage as
 the remaining flexible space. It adds no terrain claims and does not cover video
 controls. Chess Review is the first record using it. Missing data is an explicit
 `--` with an awaiting-update caption; no sample or fake counts are shown. Targeted

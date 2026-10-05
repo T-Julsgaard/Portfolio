@@ -10,5 +10,21 @@
   "clones": {
     "count": 571,
     "uniques": 174
+  },
+  "totals": {
+    "views": {
+      "count": 255,
+      "from": "2026-09-20",
+      "through": "2026-10-03",
+      "recordedDays": 14,
+      "missingDays": 0
+    },
+    "clones": {
+      "count": 571,
+      "from": "2026-09-20",
+      "through": "2026-10-03",
+      "recordedDays": 14,
+      "missingDays": 0
+    }
   }
 }

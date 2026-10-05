@@ -2,8 +2,9 @@
 
 ## 2026-10-05: Chess Review repository traffic
 
-Chess Review now displays its latest 14-day repository clone count and collection
-date above the video on desktop, in the mobile video dialog's footer, and in the
+Chess Review now displays cumulative repository clones and views over its entire
+recorded date range, recent 14-day figures, and a collection date above the video
+on desktop, in the mobile video dialog's footer, and in the
 Welcome Details project card. These surfaces use `PORTFOLIO_PROJECTS.traffic` and
 one shared formatter. The daily archive is separate from the contribution stats
 pipeline and needs `TRAFFIC_TOKEN` with Administration read access on Chess-Review.

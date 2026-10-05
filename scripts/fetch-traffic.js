@@ -57,6 +57,27 @@ async function writeJSON(file, value) {
   } finally { await fs.rm(temporary, { force: true }); }
 }
 
+function summarizeHistory(history) {
+  const totals = {};
+  for (const name of ['views', 'clones']) {
+    const entries = Object.entries(history.days).filter(([, day]) => day[name] !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b));
+    let count = 0;
+    for (const [date, day] of entries) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || !counts(day[name]))
+        throw new Error('Invalid archived daily ' + name + ' record.');
+      count += day[name].count;
+      if (!Number.isSafeInteger(count)) throw new Error('Archived ' + name + ' total exceeds safe integer range.');
+    }
+    const from = entries.length ? entries[0][0] : null;
+    const through = entries.length ? entries[entries.length - 1][0] : null;
+    const span = entries.length ? Math.round((Date.parse(through) - Date.parse(from)) / 86400000) + 1 : 0;
+    // These are event totals. Daily unique people cannot be deduplicated across dates.
+    totals[name] = { count, from, through, recordedDays: entries.length, missingDays: span - entries.length };
+  }
+  return totals;
+}
+
 async function collectTraffic(options = {}) {
   const token = options.token || process.env.GH_TOKEN;
   if (!token) throw new Error('GH_TOKEN is missing. Set the TRAFFIC_TOKEN Actions secret (Administration: read on Chess-Review).');
@@ -101,6 +122,7 @@ async function collectTraffic(options = {}) {
     schemaVersion: 1, repository: REPOSITORY, generatedAt, windowDays: 14,
     views: { count: data.views.count, uniques: data.views.uniques },
     clones: { count: data.clones.count, uniques: data.clones.uniques },
+    totals: summarizeHistory(history),
   };
   const filename = generatedAt.replace(/:/g, '-') + '.json';
   await writeJSON(path.join(output, 'snapshots', generatedAt.slice(0, 4), filename), snapshot);
@@ -109,7 +131,7 @@ async function collectTraffic(options = {}) {
   return summary;
 }
 
-module.exports = { collectTraffic, validateTraffic };
+module.exports = { collectTraffic, validateTraffic, summarizeHistory };
 if (require.main === module) {
   collectTraffic().then(summary => {
     console.log('Archived traffic for ' + summary.repository + ' at ' + summary.generatedAt + '.');
