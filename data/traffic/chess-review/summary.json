@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "T-Julsgaard/Chess-Review",
+  "generatedAt": "2026-10-05T00:39:19.341Z",
+  "windowDays": 14,
+  "views": {
+    "count": 255,
+    "uniques": 100
+  },
+  "clones": {
+    "count": 571,
+    "uniques": 174
+  }
+}

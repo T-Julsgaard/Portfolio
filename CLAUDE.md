@@ -14,6 +14,7 @@ This file is a lean index; the detailed subsystem documentation (architecture, v
 | Glyph rendering, instanced pools, `syncPools`, glyph geometry/materials, text baseline, load animations, bloom/FOV automation, dev panel | `docs/rendering.md` |
 | The journey path, UI state machine, docking/departing, travel styles, auto tour, fullscreen toggle | `docs/journey.md` |
 | The welcome stop (GitHub calendar, commit banner, mini-me figure, section nav, stats pipeline) | `docs/welcome-stop.md` |
+| Repository traffic collection, archive/history, Actions token, or project clone counts | `docs/repository-traffic.md` |
 | The music bar, YouTube player, muted autostart, playlist modal | `docs/music-bar.md` |
 | Mobile layout, touch gestures, safe areas, mobile navigation/sheets, rotation, keyboard handling, or mobile performance | `docs/mobile.md` **then** the affected subsystem doc above |
 
