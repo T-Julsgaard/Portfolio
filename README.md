@@ -1,7 +1,7 @@
 # Portfolio 2.0
 
 An interactive ASCII-art portrait site — a single `index.html`, no build step.
-Open it via `open portfolio.bat` (serves it at http://localhost:8123/ so music
+Open it via `open portfolio.bat` (serves it at http://127.0.0.1:8123/ so music
 and stats work; double-clicking the file blocks both).
 
 ---

@@ -2,6 +2,25 @@
 
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
+## 2026-10-05: isolate the remaining soft overview and identify deployment
+
+The reported screenshots show the Raw overview, which bypasses EffectComposer;
+the previous buffer fix therefore did not address their softness. The actual
+screenshot tabs still measured localhost DPR 1.1 (110% zoom), canvas 1919x918
+against a 1745x835 CSS viewport, while the live origin measured DPR 1, canvas and
+CSS viewport both 1920x919. Render controls, font and desktop profile matched.
+Opening the exact same current file through 127.0.0.1 used DPR 1 and produced the
+sharp portrait. The launcher now opens that verified loopback-IP origin and retains
+its existing cache buster/server behavior. Browser preferences remain per origin;
+this avoids localhost's saved setting rather than modifying it.
+
+Fresh HTML comparisons identified the public build as commit 8c3f3f0 and the served
+local file as 0060f06 before this launcher update. The local server's HTML matched
+index.html exactly. All four embedded blobs, glyph geometry, applyRaw and overview
+framing matched the published version. Pending local differences were navigation
+headers, Chess Review video/copy, resisted docked look and composer resolution.
+This is an observation from this diagnosis, not a permanent deployment manifest.
+
 ## 2026-10-05: crisp composer output at browser zoom and HiDPI
 
 Localhost and the deployed origin can have different saved Chrome zoom levels.
