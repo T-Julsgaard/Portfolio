@@ -82,8 +82,9 @@ SAMPLE tag on the welcome stop. The deployed site never uses the sample file.
 
 The portfolio archives all four GitHub traffic responses daily: views, clones,
 top referring sites, and popular pages. History and raw snapshots are retained in
-`data/traffic/chess-review/`; the Chess Review project displays the latest 14-day
-clone total and collection date on desktop and mobile.
+`data/traffic/chess-review/`; the Chess Review project displays cumulative clones
+and views across the entire recorded date range on desktop and mobile, with the
+latest 14-day counts underneath and a collection date.
 
 To activate collection after pushing the local changes, add **TRAFFIC_TOKEN** to
 this **Portfolio** repository's Actions secrets. Use a fine-grained token restricted
