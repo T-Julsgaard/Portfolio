@@ -4,17 +4,21 @@
 
 The shared Chess Review project record owns `traffic.path`, `traffic.url`, and its
 clone/view labels. `projectTrafficInfo()` formats cumulative totals for the entire
-recorded period, the latest 14-day figures, and a recorded-range/UTC-date caption.
-`buildProjectStageLayout()` places those three typeset lines at
-`PROJECT_SCREEN_TOP + 1.35` / `+ 0.88` / `+ 0.47`, between prose and screen.
+recorded period and at most 28 three-row graph bars per metric, normalized to its
+own peak. `buildProjectStageLayout()` places the totals at
+`PROJECT_SCREEN_TOP + 1.25`, centered at x=-3.9 / +3.9. Green `#` graphs sit below
+each total from `PROJECT_SCREEN_TOP + 0.42`, with 0.15 row spacing and `{cal:n}`
+colors so assembly, invert mode, and home restoration use existing paths.
+No dates, recent-window comparison, or axes remain in the visible composition.
 The preview dimensions, button row, and donor transitions are unchanged. Phone
 surfaces display the same metric in native DOM companions. Missing data uses `--`
 and an awaiting-update caption. Refreshes prepare layouts for the next project
 selection; they do not retarget an active donor flight or reset video playback.
 
-Real-data validation: Chess uses 1,450 glyphs with the initial 571 clones / 255 views;
+Real-data validation: Chess uses 1,422 glyphs with the initial 571 clones / 255 views;
 Entropy 1,614, DocuRAG 1,443, Wind 1,679, Bitcoin 1,594. The maximum reserve remains
 1,679; the current 3,434-item Welcome layout leaves 8,155 of the 13,268 glyphs spare.
+The maximum-graph/max-safe-total variant uses 1,584 records, below the same reserve.
 Case Studies content is unchanged. See `docs/repository-traffic.md` for collection,
 authentication, raw snapshots, and the history/summary schema.
 
@@ -36,8 +40,10 @@ Chess Review uses `videos/chess-review-intro.mp4` and
 `images/chess-review-thumbnail.png`, with concise README-based copy and the owner's
 1,000+ active weekly users figure. Its stage assembles only the screen frame before
 developing into the thumbnail; it no longer assembles the synthetic chess workspace.
-`#pl-play` reuses `layBtnRow()`'s punched-out PLAY cells as an SVG inside a semantic
-button. The video has native controls, `playsinline`, and `preload="none"`; only a
+`#pl-play` displays a right-facing play triangle made of literal `#` characters in
+an aria-hidden `<pre>` inside its semantic button. Its accessible Play label remains;
+landscape phones shrink the type so the triangle fits the short media stage.
+The video has native controls, `playsinline`, and `preload="none"`; only a
 click starts playback. Playing holds the music bar, pause/end releases it, and
 close/project-switch unloads the source. Hidden tabs pause playback. Reopen restores
 the poster. All project repository actions now read OPEN REPO, including mobile links.

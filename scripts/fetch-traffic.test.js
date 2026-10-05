@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
-const { collectTraffic } = require('./fetch-traffic');
+const { collectTraffic, summarizeTrends } = require('./fetch-traffic');
 
 function fixture(count = 4) {
   const day = { timestamp: '2026-10-04T00:00:00Z', count, uniques: Math.min(2, count) };
@@ -95,6 +95,30 @@ test('totals grow beyond the 14-day window without counting overlapping days twi
   assert.equal(summary.totals.clones.missingDays, 0);
   assert.equal(summary.totals.clones.from, '2026-09-21');
   assert.equal(summary.totals.clones.through, '2026-10-05');
+  assert.equal(summary.trends.clones.length, 15);
+  assert.equal(summary.trends.clones[1], 5);
+});
+
+test('compact trends cover all recorded history, preserve gaps/zeros, and average long periods', () => {
+  const days = {};
+  for (let i = 0; i < 56; i++) {
+    const date = new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10);
+    days[date] = { clones: { count: i }, views: { count: 56 - i } };
+  }
+  const trends = summarizeTrends({ days });
+  assert.equal(trends.clones.length, 28);
+  assert.equal(trends.clones[0], 0.5);
+  assert.equal(trends.clones[27], 54.5);
+  assert.equal(trends.views[0], 55.5);
+  assert.equal(trends.from, '2026-01-01');
+  assert.equal(trends.through, '2026-02-25');
+  const sparse = summarizeTrends({ days: {
+    '2026-01-01': { clones: { count: 0 } },
+    '2026-01-03': { clones: { count: 4 }, views: { count: 2 } },
+  } });
+  assert.deepEqual(sparse.clones, [0, null, 4]);
+  assert.deepEqual(sparse.views, [null, null, 2]);
+  assert.deepEqual(summarizeTrends({ days: {} }).clones, []);
 });
 
 test('any failed endpoint preserves existing summary/history and creates no snapshot', async t => {

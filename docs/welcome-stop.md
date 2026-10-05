@@ -2,8 +2,8 @@
 
 ## 2026-10-05: Chess Review repository traffic
 
-Chess Review now displays cumulative repository clones and views over its entire
-recorded date range, recent 14-day figures, and a collection date above the video
+Chess Review now displays only cumulative repository clones and views over its
+entire recorded history, side by side with tiny green graphs below, above the video
 on desktop, in the mobile video dialog's footer, and in the
 Welcome Details project card. These surfaces use `PORTFOLIO_PROJECTS.traffic` and
 one shared formatter. The daily archive is separate from the contribution stats
@@ -12,8 +12,8 @@ pipeline and needs `TRAFFIC_TOKEN` with Administration read access on Chess-Revi
 `loadProjectTraffic()` refreshes the public summary every minute while visible and
 on tab return. Local preview reads its collected JSON; deployed pages read the raw
 `Portfolio/main` file so bot commits can update the metric without a Pages build.
-On network/API-data problems the last valid observation stays visible with its UTC
-date; a first-run absence shows `--`. Fresh values enter glyph layouts on the next
+On network/API-data problems the last valid observation stays visible;
+a first-run absence shows `--`. Fresh values enter glyph layouts on the next
 project selection, preserving active donor transitions and playback. Full setup,
 limitations, and archive semantics live in `docs/repository-traffic.md`.
 
@@ -23,7 +23,7 @@ Chess Review's shared project record now carries a local video and thumbnail rat
 than the old product screenshot. The concise description summarizes the repository
 README's one-click Chess.com/Lichess reviews and local Stockfish analysis, followed
 by the owner's 1,000+ active weekly users figure. The screen frame develops into the
-thumbnail with Piano's punched-out PLAY treatment; playback starts on click with
+thumbnail with an ASCII `#` play triangle; playback starts on click with
 native controls. Closing, switching projects, or hiding the tab stops playback.
 Every project's terrain repository button reads OPEN REPO; phone links use Open repo.
 Project focus, donor handoff, calendar restoration, and other image/iframe surfaces

@@ -100,17 +100,18 @@
   #pl-image,#pl-video { object-fit:contain; }
   #pl-play { position:absolute; inset:0; width:100%; border:0; padding:0; display:flex; align-items:center; justify-content:center;
     background:transparent; color:#f5f5f2; cursor:pointer; }
-  #pl-play svg { width:156px; height:61px; padding:4px; background:#080808; box-shadow:0 4px 24px rgba(0,0,0,.6); }
-  #pl-play:hover svg { color:#fff; transform:scale(1.04); }
+  #pl-play pre { font:700 14px/12px "Share Tech Mono",monospace; letter-spacing:0; text-align:left;
+    padding:12px 16px; background:rgba(8,8,8,.78); text-shadow:0 1px 8px #000; }
+  #pl-play:hover pre { color:#fff; transform:scale(1.04); }
   #pl-play:focus-visible { outline:3px solid #fff; outline-offset:-4px; }
   .pl-stage [hidden] { display:none!important; }
-  .project-traffic { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px; margin:12px 0; padding:10px 0;
+  .project-traffic { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:12px 0; padding:10px 0;
     border-top:1px solid rgba(255,255,255,.18); border-bottom:1px solid rgba(255,255,255,.18); }
   .project-traffic strong { display:block; overflow-wrap:anywhere; font-size:22px; font-weight:500; }
   .project-traffic .traffic-total { display:flex; align-items:baseline; gap:8px; min-width:0; }
   .project-traffic .traffic-total span { min-width:0; }
   .project-traffic span { display:block; font-size:11px; line-height:1.5; }
-  .project-traffic small { grid-column:1/-1; display:block; font-size:10px; line-height:1.5; opacity:.55; }
+  .traffic-trend { display:block; width:100%; height:18px; margin-top:5px; }
   #pl-traffic { display:none; }
   #pl-traffic[hidden] { display:none!important; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
@@ -659,6 +660,9 @@
     border:1px solid rgba(255,255,255,.36); background:transparent; color:#fff; font:20px/1 inherit; cursor:pointer; }
   html.mobile-ui #project-live .pl-shell { height:calc(100% - 60px); }
   html.mobile-ui #pl-traffic { display:grid; flex:none; margin:0; padding:8px 12px; border-bottom:0; }
+  @media (orientation:landscape) {
+    html.mobile-ui #pl-play pre { font-size:9px; line-height:8px; padding:6px 10px; }
+  }
 
   html.mobile-ui #cboard { z-index:20; background:#000; box-shadow:0 18px 54px rgba(0,0,0,.72); }
   html.mobile-ui #cb-ctl { position:fixed; left:0; top:0; z-index:21; height:56px; margin:0; gap:8px; padding:4px;
@@ -2297,28 +2301,25 @@ const PORTFOLIO_PROJECTS=[
 const PROJECT_TRAFFIC=new Map();
 function projectTrafficInfo(p){
   const data=PROJECT_TRAFFIC.get(p.id);
-  const formatDate=(date,year=true)=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:year?'numeric':undefined,timeZone:'UTC'}).format(new Date(date));
   const metrics=['clones','views'].map(name=>{
     const total=data&&data.totals&&data.totals[name];
-    return {name,label:p.traffic.labels[name],value:total&&total.recordedDays?total.count.toLocaleString('en-US'):'--'};
+    const series=data&&data.trends&&data.trends[name]||[], max=Math.max(0,...series.filter(value=>value!==null));
+    return {name,label:p.traffic.labels[name],value:total&&total.recordedDays?total.count.toLocaleString('en-US'):'--',
+      bars:series.map(value=>value===null?null:(value===0?0:Math.max(1,Math.ceil(value/Math.max(1,max)*3))))};
   });
-  const recorded=data&&data.totals?Object.values(data.totals).filter(total=>total.recordedDays):[];
-  let caption='Awaiting first traffic update';
-  if(data){
-    const from=recorded.map(total=>total.from).sort()[0], through=recorded.map(total=>total.through).sort().pop();
-    caption=from?'Recorded '+formatDate(from,from.slice(0,4)!==through.slice(0,4))+' - '+formatDate(through)+(recorded.some(total=>total.missingDays)?' (gaps)':''):'Recorded totals awaiting archive update';
-    caption+=' | As of '+formatDate(data.generatedAt)+' UTC';
-  }
-  return {
-    metrics, main:metrics.map(metric=>metric.value+' '+metric.label).join(' / '), caption,
-    recent:data?'Last 14 days: '+['clones','views'].map(name=>data[name].count.toLocaleString('en-US')+' '+name).join(' / '):'Last 14 days: -- clones / -- views'
-  };
+  return {metrics};
+}
+function projectTrafficGraphHTML(metric){
+  if(!metric.bars.length) return '';
+  const w=metric.bars.length*5;
+  return '<svg class="traffic-trend" viewBox="0 0 '+w+' 12" preserveAspectRatio="none" role="img" aria-label="'+mobileEsc(metric.name)+' trend over recorded history">'+
+    metric.bars.map((height,i)=>height===null?'':Array.from({length:Math.max(1,height)},(_,r)=>
+      '<rect x="'+(i*5)+'" y="'+(8-r*4)+'" width="3" height="3" fill="'+(height===0?'#0e4429':['#006d32','#26a641','#39d353'][height-1])+'"/>').join('')).join('')+'</svg>';
 }
 function projectTrafficHTML(p){
   if(!p||!p.traffic) return '';
   const info=projectTrafficInfo(p);
-  return info.metrics.map(metric=>'<div class="traffic-total"><strong>'+mobileEsc(metric.value)+'</strong><span>'+mobileEsc(metric.label)+'</span></div>').join('')+
-    '<small>'+mobileEsc(info.recent)+'</small><small>'+mobileEsc(info.caption)+'</small>';
+  return info.metrics.map(metric=>'<div><div class="traffic-total"><strong>'+mobileEsc(metric.value)+'</strong><span>'+mobileEsc(metric.label)+'</span></div>'+projectTrafficGraphHTML(metric)+'</div>').join('');
 }
 
 /* Mobile accessibility/content layer. It reads the same STOPS, gallery and project
@@ -2871,11 +2872,7 @@ const plFrame=projectLive.querySelector('#pl-frame'), plImage=projectLive.queryS
 const plVideo=projectLive.querySelector('#pl-video'), plPlay=projectLive.querySelector('#pl-play');
 let projectVideoHeld=false;
 function projectPlayMarkup(){
-  // Reuse Piano's punched-out PLAY cells without borrowing any extra terrain glyphs.
-  const items=[], W=stCols('PLAY')+2;
-  layBtnRow(items,[],[{t:'PLAY',kind:'play'}],0,W+2,1);
-  return '<svg viewBox="0 0 '+W+' 9" aria-hidden="true" focusable="false" fill="currentColor">'+items.map(it=>
-    '<rect x="'+(it.x+W/2-0.5)+'" y="'+(-it.y-0.5)+'" width="1" height="1"/>').join('')+'</svg>';
+  return '<pre aria-hidden="true">'+['#','###','#####','#######','#########','#######','#####','###','#'].join('\n')+'</pre>';
 }
 function releaseProjectVideoMusic(){
   if(projectVideoHeld){ projectVideoHeld=false; musicRelease(); }
@@ -3398,6 +3395,8 @@ async function loadProjectTraffic(){
           Number.isSafeInteger(total.missingDays)&&total.missingDays>=0&&(!total.recordedDays||
           (Number.isFinite(Date.parse(total.from))&&Number.isFinite(Date.parse(total.through))&&total.from<=total.through));
       })) return;
+      if(data.trends&&!['clones','views'].every(name=>Array.isArray(data.trends[name])&&data.trends[name].length<=28&&
+        data.trends[name].every(value=>value===null||(Number.isFinite(value)&&value>=0)))) return;
       PROJECT_TRAFFIC.set(p.id,data);
       document.querySelectorAll('[data-project-traffic="'+p.id+'"]').forEach(el=>{ el.innerHTML=projectTrafficHTML(p); });
       // Fresh observations are used at the next project selection. Do not interrupt
@@ -4294,9 +4293,18 @@ function buildProjectStageLayout(p){
   let projectRect=null;
   if(p.traffic){
     const info=projectTrafficInfo(p);
-    putLine(info.main,0.32,PROJECT_SCREEN_TOP+1.35,copyWidth,0.86);
-    putLine(info.recent,0.25,PROJECT_SCREEN_TOP+0.88,copyWidth,0.57);
-    putLine(info.caption,0.19,PROJECT_SCREEN_TOP+0.47,copyWidth,0.45);
+    info.metrics.forEach((metric,i)=>{
+      const cx=i===0?-3.9:3.9, width=6.5, text=metric.value+' '+metric.label;
+      const q=layoutLine(asciiSafe(text).toUpperCase(),0.36), size=q.w>width?0.36*width/q.w:0.36;
+      copyLeft=cx-layoutLine(asciiSafe(text).toUpperCase(),size).w/2;
+      putLine(text,size,PROJECT_SCREEN_TOP+1.25,width,0.86);
+      const cell=width/28, gap=width/Math.max(1,metric.bars.length), bottom=PROJECT_SCREEN_TOP+0.42;
+      metric.bars.forEach((height,c)=>{
+        if(height===null) return;
+        for(let r=0;r<Math.max(1,height);r++) items.push({ch:'#',x:cx-width/2+(c+0.5)*gap,
+          y:bottom+r*0.15,s:cell*0.80,L:{cal:height===0?1:height+1},trafficGraph:true});
+      });
+    });
   }
   if(hasSurface){
     const screenTop=PROJECT_SCREEN_TOP;

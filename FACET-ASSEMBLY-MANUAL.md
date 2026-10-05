@@ -7,17 +7,18 @@ what we built, *why* it's built that way, and the methodology that made v43 succ
 
 ## 2026-10-05 addendum: archived Chess Review traffic totals
 
-Chess Review's shared `traffic` record adds cumulative clone/view totals, recent
-14-day figures, and a recorded-range/UTC-date caption between its prose and video.
-These three compact rows use ordinary `putLine()` glyphs;
+Chess Review's shared `traffic` record adds separated cumulative clone/view totals
+on the same line, with tiny green `#` graphs below, between its prose and video.
+Totals use ordinary `putLine()` glyphs and graphs use existing `{cal:n}` colors;
 the preview rectangle, button row, camera fit, and donor lifecycle are unchanged.
 Phone Details and the project dialog read the same record/formatter, with a native
 footer that consumes no terrain glyphs. Missing observations show `--`, never zero.
 Traffic refreshes update DOM companions and layouts for the next selection without
 reassigning active donors or interrupting playback. See `docs/repository-traffic.md`.
-The real-data check measures Chess at 1,450 records; the largest project reserve
+The real-data check measures Chess at 1,422 records; the largest project reserve
 remains Wind's 1,679. The current Welcome layout plus reserve leaves 8,155 glyphs
-spare. Desktop, phone portrait, and landscape screenshots verify the added row.
+spare. Even 28 full three-row graph columns per metric with maximum safe totals
+need only 1,584 Chess records. Desktop, phone portrait, and landscape checks pass.
 
 ## 2026-10-05 addendum: resisted look, original scene dynamics
 
@@ -33,7 +34,7 @@ ownership; all assembly positions and glyph claims remain unchanged.
 
 Project surfaces accept shared `video` / `poster` records. Video stages assemble the
 screen frame, then develop into the poster without the old synthetic inner art.
-The native Play overlay derives its SVG from the same `layBtnRow()` cells as Piano;
+The native Play overlay renders a right-facing triangle made from literal `#` text;
 it adds no terrain claims. Keep `preload="none"`, click-only playback, music hold/release,
 and source unloading on close/switch. Desktop uses the existing homography and mask;
 mobile uses the existing semantic project dialog. All repository actions use OPEN REPO.

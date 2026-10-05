@@ -46,6 +46,11 @@ All files live under `data/traffic/chess-review/`:
   continue to grow after dates fall outside the live API's 14-day window. No
   lifetime unique count is calculated. The portfolio displays total clone and
   view **events**, not unique people, extension installs, or unrecorded history.
+  `trends` supplies at most 28 chronological bins for each metric across the full
+  recorded date span, shared between both graphs. Short histories use daily bins;
+  longer histories use the mean count per observed day in each bin. Empty bins are
+  `null`, while known zero days stay zero. Raw snapshots and full daily history are
+  still retained; this compact representation only bounds the display's glyph cost.
 
 All responses and existing history are validated before writing anything. API
 errors, missing tokens, malformed responses, or corrupt history abort without
@@ -64,16 +69,19 @@ API exposes, not every individual event.
 ## Portfolio display
 
 The Chess Review `PORTFOLIO_PROJECTS` record owns the traffic path, remote URL, and
-clone/view labels. The shared formatter drives three terrain text rows above the
-video, the mobile project dialog's compact two-column footer, and the readable
-project card in Details. **Total clones** and **Total views** are the primary
-figures for all recorded dates, with the latest **Last 14 days** figures underneath.
-The caption names the recorded date range and **As of … UTC** collection date,
-and marks gaps if any recorded metric has missing days within its range.
-Missing data shows `--` and `Awaiting first traffic update`; failed refreshes
-retain the prior observation. Older summaries without `totals` still supply the
-14-day figures but show cumulative totals as awaiting an archive update, never
-silently substituting the 14-day count for the full recorded total.
+clone/view labels. The shared formatter drives two separated totals on one
+horizontal line above the video, the mobile project dialog's compact two-column
+footer, and the readable project card in Details. **Total clones** and **Total
+views** cover all recorded dates. Each has a tiny green graph directly below it,
+without axes, dates, captions, or a recent-window comparison. Desktop graphs
+assemble from `#` terrain glyphs using the existing contribution palette; mobile
+uses semantic SVG companions from the same normalized three-row bar data.
+Each metric scales to its own peak; the graphs show change over time, not relative
+clone/view magnitude. Unknown bins are blank and known zero bins are dark green.
+Missing totals show `--`; a missing trend produces no graph. Failed refreshes
+retain the prior observation. Older summaries without `totals` never silently
+substitute the 14-day count for the full recorded total. Dates and rolling-window
+values remain in the archived data for future use.
 
 The deployed site reads the public summary from Portfolio's `main` branch at
 `raw.githubusercontent.com`, with the deployed JSON as a fallback. This avoids a
@@ -87,8 +95,8 @@ selection; polling must not interrupt video or reassign donors mid-transition.
 
 Run `node --test scripts/fetch-traffic.test.js` with Node 20+ (the desktop runtime
 also supplies Node). Tests cover raw-response retention, date replacement,
-corrections/zero counts, totals beyond 14 days, missed-day gaps, API failures,
-and corrupt history.
+corrections/zero counts, totals beyond 14 days, compact trend binning across long
+histories, missed-day gaps, API failures, and corrupt history.
 Run the repository's esprima syntax check and targeted desktop/phone visual checks
 for changes to the display. Preserve the real portrait glyph budget.
 

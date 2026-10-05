@@ -78,6 +78,28 @@ function summarizeHistory(history) {
   return totals;
 }
 
+function summarizeTrends(history) {
+  const dates = Object.keys(history.days).sort();
+  if (!dates.length) return { from: null, through: null, clones: [], views: [] };
+  const from = dates[0], through = dates[dates.length - 1];
+  const start = Date.parse(from), span = Math.round((Date.parse(through) - start) / 86400000) + 1;
+  const width = Math.min(28, span), trends = { from, through };
+  for (const name of ['clones', 'views']) {
+    const bins = Array.from({ length: width }, () => ({ count: 0, days: 0 }));
+    for (const date of dates) {
+      const record = history.days[date][name];
+      if (!record) continue;
+      const offset = Math.round((Date.parse(date) - start) / 86400000);
+      const bin = bins[Math.min(width - 1, Math.floor(offset * width / span))];
+      bin.count += record.count; bin.days++;
+    }
+    // Means keep long-period bins comparable to short ones. Missing days stay
+    // unknown, not zero; the full daily history remains in history.json.
+    trends[name] = bins.map(bin => bin.days ? bin.count / bin.days : null);
+  }
+  return trends;
+}
+
 async function collectTraffic(options = {}) {
   const token = options.token || process.env.GH_TOKEN;
   if (!token) throw new Error('GH_TOKEN is missing. Set the TRAFFIC_TOKEN Actions secret (Administration: read on Chess-Review).');
@@ -123,6 +145,7 @@ async function collectTraffic(options = {}) {
     views: { count: data.views.count, uniques: data.views.uniques },
     clones: { count: data.clones.count, uniques: data.clones.uniques },
     totals: summarizeHistory(history),
+    trends: summarizeTrends(history),
   };
   const filename = generatedAt.replace(/:/g, '-') + '.json';
   await writeJSON(path.join(output, 'snapshots', generatedAt.slice(0, 4), filename), snapshot);
@@ -131,7 +154,7 @@ async function collectTraffic(options = {}) {
   return summary;
 }
 
-module.exports = { collectTraffic, validateTraffic, summarizeHistory };
+module.exports = { collectTraffic, validateTraffic, summarizeHistory, summarizeTrends };
 if (require.main === module) {
   collectTraffic().then(summary => {
     console.log('Archived traffic for ' + summary.repository + ' at ' + summary.generatedAt + '.');

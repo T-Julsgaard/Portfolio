@@ -1,5 +1,16 @@
 # Rendering, load animations, bloom and dev tools
 
+## 2026-10-05: initial scale and browser zoom
+
+The existing `width=device-width, initial-scale=1.0` viewport starts the page at
+100% mobile scale, and scene entry resets `dockZoom` / `dockZoomT` to 1. A normal
+website cannot reset an origin's saved desktop browser zoom; the browser owns that
+setting. Do not try to infer a zoom correction from `devicePixelRatio`, which also
+includes display/OS scaling, or counter-scale the scene with CSS. Keep the current
+DPR-aware buffer resizing and use Ctrl+0 for the local browser's 100% setting.
+The requested automatic visitor-browser reset requires browser/extension control
+outside the site's APIs; no such reset is claimed by this implementation.
+
 Deep reference for the glyph rendering pipeline and everything that draws frames. Read this before touching the instanced-pool system, syncPools, glyph geometry/materials, the load/intro animations, the FOV/bloom automation, or the dev panel.
 
 ## 2026-10-05: isolate the remaining soft overview and identify deployment
