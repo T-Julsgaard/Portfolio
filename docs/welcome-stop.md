@@ -1,5 +1,21 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## 2026-10-05: Chess Review repository traffic
+
+Chess Review now displays its latest 14-day repository clone count and collection
+date above the video on desktop, in the mobile video dialog's footer, and in the
+Welcome Details project card. These surfaces use `PORTFOLIO_PROJECTS.traffic` and
+one shared formatter. The daily archive is separate from the contribution stats
+pipeline and needs `TRAFFIC_TOKEN` with Administration read access on Chess-Review.
+
+`loadProjectTraffic()` refreshes the public summary every minute while visible and
+on tab return. Local preview reads its collected JSON; deployed pages read the raw
+`Portfolio/main` file so bot commits can update the metric without a Pages build.
+On network/API-data problems the last valid observation stays visible with its UTC
+date; a first-run absence shows `--`. Fresh values enter glyph layouts on the next
+project selection, preserving active donor transitions and playback. Full setup,
+limitations, and archive semantics live in `docs/repository-traffic.md`.
+
 ## 2026-10-05: concise Chess Review and poster-first video
 
 Chess Review's shared project record now carries a local video and thumbnail rather

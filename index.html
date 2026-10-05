@@ -104,6 +104,13 @@
   #pl-play:hover svg { color:#fff; transform:scale(1.04); }
   #pl-play:focus-visible { outline:3px solid #fff; outline-offset:-4px; }
   .pl-stage [hidden] { display:none!important; }
+  .project-traffic { display:flex; align-items:center; gap:12px; margin:12px 0; padding:10px 0;
+    border-top:1px solid rgba(255,255,255,.18); border-bottom:1px solid rgba(255,255,255,.18); }
+  .project-traffic strong { font-size:22px; font-weight:500; }
+  .project-traffic span { display:block; font-size:11px; line-height:1.5; }
+  .project-traffic small { display:block; font-size:10px; line-height:1.5; opacity:.55; }
+  #pl-traffic { display:none; }
+  #pl-traffic[hidden] { display:none!important; }
   /* Some projects use real desktop-only layouts above 1080px. Render those at a
      2x internal viewport, then sample them down into the 720px in-scene surface. */
   #pl-frame.pl-desktop { width:1440px; height:810px; transform:scale(.5); transform-origin:top left; }
@@ -649,6 +656,7 @@
   html.mobile-ui .pl-mobile-close { width:48px; height:48px; display:flex; align-items:center; justify-content:center;
     border:1px solid rgba(255,255,255,.36); background:transparent; color:#fff; font:20px/1 inherit; cursor:pointer; }
   html.mobile-ui #project-live .pl-shell { height:calc(100% - 60px); }
+  html.mobile-ui #pl-traffic { display:flex; flex:none; margin:0; padding:8px 12px; border-bottom:0; }
 
   html.mobile-ui #cboard { z-index:20; background:#000; box-shadow:0 18px 54px rgba(0,0,0,.72); }
   html.mobile-ui #cb-ctl { position:fixed; left:0; top:0; z-index:21; height:56px; margin:0; gap:8px; padding:4px;
@@ -2249,6 +2257,7 @@ const STOPS=[]; JOURNEY.forEach((w,i)=>{ if(w.stop){ w.stop._wp=i; STOPS.push(w.
 const PORTFOLIO_PROJECTS=[
   {id:'chess-review', label:'Chess Review', repoName:'Chess-Review',
     repo:'https://github.com/T-Julsgaard/Chess-Review',
+    traffic:{path:'data/traffic/chess-review/summary.json', url:'https://raw.githubusercontent.com/T-Julsgaard/Portfolio/main/data/traffic/chess-review/summary.json', label:'Clones in the last 14 days'},
     actionUrl:'https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en', actionLabel:'TRY IT OUT',
     video:'videos/chess-review-intro.mp4', poster:'images/chess-review-thumbnail.png', visual:'chess', accent:'#9ed46b',
     blurb:"Free, open-source extension for one-click Chess.com and Lichess game reviews. Local Stockfish analysis delivers accuracy scores, move insights, and estimated ratings.\n\n1,000+ active weekly users."},
@@ -2279,6 +2288,21 @@ const PORTFOLIO_PROJECTS=[
     visual:'bitcoin', accent:'#f2a900',
     blurb:'A real-time visualization experiment that transforms live blockchain data into a skill-based clicker game. Connect directly to the Bitcoin mempool and watch actual, unconfirmed transactions stream into the browser in real time.'}
 ];
+
+// Traffic copy and observations are shared by the glyph stage and phone surfaces.
+const PROJECT_TRAFFIC=new Map();
+function projectTrafficInfo(p){
+  const data=PROJECT_TRAFFIC.get(p.id);
+  return data?{
+    value:data.clones.count.toLocaleString('en-US'),
+    caption:'As of '+new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(data.generatedAt))+' UTC'
+  }:{value:'--',caption:'Awaiting first traffic update'};
+}
+function projectTrafficHTML(p){
+  if(!p||!p.traffic) return '';
+  const info=projectTrafficInfo(p);
+  return '<strong>'+mobileEsc(info.value)+'</strong><div><span>'+mobileEsc(p.traffic.label)+'</span><small>'+mobileEsc(info.caption)+'</small></div>';
+}
 
 /* Mobile accessibility/content layer. It reads the same STOPS, gallery and project
    objects that build the glyph facets, so content changes cannot drift between views. */
@@ -2355,6 +2379,7 @@ function mobileGalleryHTML(g,i){
 }
 function mobileProjectHTML(p){
   return '<article class="ms-card"><span class="ms-meta">Software project</span><strong>'+mobileEsc(p.label)+'</strong><p>'+mobileEsc(p.blurb)+'</p>'+
+    (p.traffic?'<section class="project-traffic" data-project-traffic="'+mobileEsc(p.id)+'" aria-label="Repository traffic">'+projectTrafficHTML(p)+'</section>':'')+
     '<div class="ms-actions"><button class="ms-action primary" type="button" data-mobile-project="'+mobileEsc(p.id)+'">View project</button>'+
     mobileAction(p.actionUrl,p.actionLabel||'Open',false)+mobileAction(p.repo,'Open repo',false)+'</div></article>';
 }
@@ -2822,7 +2847,7 @@ const projectLive=document.createElement('div');
 projectLive.id='project-live'; projectLive.setAttribute('role','region'); projectLive.setAttribute('aria-label','Project surface'); projectLive.setAttribute('aria-hidden','true');
 projectLive.innerHTML=
   '<div class="pl-mobile-head"><strong class="pl-mobile-title"></strong><a id="pl-mobile-action" target="_blank" rel="noopener">Open</a><a id="pl-mobile-repo" target="_blank" rel="noopener">Open repo</a><button class="pl-mobile-close" type="button" aria-label="Close project preview">&times;</button></div><div class="pl-shell"><div class="pl-stage"><iframe id="pl-frame" title="Interactive project"></iframe>'+
-  '<img id="pl-image" alt="" hidden><video id="pl-video" controls playsinline preload="none" hidden></video><button id="pl-play" type="button" aria-label="Play project introduction" hidden></button><div id="pl-load" role="status" aria-live="polite">LOADING PROJECT</div></div></div>';
+  '<img id="pl-image" alt="" hidden><video id="pl-video" controls playsinline preload="none" hidden></video><button id="pl-play" type="button" aria-label="Play project introduction" hidden></button><div id="pl-load" role="status" aria-live="polite">LOADING PROJECT</div></div><section id="pl-traffic" class="project-traffic" aria-label="Repository traffic" hidden></section></div>';
 document.body.appendChild(projectLive);
 
 const plFrame=projectLive.querySelector('#pl-frame'), plImage=projectLive.querySelector('#pl-image'), plLoad=projectLive.querySelector('#pl-load');
@@ -2872,6 +2897,8 @@ function projectById(id){ return PORTFOLIO_PROJECTS.find(p=>p.id===id)||null; }
 function projectStageFacet(){ return stopFacets&&stopFacets.projectStage||null; }
 function showProjectStage(id,pin){
   const p=projectById(id); if(!p) return;
+  const stage=projectStageFacet();
+  if(stage&&stage.projectLayouts) stage.projectLayouts.set(id,buildProjectStageLayout(p));
   const changed=projectStageState.id!==id;
   const wasPinned=projectStageState.id===id&&projectStageState.pinned;
   if(projectLiveOpen&&(changed||projectLive.dataset.project!==id)) closeProjectLive(false,false,false);
@@ -3016,6 +3043,8 @@ async function openProjectLive(id){
   const token=projectLoadToken;
   projectLive.style.visibility=''; projectLive.classList.remove('ready','failed'); projectLive.classList.add('open');
   projectLive.dataset.project=id;
+  const traffic=projectLive.querySelector('#pl-traffic');
+  traffic.hidden=!p.traffic; traffic.dataset.projectTraffic=id; traffic.innerHTML=projectTrafficHTML(p);
   if(MOBILE_UI){ projectLive.style.webkitMask='none'; projectLive.style.mask='none'; }
   else projectLiveMask(0);
   projectLive.setAttribute('aria-hidden','false');
@@ -3335,6 +3364,26 @@ let welcomeWave=localStorage.getItem('pf_welcome_wave')||'friendly'; // 'off' = 
 let GH_STATS=null, GH_STAMP='';
 function statsReady(){ return GH_STATS&&GH_STATS.calendar&&GH_STATS.calendar.length; }
 async function fetchJSON(url){ const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw 0; return r.json(); }
+async function loadProjectTraffic(){
+  await Promise.all(PORTFOLIO_PROJECTS.filter(p=>p.traffic).map(async p=>{
+    try{
+      // Bot commits do not trigger Pages builds. Read the live archive directly
+      // on the deployed site; local previews use their own collected snapshot.
+      const local=/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)||location.protocol==='file:';
+      let data;
+      try{ data=await fetchJSON((local?p.traffic.path:p.traffic.url)+'?t='+Date.now()); }
+      catch(e){ if(local) throw e; data=await fetchJSON(p.traffic.path+'?t='+Date.now()); }
+      if(data.schemaVersion!==1||data.repository!==new URL(p.repo).pathname.slice(1)||data.windowDays!==14||
+        !Number.isFinite(Date.parse(data.generatedAt))||!data.clones||!Number.isSafeInteger(data.clones.count)||data.clones.count<0) return;
+      PROJECT_TRAFFIC.set(p.id,data);
+      document.querySelectorAll('[data-project-traffic="'+p.id+'"]').forEach(el=>{ el.innerHTML=projectTrafficHTML(p); });
+      // Fresh observations are used at the next project selection. Do not interrupt
+      // a playing video or retarget donors halfway through a focus transition.
+      const stage=projectStageFacet();
+      if(stage&&stage.projectLayouts) stage.projectLayouts.set(p.id,buildProjectStageLayout(p));
+    }catch(e){} // Keep the last good observation; missing data never becomes a fake zero.
+  }));
+}
 async function loadStats(){
   let data=null;
   try{ data=await fetchJSON('data/stats.json?t='+Date.now()); }
@@ -3349,8 +3398,9 @@ async function loadStats(){
   // if we're parked at the welcome stop, rebuild it with the fresh numbers
   if(changed&&uiState==='journey'&&jMode==='docked'&&stopInfoMode==='assemble'&&STOPS[dockIdx]&&STOPS[dockIdx].github) assembleStop(dockIdx);
 }
-loadStats(); setInterval(()=>{ if(!document.hidden) loadStats(); },60000);
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadStats(); });
+loadStats(); loadProjectTraffic();
+setInterval(()=>{ if(!document.hidden){ loadStats(); loadProjectTraffic(); } },60000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ loadStats(); loadProjectTraffic(); } });
 let stopInfoMode=ud('stopInfoSelect','assemble'); // 'assemble' | 'panel'
 // welcome-stop framing (dev panel > Welcome Stop): WELCOME_SIZE scales the panorama
 // below the fit cap so real scene frames it on both flanks; WELCOME_HALO is the clearing
@@ -4219,6 +4269,11 @@ function buildProjectStageLayout(p){
   });
 
   let projectRect=null;
+  if(p.traffic){
+    const info=projectTrafficInfo(p);
+    putLine(info.value+' '+p.traffic.label,0.32,PROJECT_SCREEN_TOP+0.90,copyWidth,0.86);
+    putLine(info.caption,0.22,PROJECT_SCREEN_TOP+0.47,copyWidth,0.45);
+  }
   if(hasSurface){
     const screenTop=PROJECT_SCREEN_TOP;
     const screenCY=screenTop-PROJECT_SCREEN_H/2, screenBot=screenTop-PROJECT_SCREEN_H;

@@ -3,6 +3,17 @@
 The mobile portfolio is a responsive presentation of the same `index.html`, scene, journey state, and content objects as desktop. There is deliberately no `mobile.html` and no duplicate copy deck. `JOURNEY`, each stop's `gallery`, `PORTFOLIO_PROJECTS`, GitHub stats, links, PDFs, games, and recordings remain the source of truth for both profiles.
 
 
+## 2026-10-05: shared project traffic display
+
+Projects with a shared `traffic` record render their latest clone count, label, and
+UTC collection date in the Details card and developed project dialog. The latter
+uses a compact `#pl-traffic` footer inside `.pl-shell`, leaving the media stage as
+the remaining flexible space. It adds no terrain claims and does not cover video
+controls. Chess Review is the first record using it. Missing data is an explicit
+`--` with an awaiting-update caption; no sample or fake counts are shown. Targeted
+393x852 and 844x390 checks verify readable copy, contained media, and no document
+overflow. See `docs/repository-traffic.md` for collection and refresh semantics.
+
 ## 2026-10-05: resisted touch look
 
 The original presentation and pinch zoom are restored. One-finger drag-look now

@@ -1,5 +1,22 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## 2026-10-05: repository traffic row on Chess Review
+
+The shared Chess Review project record owns `traffic.path`, `traffic.url`, and its
+label. `projectTrafficInfo()` formats the API's latest rolling clone total and UTC
+collection date. `buildProjectStageLayout()` places those two typeset lines at
+`PROJECT_SCREEN_TOP + 0.90` / `+ 0.47`, between the existing prose and screen.
+The preview dimensions, button row, and donor transitions are unchanged. Phone
+surfaces display the same metric in native DOM companions. Missing data uses `--`
+and an awaiting-update caption. Refreshes prepare layouts for the next project
+selection; they do not retarget an active donor flight or reset video playback.
+
+Real-data validation: Chess uses 1,393 glyphs with the initial 571-clone observation;
+Entropy 1,614, DocuRAG 1,443, Wind 1,679, Bitcoin 1,594. The maximum reserve remains
+1,679; the current 3,434-item Welcome layout leaves 8,155 of the 13,268 glyphs spare.
+Case Studies content is unchanged. See `docs/repository-traffic.md` for collection,
+authentication, raw snapshots, and the history/summary schema.
+
 ## 2026-10-05: bounded drag offsets around the selected facet
 
 The static view is reverted. Assembled-stop drag-look uses separate spring offsets
