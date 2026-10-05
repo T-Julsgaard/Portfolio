@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-04T23:27:24.494Z",
+  "generatedAt": "2026-10-05T02:17:09.847Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 47,
-    "month": 224,
-    "year": 578,
-    "total": 613,
+    "today": 70,
+    "month": 247,
+    "year": 601,
+    "total": 636,
     "currentStreak": 10,
     "longestStreak": 10,
     "breakdown": {
-      "commits": 563,
+      "commits": 582,
       "issues": 1,
-      "pullRequests": 4,
+      "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 45,
-    "month": 221,
-    "year": 563,
-    "total": 594
+    "today": 64,
+    "month": 240,
+    "year": 582,
+    "total": 613
   },
   "calendar": [
     {
@@ -2214,8 +2214,8 @@
     },
     {
       "date": "2026-10-05",
-      "count": 4,
-      "level": "FIRST_QUARTILE",
+      "count": 23,
+      "level": "SECOND_QUARTILE",
       "weekday": 1
     }
   ],
@@ -2225,8 +2225,8 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58663654,
-        "percent": 93.4
+        "bytes": 58676623,
+        "percent": 93.3
       },
       {
         "name": "Python",
@@ -2235,8 +2235,8 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 960368,
-        "percent": 1.5
+        "bytes": 976181,
+        "percent": 1.6
       },
       {
         "name": "MATLAB",
@@ -2265,7 +2265,7 @@
       },
       {
         "name": "Batchfile",
-        "bytes": 1473,
+        "bytes": 1636,
         "percent": 0
       },
       {
@@ -2275,11 +2275,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Chess-Review",
-      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
-      "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-10-04T23:24:05Z",
-      "language": "JavaScript"
+      "name": "Portfolio",
+      "description": null,
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-10-05T02:07:02Z",
+      "language": "HTML"
     },
     "featured": [
       {
