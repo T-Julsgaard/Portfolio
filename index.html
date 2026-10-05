@@ -100,11 +100,11 @@
   #pl-image,#pl-video { object-fit:contain; }
   #pl-play { position:absolute; inset:0; width:100%; border:0; padding:0; display:flex; align-items:center; justify-content:center;
     background:transparent; color:#f5f5f2; cursor:pointer; }
-  #pl-play .pl-play-mark { width:48px; height:48px; box-sizing:border-box; display:flex;
+  #pl-play .pl-play-mark { width:72px; height:72px; box-sizing:border-box; display:flex;
     align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.45); border-radius:50%;
     background:rgba(8,8,8,.78); box-shadow:0 3px 18px rgba(0,0,0,.3);
     transition:background .15s ease,border-color .15s ease; }
-  #pl-play pre { margin:0; padding:0; font:700 10px/6px "Courier New",monospace;
+  #pl-play pre { margin:0; padding:0; font:700 14px/8.4px "Courier New",monospace;
     letter-spacing:0; text-align:left; transform:translateX(2px); }
   #pl-play:hover .pl-play-mark { background:rgba(8,8,8,.92); border-color:#fff; }
   #pl-play:focus-visible { outline:none; }
@@ -671,9 +671,11 @@
     border:1px solid rgba(255,255,255,.36); background:transparent; color:#fff; font:20px/1 inherit; cursor:pointer; }
   html.mobile-ui #project-live .pl-shell { height:calc(100% - 60px); }
   html.mobile-ui #pl-traffic { display:grid; flex:none; margin:0; padding:8px 12px; border-bottom:0; }
+  html.mobile-ui #pl-play .pl-play-mark { width:56px; height:56px; }
+  html.mobile-ui #pl-play pre { font-size:12px; line-height:7.2px; }
   @media (orientation:landscape) {
-    html.mobile-ui #pl-play .pl-play-mark { width:40px; height:40px; }
-    html.mobile-ui #pl-play pre { font-size:8px; line-height:4.8px; }
+    html.mobile-ui #pl-play .pl-play-mark { width:48px; height:48px; }
+    html.mobile-ui #pl-play pre { font-size:10px; line-height:6px; }
   }
 
   html.mobile-ui #cboard { z-index:20; background:#000; box-shadow:0 18px 54px rgba(0,0,0,.72); }

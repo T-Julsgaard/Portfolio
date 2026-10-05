@@ -36,7 +36,8 @@ ownership; all assembly positions and glyph claims remain unchanged.
 Project surfaces accept shared `video` / `poster` records. Video stages assemble the
 screen frame, then develop into the poster without the old synthetic inner art.
 The native Play overlay renders a compact five-row triangle made from literal `#`
-text in a subtle circular mark. Square character cells avoid a stretched icon;
+text in a subtle circular mark (72 px projection source, 56 px on phones).
+Square character cells avoid a stretched icon;
 landscape phones shrink it proportionally. It adds no terrain claims. Keep `preload="none"`, click-only playback, music hold/release,
 and source unloading on close/switch. Desktop uses the existing homography and mask;
 mobile uses the existing semantic project dialog. All repository actions use OPEN REPO.
