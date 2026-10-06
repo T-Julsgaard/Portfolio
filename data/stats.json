@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-05T18:44:56.404Z",
+  "generatedAt": "2026-10-06T00:35:17.294Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 70,
-    "month": 247,
-    "year": 601,
-    "total": 636,
-    "currentStreak": 10,
-    "longestStreak": 10,
+    "today": 128,
+    "month": 352,
+    "year": 706,
+    "total": 741,
+    "currentStreak": 11,
+    "longestStreak": 11,
     "breakdown": {
-      "commits": 582,
+      "commits": 686,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 64,
-    "month": 240,
-    "year": 582,
-    "total": 613
+    "today": 123,
+    "month": 344,
+    "year": 686,
+    "total": 717
   },
   "calendar": [
     {
@@ -481,7 +481,7 @@
     {
       "date": "2025-12-20",
       "count": 15,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 6
     },
     {
@@ -583,7 +583,7 @@
     {
       "date": "2026-01-06",
       "count": 18,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 2
     },
     {
@@ -595,7 +595,7 @@
     {
       "date": "2026-01-08",
       "count": 14,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 4
     },
     {
@@ -1597,7 +1597,7 @@
     {
       "date": "2026-06-24",
       "count": 48,
-      "level": "FOURTH_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 3
     },
     {
@@ -1669,7 +1669,7 @@
     {
       "date": "2026-07-06",
       "count": 25,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 1
     },
     {
@@ -2047,7 +2047,7 @@
     {
       "date": "2026-09-07",
       "count": 15,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 1
     },
     {
@@ -2167,13 +2167,13 @@
     {
       "date": "2026-09-27",
       "count": 16,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 0
     },
     {
       "date": "2026-09-28",
       "count": 40,
-      "level": "THIRD_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 1
     },
     {
@@ -2185,38 +2185,44 @@
     {
       "date": "2026-09-30",
       "count": 19,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 3
     },
     {
       "date": "2026-10-01",
       "count": 71,
-      "level": "FOURTH_QUARTILE",
+      "level": "THIRD_QUARTILE",
       "weekday": 4
     },
     {
       "date": "2026-10-02",
       "count": 55,
-      "level": "FOURTH_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 5
     },
     {
       "date": "2026-10-03",
       "count": 32,
-      "level": "THIRD_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 6
     },
     {
       "date": "2026-10-04",
       "count": 47,
-      "level": "FOURTH_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 0
     },
     {
       "date": "2026-10-05",
-      "count": 23,
-      "level": "SECOND_QUARTILE",
+      "count": 123,
+      "level": "FOURTH_QUARTILE",
       "weekday": 1
+    },
+    {
+      "date": "2026-10-06",
+      "count": 5,
+      "level": "FIRST_QUARTILE",
+      "weekday": 2
     }
   ],
   "repos": {
@@ -2225,18 +2231,18 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58676623,
-        "percent": 93.3
+        "bytes": 58722968,
+        "percent": 92.5
       },
       {
         "name": "Python",
         "bytes": 2825175,
-        "percent": 4.5
+        "percent": 4.4
       },
       {
         "name": "JavaScript",
-        "bytes": 976181,
-        "percent": 1.6
+        "bytes": 1560554,
+        "percent": 2.5
       },
       {
         "name": "MATLAB",
@@ -2275,11 +2281,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": null,
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-05T09:27:06Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-10-05T22:14:37Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2287,7 +2293,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-04T23:24:05Z",
+        "pushedAt": "2026-10-05T22:14:37Z",
         "stars": 17,
         "language": "JavaScript"
       },
