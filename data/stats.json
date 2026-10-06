@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-06T14:22:15.813Z",
+  "generatedAt": "2026-10-06T19:41:29.243Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 131,
@@ -2281,10 +2281,10 @@
       }
     ],
     "mostRecent": {
-      "name": "Software_engineering_project_sem1",
-      "description": "PowerBuddy: an offline electricity and water household simulation",
-      "url": "https://github.com/T-Julsgaard/Software_engineering_project_sem1",
-      "pushedAt": "2026-10-06T09:29:45Z",
+      "name": "Portfolio",
+      "description": "http://julsgaard.dev/",
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-10-06T18:20:46Z",
       "language": "HTML"
     },
     "featured": [
