@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-06T07:11:03.887Z",
+  "generatedAt": "2026-10-06T14:22:15.813Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 128,
-    "month": 352,
-    "year": 706,
-    "total": 741,
+    "today": 131,
+    "month": 355,
+    "year": 709,
+    "total": 744,
     "currentStreak": 11,
     "longestStreak": 11,
     "breakdown": {
-      "commits": 686,
+      "commits": 688,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 123,
-    "month": 344,
-    "year": 686,
-    "total": 717
+    "today": 125,
+    "month": 346,
+    "year": 688,
+    "total": 719
   },
   "calendar": [
     {
@@ -2220,19 +2220,19 @@
     },
     {
       "date": "2026-10-06",
-      "count": 5,
+      "count": 8,
       "level": "FIRST_QUARTILE",
       "weekday": 2
     }
   ],
   "repos": {
-    "publicCount": 9,
+    "publicCount": 10,
     "totalStars": 17,
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58722968,
-        "percent": 92.5
+        "bytes": 58864836,
+        "percent": 92.4
       },
       {
         "name": "Python",
@@ -2241,7 +2241,7 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 1560554,
+        "bytes": 1600077,
         "percent": 2.5
       },
       {
@@ -2281,10 +2281,10 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": null,
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-06T00:35:22Z",
+      "name": "Software_engineering_project_sem1",
+      "description": "PowerBuddy: an offline electricity and water household simulation",
+      "url": "https://github.com/T-Julsgaard/Software_engineering_project_sem1",
+      "pushedAt": "2026-10-06T09:29:45Z",
       "language": "HTML"
     },
     "featured": [
