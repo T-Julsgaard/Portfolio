@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-07T11:15:09.006Z",
+  "generatedAt": "2026-10-07T17:54:28.238Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 8,
-    "month": 355,
-    "year": 709,
-    "total": 744,
-    "currentStreak": 11,
-    "longestStreak": 11,
+    "today": 148,
+    "month": 495,
+    "year": 849,
+    "total": 884,
+    "currentStreak": 12,
+    "longestStreak": 12,
     "breakdown": {
-      "commits": 688,
+      "commits": 828,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 7,
-    "month": 346,
-    "year": 688,
-    "total": 719
+    "today": 147,
+    "month": 486,
+    "year": 828,
+    "total": 859
   },
   "calendar": [
     {
@@ -2203,7 +2203,7 @@
     {
       "date": "2026-10-03",
       "count": 32,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 6
     },
     {
@@ -2220,14 +2220,14 @@
     },
     {
       "date": "2026-10-06",
-      "count": 8,
+      "count": 11,
       "level": "FIRST_QUARTILE",
       "weekday": 2
     },
     {
       "date": "2026-10-07",
-      "count": 0,
-      "level": "NONE",
+      "count": 137,
+      "level": "FOURTH_QUARTILE",
       "weekday": 3
     }
   ],
@@ -2237,18 +2237,18 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58864836,
-        "percent": 92.4
+        "bytes": 84126071,
+        "percent": 93.1
+      },
+      {
+        "name": "JavaScript",
+        "bytes": 2991896,
+        "percent": 3.3
       },
       {
         "name": "Python",
         "bytes": 2825175,
-        "percent": 4.4
-      },
-      {
-        "name": "JavaScript",
-        "bytes": 1600077,
-        "percent": 2.5
+        "percent": 3.1
       },
       {
         "name": "MATLAB",
@@ -2258,7 +2258,7 @@
       {
         "name": "CSS",
         "bytes": 131962,
-        "percent": 0.2
+        "percent": 0.1
       },
       {
         "name": "TypeScript",
@@ -2287,10 +2287,10 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-07T10:33:18Z",
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-10-07T16:32:20Z",
       "language": "HTML"
     },
     "featured": [
@@ -2299,9 +2299,9 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-05T22:14:37Z",
+        "pushedAt": "2026-10-07T16:32:20Z",
         "stars": 17,
-        "language": "JavaScript"
+        "language": "HTML"
       },
       {
         "name": "entropy-forge",
