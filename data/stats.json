@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-07T17:54:28.238Z",
+  "generatedAt": "2026-10-07T22:43:13.430Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 148,
-    "month": 495,
-    "year": 849,
-    "total": 884,
+    "today": 179,
+    "month": 537,
+    "year": 891,
+    "total": 926,
     "currentStreak": 12,
     "longestStreak": 12,
     "breakdown": {
-      "commits": 828,
+      "commits": 870,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 147,
-    "month": 486,
-    "year": 828,
-    "total": 859
+    "today": 179,
+    "month": 528,
+    "year": 870,
+    "total": 901
   },
   "calendar": [
     {
@@ -2173,7 +2173,7 @@
     {
       "date": "2026-09-28",
       "count": 40,
-      "level": "SECOND_QUARTILE",
+      "level": "FIRST_QUARTILE",
       "weekday": 1
     },
     {
@@ -2191,7 +2191,7 @@
     {
       "date": "2026-10-01",
       "count": 71,
-      "level": "THIRD_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 4
     },
     {
@@ -2215,7 +2215,7 @@
     {
       "date": "2026-10-05",
       "count": 123,
-      "level": "FOURTH_QUARTILE",
+      "level": "THIRD_QUARTILE",
       "weekday": 1
     },
     {
@@ -2226,9 +2226,15 @@
     },
     {
       "date": "2026-10-07",
-      "count": 137,
+      "count": 179,
       "level": "FOURTH_QUARTILE",
       "weekday": 3
+    },
+    {
+      "date": "2026-10-08",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 4
     }
   ],
   "repos": {
@@ -2237,23 +2243,23 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 84126071,
-        "percent": 93.1
+        "bytes": 95272018,
+        "percent": 93.3
       },
       {
         "name": "JavaScript",
-        "bytes": 2991896,
-        "percent": 3.3
+        "bytes": 3621840,
+        "percent": 3.5
       },
       {
         "name": "Python",
         "bytes": 2825175,
-        "percent": 3.1
+        "percent": 2.8
       },
       {
         "name": "MATLAB",
         "bytes": 140191,
-        "percent": 0.2
+        "percent": 0.1
       },
       {
         "name": "CSS",
@@ -2268,7 +2274,7 @@
       {
         "name": "TeX",
         "bytes": 45281,
-        "percent": 0.1
+        "percent": 0
       },
       {
         "name": "PowerShell",
@@ -2290,7 +2296,7 @@
       "name": "Chess-Review",
       "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
       "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-10-07T16:32:20Z",
+      "pushedAt": "2026-10-07T20:56:59Z",
       "language": "HTML"
     },
     "featured": [
@@ -2299,7 +2305,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-07T16:32:20Z",
+        "pushedAt": "2026-10-07T20:56:59Z",
         "stars": 17,
         "language": "HTML"
       },
