@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-12T19:55:24.532Z",
+  "generatedAt": "2026-10-13T01:49:08.128Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 569,
-    "month": 1410,
-    "year": 1764,
-    "total": 1799,
-    "currentStreak": 17,
-    "longestStreak": 17,
+    "today": 300,
+    "month": 1419,
+    "year": 1773,
+    "total": 1808,
+    "currentStreak": 18,
+    "longestStreak": 18,
     "breakdown": {
-      "commits": 1743,
+      "commits": 1752,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 569,
-    "month": 1401,
-    "year": 1743,
-    "total": 1774
+    "today": 300,
+    "month": 1410,
+    "year": 1752,
+    "total": 1783
   },
   "calendar": [
     {
@@ -2203,7 +2203,7 @@
     {
       "date": "2026-10-10",
       "count": 147,
-      "level": "THIRD_QUARTILE",
+      "level": "SECOND_QUARTILE",
       "weekday": 6
     },
     {
@@ -2214,9 +2214,15 @@
     },
     {
       "date": "2026-10-12",
-      "count": 291,
+      "count": 298,
       "level": "FOURTH_QUARTILE",
       "weekday": 1
+    },
+    {
+      "date": "2026-10-13",
+      "count": 2,
+      "level": "FIRST_QUARTILE",
+      "weekday": 2
     }
   ],
   "repos": {
@@ -2226,7 +2232,7 @@
       {
         "name": "HTML",
         "bytes": 58818491,
-        "percent": 91.2
+        "percent": 91.1
       },
       {
         "name": "Python",
@@ -2235,8 +2241,8 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 2452886,
-        "percent": 3.8
+        "bytes": 2546643,
+        "percent": 3.9
       },
       {
         "name": "MATLAB",
@@ -2245,7 +2251,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 135077,
+        "bytes": 136372,
         "percent": 0.2
       },
       {
@@ -2278,7 +2284,7 @@
       "name": "Chess-Review",
       "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
       "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-10-12T14:07:19Z",
+      "pushedAt": "2026-10-12T23:51:09Z",
       "language": "JavaScript"
     },
     "featured": [
@@ -2287,7 +2293,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-12T14:07:19Z",
+        "pushedAt": "2026-10-12T23:51:09Z",
         "stars": 17,
         "language": "JavaScript"
       },
