@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T01:49:08.128Z",
+  "generatedAt": "2026-10-13T08:56:42.453Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 300,
@@ -2281,11 +2281,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Chess-Review",
-      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
-      "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-10-12T23:51:09Z",
-      "language": "JavaScript"
+      "name": "Portfolio",
+      "description": "http://julsgaard.dev/",
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-10-13T01:49:13Z",
+      "language": "HTML"
     },
     "featured": [
       {
