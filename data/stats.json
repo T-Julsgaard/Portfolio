@@ -1,69 +1,27 @@
 {
-  "generatedAt": "2026-10-17T21:35:11.954Z",
+  "generatedAt": "2026-10-17T23:44:17.050Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 0,
-    "month": 1430,
-    "year": 1784,
-    "total": 1819,
-    "currentStreak": 0,
-    "longestStreak": 19,
+    "today": 1,
+    "month": 1484,
+    "year": 1838,
+    "total": 1873,
+    "currentStreak": 23,
+    "longestStreak": 23,
     "breakdown": {
-      "commits": 1763,
+      "commits": 1817,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 0,
-    "month": 1421,
-    "year": 1763,
-    "total": 1794
+    "today": 1,
+    "month": 1475,
+    "year": 1817,
+    "total": 1848
   },
   "calendar": [
-    {
-      "date": "2025-10-12",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 0
-    },
-    {
-      "date": "2025-10-13",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 1
-    },
-    {
-      "date": "2025-10-14",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 2
-    },
-    {
-      "date": "2025-10-15",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 3
-    },
-    {
-      "date": "2025-10-16",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 4
-    },
-    {
-      "date": "2025-10-17",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 5
-    },
-    {
-      "date": "2025-10-18",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 6
-    },
     {
       "date": "2025-10-19",
       "count": 0,
@@ -2232,21 +2190,27 @@
     },
     {
       "date": "2026-10-15",
-      "count": 0,
-      "level": "NONE",
+      "count": 20,
+      "level": "FIRST_QUARTILE",
       "weekday": 4
     },
     {
       "date": "2026-10-16",
-      "count": 0,
-      "level": "NONE",
+      "count": 33,
+      "level": "FIRST_QUARTILE",
       "weekday": 5
     },
     {
       "date": "2026-10-17",
-      "count": 0,
-      "level": "NONE",
+      "count": 1,
+      "level": "FIRST_QUARTILE",
       "weekday": 6
+    },
+    {
+      "date": "2026-10-18",
+      "count": 2,
+      "level": "FIRST_QUARTILE",
+      "weekday": 0
     }
   ],
   "repos": {
@@ -2255,8 +2219,13 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58818491,
-        "percent": 90.8
+        "bytes": 58818622,
+        "percent": 90.6
+      },
+      {
+        "name": "JavaScript",
+        "bytes": 2830712,
+        "percent": 4.4
       },
       {
         "name": "Python",
@@ -2264,13 +2233,8 @@
         "percent": 4.4
       },
       {
-        "name": "JavaScript",
-        "bytes": 2715129,
-        "percent": 4.2
-      },
-      {
         "name": "CSS",
-        "bytes": 164683,
+        "bytes": 171757,
         "percent": 0.3
       },
       {
@@ -2305,11 +2269,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-17T19:01:04Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-10-17T23:04:36Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2317,7 +2281,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-14T01:16:03Z",
+        "pushedAt": "2026-10-17T23:04:36Z",
         "stars": 17,
         "language": "JavaScript"
       },
