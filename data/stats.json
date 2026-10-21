@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-20T22:06:07.495Z",
+  "generatedAt": "2026-10-21T00:45:18.858Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 0,
-    "month": 1505,
-    "year": 1859,
-    "total": 1894,
-    "currentStreak": 0,
+    "today": 1,
+    "month": 1506,
+    "year": 1860,
+    "total": 1895,
+    "currentStreak": 1,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 1837,
+      "commits": 1838,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 0,
-    "month": 1495,
-    "year": 1837,
-    "total": 1868
+    "today": 1,
+    "month": 1496,
+    "year": 1838,
+    "total": 1869
   },
   "calendar": [
     {
@@ -2226,8 +2226,8 @@
     },
     {
       "date": "2026-10-21",
-      "count": 0,
-      "level": "NONE",
+      "count": 1,
+      "level": "FIRST_QUARTILE",
       "weekday": 3
     }
   ],
@@ -2237,18 +2237,18 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58818622,
+        "bytes": 58681099,
         "percent": 90.5
       },
       {
         "name": "JavaScript",
         "bytes": 2890224,
-        "percent": 4.4
+        "percent": 4.5
       },
       {
         "name": "Python",
         "bytes": 2825175,
-        "percent": 4.3
+        "percent": 4.4
       },
       {
         "name": "CSS",
@@ -2287,11 +2287,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-20T18:36:01Z",
-      "language": "HTML"
+      "name": "portfolio_0.1",
+      "description": "dated_portfolio",
+      "url": "https://github.com/T-Julsgaard/portfolio_0.1",
+      "pushedAt": "2026-10-20T22:39:29Z",
+      "language": "Python"
     },
     "featured": [
       {
