@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T00:45:18.858Z",
+  "generatedAt": "2026-10-21T05:43:02.031Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 1,
@@ -2287,11 +2287,11 @@
       }
     ],
     "mostRecent": {
-      "name": "portfolio_0.1",
-      "description": "dated_portfolio",
-      "url": "https://github.com/T-Julsgaard/portfolio_0.1",
-      "pushedAt": "2026-10-20T22:39:29Z",
-      "language": "Python"
+      "name": "Portfolio",
+      "description": "http://julsgaard.dev/",
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-10-21T00:45:23Z",
+      "language": "HTML"
     },
     "featured": [
       {
