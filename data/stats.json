@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-22T14:20:15.826Z",
+  "generatedAt": "2026-10-22T18:41:50.722Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 2,
-    "month": 1507,
-    "year": 1861,
-    "total": 1896,
+    "today": 20,
+    "month": 1525,
+    "year": 1879,
+    "total": 1914,
     "currentStreak": 2,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 1839,
+      "commits": 1857,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 2,
-    "month": 1497,
-    "year": 1839,
-    "total": 1870
+    "today": 20,
+    "month": 1515,
+    "year": 1857,
+    "total": 1888
   },
   "calendar": [
     {
@@ -2232,7 +2232,7 @@
     },
     {
       "date": "2026-10-22",
-      "count": 1,
+      "count": 19,
       "level": "FIRST_QUARTILE",
       "weekday": 4
     }
@@ -2248,7 +2248,7 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 2890224,
+        "bytes": 2931586,
         "percent": 4.5
       },
       {
@@ -2258,7 +2258,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 190996,
+        "bytes": 167992,
         "percent": 0.3
       },
       {
@@ -2293,11 +2293,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-10-22T08:53:57Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-10-22T17:10:57Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2305,7 +2305,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-19T07:15:13Z",
+        "pushedAt": "2026-10-22T17:10:57Z",
         "stars": 18,
         "language": "JavaScript"
       },
