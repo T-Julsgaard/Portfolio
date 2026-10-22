@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-22T18:41:50.722Z",
+  "generatedAt": "2026-10-22T22:05:32.629Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 20,
+    "today": 19,
     "month": 1525,
     "year": 1879,
     "total": 1914,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 20,
+    "today": 19,
     "month": 1515,
     "year": 1857,
     "total": 1888
@@ -2235,6 +2235,12 @@
       "count": 19,
       "level": "FIRST_QUARTILE",
       "weekday": 4
+    },
+    {
+      "date": "2026-10-23",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 5
     }
   ],
   "repos": {
@@ -2293,11 +2299,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Chess-Review",
-      "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
-      "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-10-22T17:10:57Z",
-      "language": "JavaScript"
+      "name": "Portfolio",
+      "description": "http://julsgaard.dev/",
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-10-22T18:41:55Z",
+      "language": "HTML"
     },
     "featured": [
       {
