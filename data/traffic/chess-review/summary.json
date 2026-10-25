@@ -1,35 +1,35 @@
 {
   "schemaVersion": 1,
   "repository": "T-Julsgaard/Chess-Review",
-  "generatedAt": "2026-10-24T08:22:55.533Z",
+  "generatedAt": "2026-10-25T08:42:02.590Z",
   "windowDays": 14,
   "views": {
-    "count": 66,
-    "uniques": 46
+    "count": 87,
+    "uniques": 47
   },
   "clones": {
-    "count": 2227,
-    "uniques": 322
+    "count": 2128,
+    "uniques": 302
   },
   "totals": {
     "views": {
-      "count": 421,
+      "count": 452,
       "from": "2026-09-20",
-      "through": "2026-10-23",
-      "recordedDays": 34,
+      "through": "2026-10-24",
+      "recordedDays": 35,
       "missingDays": 0
     },
     "clones": {
-      "count": 3625,
+      "count": 3737,
       "from": "2026-09-20",
-      "through": "2026-10-23",
-      "recordedDays": 34,
+      "through": "2026-10-24",
+      "recordedDays": 35,
       "missingDays": 0
     }
   },
   "trends": {
     "from": "2026-09-20",
-    "through": "2026-10-23",
+    "through": "2026-10-24",
     "clones": [
       12.5,
       12,
@@ -39,26 +39,26 @@
       38,
       151,
       22,
-      66,
-      82.5,
+      55,
+      121,
       79,
       135,
-      63,
-      53,
-      207,
+      58,
+      192,
+      222,
       162,
-      211,
-      569,
-      421,
+      390,
+      226,
+      616,
       87,
-      66,
-      7,
+      36.5,
       251,
-      18,
-      19,
-      9,
+      25,
+      11,
+      14,
       38,
-      92
+      92,
+      112
     ],
     "views": [
       4,
@@ -69,26 +69,26 @@
       18,
       41,
       37,
-      55,
-      14,
+      34,
+      15,
       19,
       11,
-      21,
-      27,
-      12,
+      24,
+      2,
+      22,
       17,
       10,
-      10,
-      6,
+      9,
+      3,
       5,
-      3,
-      2,
+      2.5,
       1,
-      6,
-      4,
+      10,
+      2,
       4,
       3,
-      0
+      0,
+      31
     ]
   }
 }
