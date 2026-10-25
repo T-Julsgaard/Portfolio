@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-10-24T22:37:46.713Z",
+  "generatedAt": "2026-10-25T00:49:27.840Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 28,
-    "month": 1633,
-    "year": 1987,
-    "total": 2022,
+    "today": 49,
+    "month": 1654,
+    "year": 2008,
+    "total": 2043,
     "currentStreak": 5,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 1965,
+      "commits": 1986,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 28,
-    "month": 1623,
-    "year": 1965,
-    "total": 1996
+    "today": 49,
+    "month": 1644,
+    "year": 1986,
+    "total": 2017
   },
   "calendar": [
     {
@@ -2208,7 +2208,7 @@
     },
     {
       "date": "2026-10-25",
-      "count": 4,
+      "count": 21,
       "level": "FIRST_QUARTILE",
       "weekday": 0
     }
@@ -2220,7 +2220,7 @@
       {
         "name": "HTML",
         "bytes": 58680944,
-        "percent": 92
+        "percent": 91.9
       },
       {
         "name": "Python",
@@ -2229,12 +2229,12 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 1811293,
-        "percent": 2.8
+        "bytes": 1874244,
+        "percent": 2.9
       },
       {
         "name": "CSS",
-        "bytes": 194630,
+        "bytes": 197343,
         "percent": 0.3
       },
       {
@@ -2272,7 +2272,7 @@
       "name": "Chess-Review",
       "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
       "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-10-24T22:15:37Z",
+      "pushedAt": "2026-10-25T00:21:53Z",
       "language": "JavaScript"
     },
     "featured": [
@@ -2281,7 +2281,7 @@
         "description": "Free, open source chess game review. [Currently 500+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-10-24T22:15:37Z",
+        "pushedAt": "2026-10-25T00:21:53Z",
         "stars": 18,
         "language": "JavaScript"
       },
