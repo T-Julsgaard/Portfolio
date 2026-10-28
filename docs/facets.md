@@ -1,5 +1,9 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## 2026-10-28: ITU specialization
+
+The shared Education ITU Software Design card reads "Specializing in artificial intelligence." Desktop facets and mobile Details use this same gallery blurb.
+
 ## 2026-10-28: Inactive CV target
 
 Welcome keeps its DOWNLOAD CV stencil text but has no hit target or keyboard action while its href is null. Experience/Contact shared CV links render without an href in desktop panels and mobile Details. The old PDF has been removed; layout, donor ownership and other document actions are unchanged.
