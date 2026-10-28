@@ -1,5 +1,9 @@
 # Facet Assembly Manual — how stops assemble content from the portrait's glyphs
 
+## 2026-10-28: Inactive CV target
+
+Welcome rows with a null href remain stencil text without a button record. The temporarily unavailable CV uses this path; shared Experience/Contact links also have null hrefs and render as inert labels in panel/mobile presentations. The old CV PDF is removed pending replacement.
+
 Written after v43 (July 2026). This is the playbook for extending or modifying the
 "assemble" stop-info system — adding galleries/covers/buttons to stops other than
 **Case studies**, changing clearing behavior, or debugging glyph transitions. It records

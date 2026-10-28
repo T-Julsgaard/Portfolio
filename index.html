@@ -2124,7 +2124,7 @@ const JOURNEY=[
      now ('In short' section); `link` adds a "Visit website" line to that card. The
      Earlier-roles card cycles UNICEF/Artium/Brande through the up/down arrows (v68 —
      `vids` slides without `src`, caption tracklist below). */
-  {xf:-0.44, yf: 0.64, stop:{id:'work', label:'Experience', title:'Work experience', body:'References are available upon request.', media:[{src:'images/Profile 2.jpeg',caption:'Thomas Julsgaard'}], links:[{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'Download CV'}], scrollOrder:[0,2,4,3,1],
+  {xf:-0.44, yf: 0.64, stop:{id:'work', label:'Experience', title:'Work experience', body:'References are available upon request.', media:[{src:'images/Profile 2.jpeg',caption:'Thomas Julsgaard'}], links:[{href:null,label:'Download CV'}], scrollOrder:[0,2,4,3,1],
     gallery:[
       {img:'ow', title:'Orange Wheel Advisory', sub:'Technical Analyst & Co-owner', meta:'Oct 2025 – present',
         link:'https://orange-wheel.com/',
@@ -2264,7 +2264,7 @@ const JOURNEY=[
      the rects every frame). Below it the social marks — GitHub / LinkedIn hyperlinks, Discord
      copies the username (no public profile URLs on Discord). No EMAIL anywhere: the address
      stays private, Formspree relays the mail. */
-  {xf: 0.00, yf:-0.82, stop:{id:'contact', label:'Contact', title:'Say hello', flip:true, body:'', media:[], links:[{href:'https://github.com/T-Julsgaard',label:'GitHub'},{href:'https://www.linkedin.com/in/thomasjulsgaard/',label:'LinkedIn'},{href:'pdfs/CV - Thomas Julsgaard.pdf',label:'CV'}],
+  {xf: 0.00, yf:-0.82, stop:{id:'contact', label:'Contact', title:'Say hello', flip:true, body:'', media:[], links:[{href:'https://github.com/T-Julsgaard',label:'GitHub'},{href:'https://www.linkedin.com/in/thomasjulsgaard/',label:'LinkedIn'},{href:null,label:'CV'}],
     contact:{marks:[{img:'gh', href:'https://github.com/T-Julsgaard'},
                     {img:'li', href:'https://www.linkedin.com/in/thomasjulsgaard/'},
                     {img:'discord', copy:'Julsgaard'}]}}},
@@ -2383,6 +2383,7 @@ function mobileSetModalInert(surface,on){
   }
 }
 function mobileAction(href,label,primary){
+  if(href===null) return '<a class="ms-action'+(primary?' primary':'')+'" aria-disabled="true">'+mobileEsc(label)+'</a>';
   if(!href) return '';
   return '<a class="ms-action'+(primary?' primary':'')+'" href="'+mobileEsc(href)+'" target="_blank" rel="noopener">'+mobileEsc(label)+'</a>';
 }
@@ -3221,7 +3222,8 @@ function showStop(k){
   }
   pLinks.innerHTML='';
   for(const lk of (st.links||[])){
-    const a=document.createElement('a'); a.href=lk.href; a.textContent=lk.label;
+    const a=document.createElement('a'); a.textContent=lk.label;
+    if(lk.href) a.href=lk.href; else a.setAttribute('aria-disabled','true');
     a.target='_blank'; a.rel='noopener'; pLinks.appendChild(a);
   }
   /* in assemble mode the text lives in the scene as glyphs and NO HTML dock shows at
@@ -4663,7 +4665,7 @@ function buildWelcomeLayout(){
 
   const about=[
     {id:'work'},{id:'edu'},{id:'interests'},{id:'contact'},
-    {t:'DOWNLOAD CV',href:'pdfs/CV - Thomas Julsgaard.pdf'}
+    {t:'DOWNLOAD CV',href:null}
   ];
   const portfolio=[
     {id:'cases'}, ...PORTFOLIO_PROJECTS.map(project=>({project}))

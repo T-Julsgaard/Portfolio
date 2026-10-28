@@ -1,5 +1,9 @@
 # Facets and assembled stops (covers, buttons, cards, video, contact)
 
+## 2026-10-28: Inactive CV target
+
+Welcome keeps its DOWNLOAD CV stencil text but has no hit target or keyboard action while its href is null. Experience/Contact shared CV links render without an href in desktop panels and mobile Details. The old PDF has been removed; layout, donor ownership and other document actions are unchanged.
+
 ## 2026-10-05: repository traffic row on Chess Review
 
 The shared Chess Review project record owns `traffic.path`, `traffic.url`, and its

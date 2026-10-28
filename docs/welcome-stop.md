@@ -1,5 +1,9 @@
 # Welcome stop (live GitHub data, mini-me, section nav, commit banner)
 
+## 2026-10-28: CV temporarily unavailable
+
+The DOWNLOAD CV row remains visible with `href:null`, so it creates no pointer or keyboard action. Experience and Contact use the same null target in their shared links; mobile Details and legacy desktop panels keep inert, aria-disabled labels without an href. The outdated PDF is removed. Restore the three null CV targets when a replacement is supplied.
+
 ## 2026-10-05: Chess Review repository traffic
 
 Chess Review now displays only cumulative repository clones and views over its
