@@ -415,158 +415,170 @@
       "views": {
         "count": 31,
         "uniques": 7,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 112,
         "uniques": 27,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-25": {
       "views": {
         "count": 7,
         "uniques": 6,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 117,
         "uniques": 36,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-26": {
       "views": {
         "count": 12,
         "uniques": 8,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 19,
         "uniques": 14,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-27": {
       "views": {
         "count": 12,
         "uniques": 5,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 32,
         "uniques": 6,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-28": {
       "views": {
         "count": 33,
         "uniques": 15,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 115,
         "uniques": 35,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-29": {
       "views": {
         "count": 33,
         "uniques": 10,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 55,
         "uniques": 22,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-30": {
       "views": {
         "count": 35,
         "uniques": 12,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 37,
         "uniques": 11,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-10-31": {
       "views": {
         "count": 18,
         "uniques": 7,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 79,
         "uniques": 23,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-11-01": {
       "views": {
         "count": 20,
         "uniques": 6,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 4,
         "uniques": 3,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-11-02": {
       "views": {
         "count": 39,
         "uniques": 12,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 49,
         "uniques": 15,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-11-03": {
       "views": {
         "count": 13,
         "uniques": 5,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 16,
         "uniques": 11,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-11-04": {
       "views": {
         "count": 9,
         "uniques": 3,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 295,
         "uniques": 12,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     },
     "2026-11-05": {
       "views": {
         "count": 23,
         "uniques": 7,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
       },
       "clones": {
         "count": 9,
         "uniques": 5,
-        "observedAt": "2026-11-06T11:26:12.022Z"
+        "observedAt": "2026-11-07T10:38:51.793Z"
+      }
+    },
+    "2026-11-06": {
+      "views": {
+        "count": 16,
+        "uniques": 5,
+        "observedAt": "2026-11-07T10:38:51.793Z"
+      },
+      "clones": {
+        "count": 22,
+        "uniques": 8,
+        "observedAt": "2026-11-07T10:38:51.793Z"
       }
     }
   },
-  "lastCollectedAt": "2026-11-06T11:26:12.022Z"
+  "lastCollectedAt": "2026-11-07T10:38:51.793Z"
 }
