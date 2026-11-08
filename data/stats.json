@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-08T18:38:46.386Z",
+  "generatedAt": "2026-11-08T22:39:15.076Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 2,
-    "month": 130,
-    "year": 2542,
-    "total": 2577,
-    "currentStreak": 18,
+    "today": 6,
+    "month": 134,
+    "year": 2546,
+    "total": 2581,
+    "currentStreak": 19,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2518,
+      "commits": 2521,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 2,
-    "month": 129,
-    "year": 2518,
-    "total": 2549
+    "today": 5,
+    "month": 132,
+    "year": 2521,
+    "total": 2552
   },
   "calendar": [
     {
@@ -2208,24 +2208,24 @@
     },
     {
       "date": "2026-11-08",
-      "count": 0,
-      "level": "NONE",
+      "count": 4,
+      "level": "FIRST_QUARTILE",
       "weekday": 0
     }
   ],
   "repos": {
-    "publicCount": 10,
+    "publicCount": 11,
     "totalStars": 22,
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58685595,
-        "percent": 89.8
+        "bytes": 58728007,
+        "percent": 89.7
       },
       {
         "name": "JavaScript",
-        "bytes": 3257752,
-        "percent": 5
+        "bytes": 3364103,
+        "percent": 5.1
       },
       {
         "name": "Python",
@@ -2234,7 +2234,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 295362,
+        "bytes": 310676,
         "percent": 0.5
       },
       {
@@ -2266,14 +2266,19 @@
         "name": "Shell",
         "bytes": 468,
         "percent": 0
+      },
+      {
+        "name": "NSIS",
+        "bytes": 436,
+        "percent": 0
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-08T13:46:45Z",
-      "language": "HTML"
+      "name": "Notr",
+      "description": "Tiny, minimalist note-taking for Windows, Linux and MacOS.",
+      "url": "https://github.com/T-Julsgaard/Notr",
+      "pushedAt": "2026-11-08T20:39:39Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2324,7 +2329,7 @@
     ]
   },
   "profile": {
-    "followers": 6,
+    "followers": 7,
     "createdAt": "2024-11-19T21:48:55Z"
   }
 }
