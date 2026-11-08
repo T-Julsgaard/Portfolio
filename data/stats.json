@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-07T20:39:19.957Z",
+  "generatedAt": "2026-11-08T00:11:17.087Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 6,
+    "today": 2,
     "month": 130,
     "year": 2542,
     "total": 2577,
@@ -16,54 +16,12 @@
     }
   },
   "commits": {
-    "today": 6,
+    "today": 2,
     "month": 129,
     "year": 2518,
     "total": 2549
   },
   "calendar": [
-    {
-      "date": "2025-11-02",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 0
-    },
-    {
-      "date": "2025-11-03",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 1
-    },
-    {
-      "date": "2025-11-04",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 2
-    },
-    {
-      "date": "2025-11-05",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 3
-    },
-    {
-      "date": "2025-11-06",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 4
-    },
-    {
-      "date": "2025-11-07",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 5
-    },
-    {
-      "date": "2025-11-08",
-      "count": 0,
-      "level": "NONE",
-      "weekday": 6
-    },
     {
       "date": "2025-11-09",
       "count": 0,
@@ -2247,6 +2205,12 @@
       "count": 2,
       "level": "FIRST_QUARTILE",
       "weekday": 6
+    },
+    {
+      "date": "2026-11-08",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 0
     }
   ],
   "repos": {
@@ -2308,7 +2272,7 @@
       "name": "Portfolio",
       "description": "http://julsgaard.dev/",
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-07T16:43:58Z",
+      "pushedAt": "2026-11-07T20:39:24Z",
       "language": "HTML"
     },
     "featured": [
