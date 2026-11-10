@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-10T18:46:49.178Z",
+  "generatedAt": "2026-11-10T23:54:18.633Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 47,
+    "today": 11,
     "month": 188,
     "year": 2600,
     "total": 2635,
-    "currentStreak": 21,
+    "currentStreak": 22,
     "longestStreak": 24,
     "breakdown": {
       "commits": 2574,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 46,
+    "today": 10,
     "month": 185,
     "year": 2574,
     "total": 2605
@@ -2223,10 +2223,16 @@
       "count": 11,
       "level": "FIRST_QUARTILE",
       "weekday": 2
+    },
+    {
+      "date": "2026-11-11",
+      "count": 1,
+      "level": "FIRST_QUARTILE",
+      "weekday": 3
     }
   ],
   "repos": {
-    "publicCount": 12,
+    "publicCount": 13,
     "totalStars": 22,
     "languages": [
       {
@@ -2286,11 +2292,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-10T11:41:53Z",
-      "language": "HTML"
+      "name": "Utilr",
+      "description": "One quiet launcher for small tools. notr, snipr and what comes next, in one tray icon.",
+      "url": "https://github.com/T-Julsgaard/Utilr",
+      "pushedAt": "2026-11-10T23:01:22Z",
+      "language": null
     },
     "featured": [
       {
