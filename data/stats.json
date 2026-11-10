@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T03:13:03.329Z",
+  "generatedAt": "2026-11-10T11:30:15.233Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 47,
@@ -2286,11 +2286,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Notr",
-      "description": "Tiny, minimalist note-taking for Windows, Linux and MacOS.",
-      "url": "https://github.com/T-Julsgaard/Notr",
-      "pushedAt": "2026-11-10T01:22:43Z",
-      "language": "JavaScript"
+      "name": "Portfolio",
+      "description": "http://julsgaard.dev/",
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-11-10T03:13:08Z",
+      "language": "HTML"
     },
     "featured": [
       {
