@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-09T20:55:58.099Z",
+  "generatedAt": "2026-11-10T03:13:03.329Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 35,
-    "month": 165,
-    "year": 2577,
-    "total": 2612,
-    "currentStreak": 20,
+    "today": 47,
+    "month": 188,
+    "year": 2600,
+    "total": 2635,
+    "currentStreak": 21,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2552,
+      "commits": 2574,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 34,
-    "month": 163,
-    "year": 2552,
-    "total": 2583
+    "today": 46,
+    "month": 185,
+    "year": 2574,
+    "total": 2605
   },
   "calendar": [
     {
@@ -2208,30 +2208,36 @@
     },
     {
       "date": "2026-11-08",
-      "count": 4,
+      "count": 11,
       "level": "FIRST_QUARTILE",
       "weekday": 0
     },
     {
       "date": "2026-11-09",
-      "count": 31,
+      "count": 36,
       "level": "FIRST_QUARTILE",
       "weekday": 1
+    },
+    {
+      "date": "2026-11-10",
+      "count": 11,
+      "level": "FIRST_QUARTILE",
+      "weekday": 2
     }
   ],
   "repos": {
-    "publicCount": 11,
+    "publicCount": 12,
     "totalStars": 22,
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58728007,
-        "percent": 89.9
+        "bytes": 58743789,
+        "percent": 89.6
       },
       {
         "name": "JavaScript",
-        "bytes": 3225947,
-        "percent": 4.9
+        "bytes": 3374626,
+        "percent": 5.1
       },
       {
         "name": "Python",
@@ -2240,7 +2246,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 302275,
+        "bytes": 341955,
         "percent": 0.5
       },
       {
@@ -2269,21 +2275,21 @@
         "percent": 0
       },
       {
-        "name": "Shell",
-        "bytes": 468,
+        "name": "NSIS",
+        "bytes": 875,
         "percent": 0
       },
       {
-        "name": "NSIS",
-        "bytes": 436,
+        "name": "Shell",
+        "bytes": 468,
         "percent": 0
       }
     ],
     "mostRecent": {
-      "name": "Chess-Review",
-      "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
-      "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-11-09T12:57:57Z",
+      "name": "Notr",
+      "description": "Tiny, minimalist note-taking for Windows, Linux and MacOS.",
+      "url": "https://github.com/T-Julsgaard/Notr",
+      "pushedAt": "2026-11-10T01:22:43Z",
       "language": "JavaScript"
     },
     "featured": [
