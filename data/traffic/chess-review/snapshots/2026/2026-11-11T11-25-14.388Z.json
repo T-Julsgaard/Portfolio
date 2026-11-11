@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "repository": "T-Julsgaard/Chess-Review",
+  "generatedAt": "2026-11-11T11:25:14.388Z",
+  "windowDays": 14,
+  "views": {
+    "count": 320,
+    "uniques": 101,
+    "views": [
+      {
+        "timestamp": "2026-10-28T00:00:00Z",
+        "count": 33,
+        "uniques": 15
+      },
+      {
+        "timestamp": "2026-10-29T00:00:00Z",
+        "count": 33,
+        "uniques": 10
+      },
+      {
+        "timestamp": "2026-10-30T00:00:00Z",
+        "count": 35,
+        "uniques": 12
+      },
+      {
+        "timestamp": "2026-10-31T00:00:00Z",
+        "count": 18,
+        "uniques": 7
+      },
+      {
+        "timestamp": "2026-11-01T00:00:00Z",
+        "count": 20,
+        "uniques": 6
+      },
+      {
+        "timestamp": "2026-11-02T00:00:00Z",
+        "count": 39,
+        "uniques": 12
+      },
+      {
+        "timestamp": "2026-11-03T00:00:00Z",
+        "count": 13,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-11-04T00:00:00Z",
+        "count": 9,
+        "uniques": 3
+      },
+      {
+        "timestamp": "2026-11-05T00:00:00Z",
+        "count": 23,
+        "uniques": 7
+      },
+      {
+        "timestamp": "2026-11-06T00:00:00Z",
+        "count": 16,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-11-07T00:00:00Z",
+        "count": 10,
+        "uniques": 4
+      },
+      {
+        "timestamp": "2026-11-08T00:00:00Z",
+        "count": 14,
+        "uniques": 7
+      },
+      {
+        "timestamp": "2026-11-09T00:00:00Z",
+        "count": 41,
+        "uniques": 8
+      },
+      {
+        "timestamp": "2026-11-10T00:00:00Z",
+        "count": 16,
+        "uniques": 12
+      }
+    ]
+  },
+  "clones": {
+    "count": 1086,
+    "uniques": 154,
+    "clones": [
+      {
+        "timestamp": "2026-10-28T00:00:00Z",
+        "count": 115,
+        "uniques": 35
+      },
+      {
+        "timestamp": "2026-10-29T00:00:00Z",
+        "count": 55,
+        "uniques": 22
+      },
+      {
+        "timestamp": "2026-10-30T00:00:00Z",
+        "count": 37,
+        "uniques": 11
+      },
+      {
+        "timestamp": "2026-10-31T00:00:00Z",
+        "count": 79,
+        "uniques": 23
+      },
+      {
+        "timestamp": "2026-11-01T00:00:00Z",
+        "count": 4,
+        "uniques": 3
+      },
+      {
+        "timestamp": "2026-11-02T00:00:00Z",
+        "count": 49,
+        "uniques": 15
+      },
+      {
+        "timestamp": "2026-11-03T00:00:00Z",
+        "count": 16,
+        "uniques": 11
+      },
+      {
+        "timestamp": "2026-11-04T00:00:00Z",
+        "count": 295,
+        "uniques": 12
+      },
+      {
+        "timestamp": "2026-11-05T00:00:00Z",
+        "count": 9,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-11-06T00:00:00Z",
+        "count": 22,
+        "uniques": 8
+      },
+      {
+        "timestamp": "2026-11-07T00:00:00Z",
+        "count": 3,
+        "uniques": 3
+      },
+      {
+        "timestamp": "2026-11-08T00:00:00Z",
+        "count": 5,
+        "uniques": 5
+      },
+      {
+        "timestamp": "2026-11-09T00:00:00Z",
+        "count": 98,
+        "uniques": 15
+      },
+      {
+        "timestamp": "2026-11-10T00:00:00Z",
+        "count": 299,
+        "uniques": 18
+      }
+    ]
+  },
+  "referrers": [
+    {
+      "referrer": "Google",
+      "count": 32,
+      "uniques": 24
+    },
+    {
+      "referrer": "github.com",
+      "count": 28,
+      "uniques": 13
+    },
+    {
+      "referrer": "DuckDuckGo",
+      "count": 2,
+      "uniques": 2
+    },
+    {
+      "referrer": "prod.outgoing.prod.webservices.mozgcp.net",
+      "count": 2,
+      "uniques": 1
+    },
+    {
+      "referrer": "search.brave.com",
+      "count": 1,
+      "uniques": 1
+    }
+  ],
+  "paths": [
+    {
+      "path": "/T-Julsgaard/Chess-Review",
+      "title": "Overview",
+      "count": 137,
+      "uniques": 84
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/pulls",
+      "title": "/pulls",
+      "count": 21,
+      "uniques": 7
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/issues",
+      "title": "/issues",
+      "count": 15,
+      "uniques": 6
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/blob/main/ATTRIBUTIONS.md",
+      "title": "/blob/main/ATTRIBUTIONS.md",
+      "count": 14,
+      "uniques": 7
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/tree/main/icons",
+      "title": "/tree/main/icons",
+      "count": 14,
+      "uniques": 6
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/commits/main",
+      "title": "/commits/main",
+      "count": 10,
+      "uniques": 3
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/blob/main/PRIVACY.md",
+      "title": "/blob/main/PRIVACY.md",
+      "count": 6,
+      "uniques": 3
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/blob/main/icons/best.svg",
+      "title": "/blob/main/icons/best.svg",
+      "count": 6,
+      "uniques": 3
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/pulse",
+      "title": "/pulse",
+      "count": 5,
+      "uniques": 4
+    },
+    {
+      "path": "/T-Julsgaard/Chess-Review/actions",
+      "title": "/actions",
+      "count": 5,
+      "uniques": 3
+    }
+  ]
+}
