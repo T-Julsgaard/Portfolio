@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-11T12:25:28.525Z",
+  "generatedAt": "2026-11-11T19:47:35.900Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 18,
-    "month": 195,
-    "year": 2607,
-    "total": 2642,
+    "today": 42,
+    "month": 223,
+    "year": 2635,
+    "total": 2670,
     "currentStreak": 22,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2580,
+      "commits": 2608,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 16,
-    "month": 191,
-    "year": 2580,
-    "total": 2611
+    "today": 40,
+    "month": 219,
+    "year": 2608,
+    "total": 2639
   },
   "calendar": [
     {
@@ -2208,25 +2208,25 @@
     },
     {
       "date": "2026-11-08",
-      "count": 11,
+      "count": 14,
       "level": "FIRST_QUARTILE",
       "weekday": 0
     },
     {
       "date": "2026-11-09",
-      "count": 36,
+      "count": 37,
       "level": "FIRST_QUARTILE",
       "weekday": 1
     },
     {
       "date": "2026-11-10",
-      "count": 12,
+      "count": 23,
       "level": "FIRST_QUARTILE",
       "weekday": 2
     },
     {
       "date": "2026-11-11",
-      "count": 6,
+      "count": 19,
       "level": "FIRST_QUARTILE",
       "weekday": 3
     }
@@ -2237,13 +2237,13 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58768778,
-        "percent": 88.8
+        "bytes": 58778935,
+        "percent": 88.6
       },
       {
         "name": "JavaScript",
-        "bytes": 3820028,
-        "percent": 5.8
+        "bytes": 3926041,
+        "percent": 5.9
       },
       {
         "name": "Python",
@@ -2252,8 +2252,8 @@
       },
       {
         "name": "CSS",
-        "bytes": 490801,
-        "percent": 0.7
+        "bytes": 527344,
+        "percent": 0.8
       },
       {
         "name": "MATLAB",
@@ -2292,11 +2292,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-11T11:25:15Z",
-      "language": "HTML"
+      "name": "Notr",
+      "description": "Tiny, minimalist note-taking for Windows, Linux and MacOS.",
+      "url": "https://github.com/T-Julsgaard/Notr",
+      "pushedAt": "2026-11-11T18:11:05Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
