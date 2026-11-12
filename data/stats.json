@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-11T19:47:35.900Z",
+  "generatedAt": "2026-11-12T01:47:34.565Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 42,
-    "month": 223,
-    "year": 2635,
-    "total": 2670,
-    "currentStreak": 22,
+    "today": 34,
+    "month": 221,
+    "year": 2633,
+    "total": 2668,
+    "currentStreak": 23,
     "longestStreak": 24,
     "breakdown": {
       "commits": 2608,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 40,
+    "today": 33,
     "month": 219,
     "year": 2608,
     "total": 2639
@@ -2208,42 +2208,48 @@
     },
     {
       "date": "2026-11-08",
-      "count": 14,
+      "count": 10,
       "level": "FIRST_QUARTILE",
       "weekday": 0
     },
     {
       "date": "2026-11-09",
-      "count": 37,
+      "count": 36,
       "level": "FIRST_QUARTILE",
       "weekday": 1
     },
     {
       "date": "2026-11-10",
-      "count": 23,
+      "count": 11,
       "level": "FIRST_QUARTILE",
       "weekday": 2
     },
     {
       "date": "2026-11-11",
-      "count": 19,
+      "count": 33,
       "level": "FIRST_QUARTILE",
       "weekday": 3
+    },
+    {
+      "date": "2026-11-12",
+      "count": 1,
+      "level": "FIRST_QUARTILE",
+      "weekday": 4
     }
   ],
   "repos": {
-    "publicCount": 13,
+    "publicCount": 11,
     "totalStars": 23,
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58778935,
-        "percent": 88.6
+        "bytes": 58720752,
+        "percent": 89
       },
       {
         "name": "JavaScript",
-        "bytes": 3926041,
-        "percent": 5.9
+        "bytes": 3670786,
+        "percent": 5.6
       },
       {
         "name": "Python",
@@ -2252,8 +2258,8 @@
       },
       {
         "name": "CSS",
-        "bytes": 527344,
-        "percent": 0.8
+        "bytes": 471898,
+        "percent": 0.7
       },
       {
         "name": "MATLAB",
@@ -2281,21 +2287,21 @@
         "percent": 0
       },
       {
-        "name": "NSIS",
-        "bytes": 1314,
+        "name": "Shell",
+        "bytes": 468,
         "percent": 0
       },
       {
-        "name": "Shell",
-        "bytes": 468,
+        "name": "NSIS",
+        "bytes": 439,
         "percent": 0
       }
     ],
     "mostRecent": {
-      "name": "Notr",
-      "description": "Tiny, minimalist note-taking for Windows, Linux and MacOS.",
-      "url": "https://github.com/T-Julsgaard/Notr",
-      "pushedAt": "2026-11-11T18:11:05Z",
+      "name": "Utilr",
+      "description": "if you want better tools, try utilr",
+      "url": "https://github.com/T-Julsgaard/Utilr",
+      "pushedAt": "2026-11-12T01:36:35Z",
       "language": "JavaScript"
     },
     "featured": [
