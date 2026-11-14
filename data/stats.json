@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T06:52:02.245Z",
+  "generatedAt": "2026-11-14T13:56:40.040Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 5,
@@ -2251,7 +2251,7 @@
   ],
   "repos": {
     "publicCount": 11,
-    "totalStars": 24,
+    "totalStars": 25,
     "languages": [
       {
         "name": "HTML",
@@ -2313,7 +2313,7 @@
       "name": "Portfolio",
       "description": "http://julsgaard.dev/",
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-14T00:24:55Z",
+      "pushedAt": "2026-11-14T10:52:31Z",
       "language": "HTML"
     },
     "featured": [
@@ -2323,7 +2323,7 @@
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
         "pushedAt": "2026-11-09T12:57:57Z",
-        "stars": 24,
+        "stars": 25,
         "language": "JavaScript"
       },
       {
