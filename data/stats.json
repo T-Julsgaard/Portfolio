@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-15T16:48:20.806Z",
+  "generatedAt": "2026-11-15T21:28:26.220Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 0,
-    "month": 238,
-    "year": 2650,
-    "total": 2685,
-    "currentStreak": 0,
+    "today": 17,
+    "month": 255,
+    "year": 2667,
+    "total": 2702,
+    "currentStreak": 1,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2624,
+      "commits": 2641,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 0,
-    "month": 235,
-    "year": 2624,
-    "total": 2655
+    "today": 17,
+    "month": 252,
+    "year": 2641,
+    "total": 2672
   },
   "calendar": [
     {
@@ -2208,8 +2208,8 @@
     },
     {
       "date": "2026-11-15",
-      "count": 0,
-      "level": "NONE",
+      "count": 17,
+      "level": "FIRST_QUARTILE",
       "weekday": 0
     }
   ],
@@ -2224,7 +2224,7 @@
       },
       {
         "name": "JavaScript",
-        "bytes": 3702484,
+        "bytes": 3703970,
         "percent": 5.6
       },
       {
@@ -2274,11 +2274,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-15T11:27:22Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-11-15T21:20:49Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2286,7 +2286,7 @@
         "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-11-15T00:23:08Z",
+        "pushedAt": "2026-11-15T21:20:49Z",
         "stars": 25,
         "language": "JavaScript"
       },
