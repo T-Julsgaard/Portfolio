@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-17T10:57:43.884Z",
+  "generatedAt": "2026-11-17T19:41:15.855Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 22,
-    "month": 282,
-    "year": 2694,
-    "total": 2729,
+    "today": 29,
+    "month": 289,
+    "year": 2701,
+    "total": 2736,
     "currentStreak": 3,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2668,
+      "commits": 2675,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 22,
-    "month": 279,
-    "year": 2668,
-    "total": 2699
+    "today": 29,
+    "month": 286,
+    "year": 2675,
+    "total": 2706
   },
   "calendar": [
     {
@@ -2220,33 +2220,33 @@
     },
     {
       "date": "2026-11-17",
-      "count": 3,
+      "count": 10,
       "level": "FIRST_QUARTILE",
       "weekday": 2
     }
   ],
   "repos": {
     "publicCount": 11,
-    "totalStars": 26,
+    "totalStars": 27,
     "languages": [
       {
         "name": "HTML",
-        "bytes": 58727714,
-        "percent": 88.3
+        "bytes": 60068281,
+        "percent": 88.1
       },
       {
         "name": "JavaScript",
-        "bytes": 4183721,
-        "percent": 6.3
+        "bytes": 4446353,
+        "percent": 6.5
       },
       {
         "name": "Python",
         "bytes": 2825175,
-        "percent": 4.2
+        "percent": 4.1
       },
       {
         "name": "CSS",
-        "bytes": 508946,
+        "bytes": 570916,
         "percent": 0.8
       },
       {
@@ -2286,10 +2286,10 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-17T02:18:15Z",
+      "name": "Software_engineering_project_sem1",
+      "description": "PowerBuddy: an offline electricity and water household simulation",
+      "url": "https://github.com/T-Julsgaard/Software_engineering_project_sem1",
+      "pushedAt": "2026-11-17T18:59:43Z",
       "language": "HTML"
     },
     "featured": [
@@ -2299,7 +2299,7 @@
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
         "pushedAt": "2026-11-16T23:25:28Z",
-        "stars": 26,
+        "stars": 27,
         "language": "JavaScript"
       },
       {
