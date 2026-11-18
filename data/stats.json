@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-17T19:41:15.855Z",
+  "generatedAt": "2026-11-18T02:07:34.074Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 29,
+    "today": 10,
     "month": 289,
     "year": 2701,
     "total": 2736,
@@ -16,7 +16,7 @@
     }
   },
   "commits": {
-    "today": 29,
+    "today": 10,
     "month": 286,
     "year": 2675,
     "total": 2706
@@ -2223,6 +2223,12 @@
       "count": 10,
       "level": "FIRST_QUARTILE",
       "weekday": 2
+    },
+    {
+      "date": "2026-11-18",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 3
     }
   ],
   "repos": {
@@ -2231,12 +2237,12 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 60068281,
+        "bytes": 60074506,
         "percent": 88.1
       },
       {
         "name": "JavaScript",
-        "bytes": 4446353,
+        "bytes": 4452469,
         "percent": 6.5
       },
       {
@@ -2246,7 +2252,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 570916,
+        "bytes": 571025,
         "percent": 0.8
       },
       {
@@ -2286,10 +2292,10 @@
       }
     ],
     "mostRecent": {
-      "name": "Software_engineering_project_sem1",
-      "description": "PowerBuddy: an offline electricity and water household simulation",
-      "url": "https://github.com/T-Julsgaard/Software_engineering_project_sem1",
-      "pushedAt": "2026-11-17T18:59:43Z",
+      "name": "Portfolio",
+      "description": "http://julsgaard.dev/",
+      "url": "https://github.com/T-Julsgaard/Portfolio",
+      "pushedAt": "2026-11-17T19:41:20Z",
       "language": "HTML"
     },
     "featured": [
