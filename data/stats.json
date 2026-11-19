@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-19T01:03:14.194Z",
+  "generatedAt": "2026-11-19T09:07:59.395Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 12,
-    "month": 301,
-    "year": 2713,
-    "total": 2748,
+    "today": 17,
+    "month": 306,
+    "year": 2718,
+    "total": 2753,
     "currentStreak": 5,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2686,
+      "commits": 2691,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 11,
-    "month": 297,
-    "year": 2686,
-    "total": 2717
+    "today": 16,
+    "month": 302,
+    "year": 2691,
+    "total": 2722
   },
   "calendar": [
     {
@@ -2232,7 +2232,7 @@
     },
     {
       "date": "2026-11-19",
-      "count": 2,
+      "count": 7,
       "level": "FIRST_QUARTILE",
       "weekday": 4
     }
@@ -2243,13 +2243,13 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 60074499,
+        "bytes": 60075525,
         "percent": 87.7
       },
       {
         "name": "JavaScript",
-        "bytes": 4737952,
-        "percent": 6.9
+        "bytes": 4774948,
+        "percent": 7
       },
       {
         "name": "Python",
@@ -2258,7 +2258,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 584094,
+        "bytes": 584139,
         "percent": 0.9
       },
       {
@@ -2301,7 +2301,7 @@
       "name": "Chess-Review",
       "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
       "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-11-18T23:58:40Z",
+      "pushedAt": "2026-11-19T01:42:05Z",
       "language": "JavaScript"
     },
     "featured": [
@@ -2310,7 +2310,7 @@
         "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-11-18T23:58:40Z",
+        "pushedAt": "2026-11-19T01:42:05Z",
         "stars": 27,
         "language": "JavaScript"
       },
