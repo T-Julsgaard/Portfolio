@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-19T18:29:17.292Z",
+  "generatedAt": "2026-11-20T00:50:49.850Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 17,
+    "today": 7,
     "month": 306,
     "year": 2718,
-    "total": 2753,
+    "total": 2760,
     "currentStreak": 5,
     "longestStreak": 24,
     "breakdown": {
@@ -16,10 +16,10 @@
     }
   },
   "commits": {
-    "today": 16,
+    "today": 7,
     "month": 302,
     "year": 2691,
-    "total": 2722
+    "total": 2729
   },
   "calendar": [
     {
@@ -2235,6 +2235,12 @@
       "count": 7,
       "level": "FIRST_QUARTILE",
       "weekday": 4
+    },
+    {
+      "date": "2026-11-20",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 5
     }
   ],
   "repos": {
@@ -2301,7 +2307,7 @@
       "name": "Portfolio",
       "description": "http://julsgaard.dev/",
       "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-19T12:04:47Z",
+      "pushedAt": "2026-11-19T18:29:22Z",
       "language": "HTML"
     },
     "featured": [
