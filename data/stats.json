@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-11-20T17:06:19.077Z",
+  "generatedAt": "2026-11-20T23:16:01.322Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
     "today": 11,
-    "month": 310,
-    "year": 2722,
-    "total": 2764,
+    "month": 317,
+    "year": 2729,
+    "total": 2771,
     "currentStreak": 6,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2695,
+      "commits": 2702,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
@@ -17,9 +17,9 @@
   },
   "commits": {
     "today": 11,
-    "month": 306,
-    "year": 2695,
-    "total": 2733
+    "month": 313,
+    "year": 2702,
+    "total": 2740
   },
   "calendar": [
     {
@@ -2238,9 +2238,15 @@
     },
     {
       "date": "2026-11-20",
-      "count": 4,
+      "count": 11,
       "level": "FIRST_QUARTILE",
       "weekday": 5
+    },
+    {
+      "date": "2026-11-21",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 6
     }
   ],
   "repos": {
@@ -2304,11 +2310,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Software_engineering_project_sem1",
-      "description": "PowerBuddy: an offline electricity and water household simulation",
-      "url": "https://github.com/T-Julsgaard/Software_engineering_project_sem1",
-      "pushedAt": "2026-11-20T14:57:21Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-11-20T22:20:33Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2316,7 +2322,7 @@
         "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-11-19T01:42:05Z",
+        "pushedAt": "2026-11-20T22:20:33Z",
         "stars": 27,
         "language": "JavaScript"
       },
