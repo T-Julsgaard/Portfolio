@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-23T02:14:02.134Z",
+  "generatedAt": "2026-11-23T11:00:18.733Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 16,
-    "month": 350,
-    "year": 2762,
-    "total": 2804,
+    "today": 18,
+    "month": 352,
+    "year": 2764,
+    "total": 2806,
     "currentStreak": 9,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2735,
+      "commits": 2737,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 16,
-    "month": 346,
-    "year": 2735,
-    "total": 2773
+    "today": 18,
+    "month": 348,
+    "year": 2737,
+    "total": 2775
   },
   "calendar": [
     {
@@ -2214,7 +2214,7 @@
     },
     {
       "date": "2026-11-23",
-      "count": 12,
+      "count": 14,
       "level": "FIRST_QUARTILE",
       "weekday": 1
     }
@@ -2226,11 +2226,11 @@
       {
         "name": "HTML",
         "bytes": 60106860,
-        "percent": 87.4
+        "percent": 87.3
       },
       {
         "name": "JavaScript",
-        "bytes": 5019408,
+        "bytes": 5058451,
         "percent": 7.3
       },
       {
@@ -2283,7 +2283,7 @@
       "name": "Chess-Review",
       "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
       "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-11-23T01:48:10Z",
+      "pushedAt": "2026-11-23T08:18:03Z",
       "language": "JavaScript"
     },
     "featured": [
@@ -2292,7 +2292,7 @@
         "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-11-23T01:48:10Z",
+        "pushedAt": "2026-11-23T08:18:03Z",
         "stars": 28,
         "language": "JavaScript"
       },
