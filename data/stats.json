@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-25T12:10:17.996Z",
+  "generatedAt": "2026-11-25T21:54:20.480Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 46,
-    "month": 423,
-    "year": 2835,
-    "total": 2877,
+    "today": 75,
+    "month": 452,
+    "year": 2864,
+    "total": 2906,
     "currentStreak": 11,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2808,
+      "commits": 2837,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 46,
-    "month": 419,
-    "year": 2808,
-    "total": 2846
+    "today": 75,
+    "month": 448,
+    "year": 2837,
+    "total": 2875
   },
   "calendar": [
     {
@@ -2226,7 +2226,7 @@
     },
     {
       "date": "2026-11-25",
-      "count": 2,
+      "count": 31,
       "level": "FIRST_QUARTILE",
       "weekday": 3
     }
@@ -2237,12 +2237,12 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 60058278,
+        "bytes": 60058835,
         "percent": 86.7
       },
       {
         "name": "JavaScript",
-        "bytes": 5440477,
+        "bytes": 5478174,
         "percent": 7.9
       },
       {
@@ -2252,7 +2252,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 675806,
+        "bytes": 684613,
         "percent": 1
       },
       {
@@ -2292,11 +2292,11 @@
       }
     ],
     "mostRecent": {
-      "name": "Portfolio",
-      "description": "http://julsgaard.dev/",
-      "url": "https://github.com/T-Julsgaard/Portfolio",
-      "pushedAt": "2026-11-25T02:55:45Z",
-      "language": "HTML"
+      "name": "Chess-Review",
+      "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
+      "url": "https://github.com/T-Julsgaard/Chess-Review",
+      "pushedAt": "2026-11-25T21:30:24Z",
+      "language": "JavaScript"
     },
     "featured": [
       {
@@ -2304,7 +2304,7 @@
         "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-11-24T23:51:05Z",
+        "pushedAt": "2026-11-25T21:30:24Z",
         "stars": 28,
         "language": "JavaScript"
       },
