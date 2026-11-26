@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-11-25T21:54:20.480Z",
+  "generatedAt": "2026-11-26T03:56:30.673Z",
   "timezone": "Europe/Copenhagen",
   "contributions": {
-    "today": 75,
-    "month": 452,
-    "year": 2864,
-    "total": 2906,
+    "today": 36,
+    "month": 457,
+    "year": 2869,
+    "total": 2911,
     "currentStreak": 11,
     "longestStreak": 24,
     "breakdown": {
-      "commits": 2837,
+      "commits": 2842,
       "issues": 1,
       "pullRequests": 7,
       "reviews": 0
     }
   },
   "commits": {
-    "today": 75,
-    "month": 448,
-    "year": 2837,
-    "total": 2875
+    "today": 36,
+    "month": 453,
+    "year": 2842,
+    "total": 2880
   },
   "calendar": [
     {
@@ -2226,9 +2226,15 @@
     },
     {
       "date": "2026-11-25",
-      "count": 31,
+      "count": 36,
       "level": "FIRST_QUARTILE",
       "weekday": 3
+    },
+    {
+      "date": "2026-11-26",
+      "count": 0,
+      "level": "NONE",
+      "weekday": 4
     }
   ],
   "repos": {
@@ -2237,12 +2243,12 @@
     "languages": [
       {
         "name": "HTML",
-        "bytes": 60058835,
-        "percent": 86.7
+        "bytes": 60058895,
+        "percent": 86.6
       },
       {
         "name": "JavaScript",
-        "bytes": 5478174,
+        "bytes": 5507854,
         "percent": 7.9
       },
       {
@@ -2252,7 +2258,7 @@
       },
       {
         "name": "CSS",
-        "bytes": 684613,
+        "bytes": 689751,
         "percent": 1
       },
       {
@@ -2295,7 +2301,7 @@
       "name": "Chess-Review",
       "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
       "url": "https://github.com/T-Julsgaard/Chess-Review",
-      "pushedAt": "2026-11-25T21:30:24Z",
+      "pushedAt": "2026-11-25T22:01:59Z",
       "language": "JavaScript"
     },
     "featured": [
@@ -2304,7 +2310,7 @@
         "description": "Free, open source chess game review. [Currently 1000+ active, weekly users]",
         "url": "https://github.com/T-Julsgaard/Chess-Review",
         "homepageUrl": "https://chromewebstore.google.com/detail/chess-review/pdbffcjdmcadihmnmenkadndbdbigfam?hl=en",
-        "pushedAt": "2026-11-25T21:30:24Z",
+        "pushedAt": "2026-11-25T22:01:59Z",
         "stars": 28,
         "language": "JavaScript"
       },
